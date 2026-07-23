@@ -9,6 +9,7 @@ import 'package:utility_toolbox/core/utils/file_utils.dart';
 import 'package:utility_toolbox/core/utils/result.dart';
 import 'package:utility_toolbox/core/widgets/error_state.dart';
 import 'package:utility_toolbox/core/widgets/loading_indicator.dart';
+import 'package:utility_toolbox/core/theme/app_colors.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/pdf_toolkit/models/pdf_job_result.dart';
 import 'package:utility_toolbox/features/pdf_toolkit/providers/pdf_providers.dart';
@@ -26,6 +27,7 @@ class CompressPdfScreen extends ConsumerWidget {
 
     return ToolScaffold(
       title: 'Compress PDF',
+      accentColor: AppColors.toolAccent('pdf_toolkit'),
       body: _buildBody(context, ref, pdf, level, jobState, originalSize),
       bottomBar: jobState is! Success<PdfJobResult>
           ? Padding(
@@ -52,51 +54,60 @@ class CompressPdfScreen extends ConsumerWidget {
     return switch (jobState) {
       Loading() => const LoadingIndicator(message: 'Compressing PDF…'),
       ErrorResult(message: final msg) => ErrorState(
-          message: msg,
-          onRetry: () =>
-              ref.read(pdfJobStateProvider.notifier).state = const Idle(),
-        ),
+        message: msg,
+        onRetry: () =>
+            ref.read(pdfJobStateProvider.notifier).state = const Idle(),
+      ),
       Success(data: final result) => _CompressResultView(
-          result: result,
-          originalSize: originalSize,
-          ref: ref,
-        ),
+        result: result,
+        originalSize: originalSize,
+        ref: ref,
+      ),
       Idle() => SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              OutlinedButton.icon(
-                onPressed: () => _pickPdf(ref),
-                icon: const Icon(Icons.picture_as_pdf_outlined),
-                label: const Text('Pick a PDF'),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            OutlinedButton.icon(
+              onPressed: () => _pickPdf(ref),
+              icon: const Icon(Icons.picture_as_pdf_outlined),
+              label: const Text('Pick a PDF'),
+            ),
+            const SizedBox(height: 16),
+            if (pdf != null)
+              Text(
+                'Selected: ${pdf.path.split(Platform.pathSeparator).last}\n'
+                'Original size: ${FileUtils.formatFileSize(originalSize)}',
+              )
+            else
+              const Text(
+                'Choose a PDF file. Compression works best on image-heavy documents.',
               ),
-              const SizedBox(height: 16),
-              if (pdf != null)
-                Text(
-                  'Selected: ${pdf.path.split(Platform.pathSeparator).last}\n'
-                  'Original size: ${FileUtils.formatFileSize(originalSize)}',
-                )
-              else
-                const Text(
-                  'Choose a PDF file. Compression works best on image-heavy documents.',
+            const SizedBox(height: 16),
+            SegmentedButton<PdfCompressionLevel>(
+              segments: const [
+                ButtonSegment(
+                  value: PdfCompressionLevel.low,
+                  label: Text('Low'),
                 ),
-              const SizedBox(height: 16),
-              SegmentedButton<PdfCompressionLevel>(
-                segments: const [
-                  ButtonSegment(value: PdfCompressionLevel.low, label: Text('Low')),
-                  ButtonSegment(value: PdfCompressionLevel.medium, label: Text('Medium')),
-                  ButtonSegment(value: PdfCompressionLevel.high, label: Text('High')),
-                ],
-                selected: {level},
-                onSelectionChanged: (values) {
-                  ref.read(pdfCompressionLevelProvider.notifier).state =
-                      values.first;
-                },
-              ),
-            ],
-          ),
+                ButtonSegment(
+                  value: PdfCompressionLevel.medium,
+                  label: Text('Medium'),
+                ),
+                ButtonSegment(
+                  value: PdfCompressionLevel.high,
+                  label: Text('High'),
+                ),
+              ],
+              selected: {level},
+              onSelectionChanged: (values) {
+                ref.read(pdfCompressionLevelProvider.notifier).state =
+                    values.first;
+              },
+            ),
+          ],
         ),
+      ),
     };
   }
 
@@ -106,16 +117,18 @@ class CompressPdfScreen extends ConsumerWidget {
       allowedExtensions: ['pdf'],
     );
     if (result?.files.single.path == null) return;
-    ref.read(selectedSinglePdfProvider.notifier).state =
-        File(result!.files.single.path!);
+    ref.read(selectedSinglePdfProvider.notifier).state = File(
+      result!.files.single.path!,
+    );
   }
 
   Future<void> _compress(WidgetRef ref, String path) async {
     ref.read(pdfJobStateProvider.notifier).state = const Loading();
     try {
       final level = ref.read(pdfCompressionLevelProvider);
-      final result =
-          await ref.read(pdfServiceProvider).compressPdf(path, level);
+      final result = await ref
+          .read(pdfServiceProvider)
+          .compressPdf(path, level);
       ref.read(pdfJobStateProvider.notifier).state = Success(result);
     } catch (_) {
       ref.read(pdfJobStateProvider.notifier).state = const ErrorResult(
@@ -153,7 +166,9 @@ class _CompressResultView extends ConsumerWidget {
           const SizedBox(height: 8),
           FilledButton.tonal(
             onPressed: () async {
-              await this.ref.read(adsServiceProvider).showInterstitialIfAllowed();
+              await this.ref
+                  .read(adsServiceProvider)
+                  .showInterstitialIfAllowed();
               this.ref.read(pdfJobStateProvider.notifier).state = const Idle();
             },
             child: const Text('Done'),

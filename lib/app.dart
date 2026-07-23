@@ -14,8 +14,8 @@ class UtilityToolboxApp extends ConsumerWidget {
 
     return MaterialApp.router(
       title: 'Utility Toolbox',
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
       routerConfig: router,
       debugShowCheckedModeBanner: false,

@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:utility_toolbox/core/services/ads_service.dart';
 import 'package:utility_toolbox/core/services/permission_service.dart';
+import 'package:utility_toolbox/core/theme/app_colors.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/qr_barcode/providers/qr_providers.dart';
 
@@ -82,7 +83,10 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Scanned ($type)', style: Theme.of(context).textTheme.titleMedium),
+              Text(
+                'Scanned ($type)',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
               const SizedBox(height: 12),
               SelectableText(content),
               const SizedBox(height: 16),
@@ -104,7 +108,10 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
                         onPressed: () async {
                           final uri = Uri.tryParse(content);
                           if (uri != null && await canLaunchUrl(uri)) {
-                            await launchUrl(uri, mode: LaunchMode.externalApplication);
+                            await launchUrl(
+                              uri,
+                              mode: LaunchMode.externalApplication,
+                            );
                           }
                         },
                         child: const Text('Open'),
@@ -133,15 +140,17 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
   @override
   Widget build(BuildContext context) {
     if (!_permissionChecked) {
-      return const ToolScaffold(
+      return ToolScaffold(
         title: 'Scan',
-        body: Center(child: CircularProgressIndicator()),
+        accentColor: AppColors.toolAccent('qr_barcode'),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (_permissionOutcome != PermissionOutcome.granted) {
       return ToolScaffold(
         title: 'Scan',
+        accentColor: AppColors.toolAccent('qr_barcode'),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -173,6 +182,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
 
     return ToolScaffold(
       title: 'Scan',
+      accentColor: AppColors.toolAccent('qr_barcode'),
       body: MobileScanner(
         controller: _controller,
         onDetect: _onDetect,

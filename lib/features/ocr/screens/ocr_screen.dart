@@ -11,16 +11,14 @@ import 'package:utility_toolbox/core/utils/result.dart';
 import 'package:utility_toolbox/core/widgets/empty_state.dart';
 import 'package:utility_toolbox/core/widgets/error_state.dart';
 import 'package:utility_toolbox/core/widgets/loading_indicator.dart';
+import 'package:utility_toolbox/core/theme/app_colors.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/ocr/providers/ocr_providers.dart';
 
 class OcrScreen extends ConsumerWidget {
   const OcrScreen({super.key});
 
-  Future<void> _pickImage(
-    WidgetRef ref,
-    ImageSource source,
-  ) async {
+  Future<void> _pickImage(WidgetRef ref, ImageSource source) async {
     final permission = ref.read(permissionServiceProvider);
     final outcome = source == ImageSource.camera
         ? await permission.requestCamera()
@@ -61,6 +59,7 @@ class OcrScreen extends ConsumerWidget {
 
     return ToolScaffold(
       title: 'OCR',
+      accentColor: AppColors.toolAccent('ocr'),
       body: Column(
         children: [
           Padding(
@@ -85,29 +84,29 @@ class OcrScreen extends ConsumerWidget {
   ) {
     return switch (resultState) {
       Idle() => EmptyState(
-          icon: Icons.document_scanner_outlined,
-          message: 'Pick a photo to extract editable text.',
-          action: _pickButtons(ref),
-        ),
+        icon: Icons.document_scanner_outlined,
+        message: 'Pick a photo to extract editable text.',
+        action: _pickButtons(ref),
+      ),
       Loading() => const LoadingIndicator(message: 'Recognizing text…'),
       ErrorResult(message: final msg) => ErrorState(
-          message: msg,
-          onRetry: () {
-            ref.read(ocrResultProvider.notifier).state = const Idle();
-            ref.read(ocrImageProvider.notifier).state = null;
-          },
-        ),
+        message: msg,
+        onRetry: () {
+          ref.read(ocrResultProvider.notifier).state = const Idle();
+          ref.read(ocrImageProvider.notifier).state = null;
+        },
+      ),
       Success(data: final recognized) => _SuccessView(
-          text: text.isEmpty ? recognized : text,
-          onTextChanged: (value) =>
-              ref.read(ocrTextProvider.notifier).state = value,
-          onDone: () async {
-            await ref.read(adsServiceProvider).showInterstitialIfAllowed();
-            ref.read(ocrResultProvider.notifier).state = const Idle();
-            ref.read(ocrImageProvider.notifier).state = null;
-            ref.read(ocrTextProvider.notifier).state = '';
-          },
-        ),
+        text: text.isEmpty ? recognized : text,
+        onTextChanged: (value) =>
+            ref.read(ocrTextProvider.notifier).state = value,
+        onDone: () async {
+          await ref.read(adsServiceProvider).showInterstitialIfAllowed();
+          ref.read(ocrResultProvider.notifier).state = const Idle();
+          ref.read(ocrImageProvider.notifier).state = null;
+          ref.read(ocrTextProvider.notifier).state = '';
+        },
+      ),
     };
   }
 

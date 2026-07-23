@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:utility_toolbox/core/utils/result.dart';
 import 'package:utility_toolbox/core/widgets/error_state.dart';
 import 'package:utility_toolbox/core/widgets/loading_indicator.dart';
+import 'package:utility_toolbox/core/theme/app_colors.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/translation/providers/translation_providers.dart';
 
@@ -25,6 +26,7 @@ class TranslationScreen extends ConsumerWidget {
 
     return ToolScaffold(
       title: 'Translation',
+      accentColor: AppColors.toolAccent('translation'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -77,7 +79,10 @@ class TranslationScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             FilledButton(
-              onPressed: input.trim().isEmpty || sameLanguage || resultState is Loading<String>
+              onPressed:
+                  input.trim().isEmpty ||
+                      sameLanguage ||
+                      resultState is Loading<String>
                   ? null
                   : actions.translate,
               child: const Text('Translate'),

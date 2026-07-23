@@ -8,8 +8,7 @@ plugins {
 android {
     namespace = "com.utilitytoolbox.utility_toolbox"
     compileSdk = 36
-    ndkVersion = flutter.ndkVersion
-
+    ndkVersion = "27.0.12077973"     // <--- Yeh value rakh dein
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11

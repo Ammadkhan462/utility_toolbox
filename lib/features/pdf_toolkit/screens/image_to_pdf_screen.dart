@@ -9,6 +9,7 @@ import 'package:utility_toolbox/core/utils/file_utils.dart';
 import 'package:utility_toolbox/core/utils/result.dart';
 import 'package:utility_toolbox/core/widgets/error_state.dart';
 import 'package:utility_toolbox/core/widgets/loading_indicator.dart';
+import 'package:utility_toolbox/core/theme/app_colors.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/pdf_toolkit/models/pdf_job_result.dart';
 import 'package:utility_toolbox/features/pdf_toolkit/providers/pdf_providers.dart';
@@ -23,6 +24,7 @@ class ImageToPdfScreen extends ConsumerWidget {
 
     return ToolScaffold(
       title: 'Image to PDF',
+      accentColor: AppColors.toolAccent('pdf_toolkit'),
       body: _buildBody(context, ref, images, jobState),
       bottomBar: jobState is! Success<PdfJobResult>
           ? Padding(
@@ -47,55 +49,55 @@ class ImageToPdfScreen extends ConsumerWidget {
     return switch (jobState) {
       Loading() => const LoadingIndicator(message: 'Creating PDF…'),
       ErrorResult(message: final msg) => ErrorState(
-          message: msg,
-          onRetry: () =>
-              ref.read(pdfJobStateProvider.notifier).state = const Idle(),
-        ),
+        message: msg,
+        onRetry: () =>
+            ref.read(pdfJobStateProvider.notifier).state = const Idle(),
+      ),
       Success(data: final result) => _ResultView(
-          result: result,
-          onShare: () => Share.shareXFiles([XFile(result.filePath)]),
-          onDone: () async {
-            await ref.read(adsServiceProvider).showInterstitialIfAllowed();
-            ref.read(pdfJobStateProvider.notifier).state = const Idle();
-          },
-        ),
+        result: result,
+        onShare: () => Share.shareXFiles([XFile(result.filePath)]),
+        onDone: () async {
+          await ref.read(adsServiceProvider).showInterstitialIfAllowed();
+          ref.read(pdfJobStateProvider.notifier).state = const Idle();
+        },
+      ),
       Idle() => SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              OutlinedButton.icon(
-                onPressed: () => _pickImages(ref),
-                icon: const Icon(Icons.photo_library_outlined),
-                label: const Text('Pick images'),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            OutlinedButton.icon(
+              onPressed: () => _pickImages(ref),
+              icon: const Icon(Icons.photo_library_outlined),
+              label: const Text('Pick images'),
+            ),
+            const SizedBox(height: 16),
+            if (images.isEmpty)
+              const Text('Select one or more images to convert.')
+            else
+              ReorderableListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: images.length,
+                onReorder: (oldIndex, newIndex) {
+                  final list = [...ref.read(selectedImagesProvider)];
+                  if (newIndex > oldIndex) newIndex -= 1;
+                  final item = list.removeAt(oldIndex);
+                  list.insert(newIndex, item);
+                  ref.read(selectedImagesProvider.notifier).state = list;
+                },
+                itemBuilder: (context, index) {
+                  final file = images[index];
+                  return ListTile(
+                    key: ValueKey(file.path),
+                    leading: const Icon(Icons.drag_handle),
+                    title: Text(file.path.split(Platform.pathSeparator).last),
+                  );
+                },
               ),
-              const SizedBox(height: 16),
-              if (images.isEmpty)
-                const Text('Select one or more images to convert.')
-              else
-                ReorderableListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: images.length,
-                  onReorder: (oldIndex, newIndex) {
-                    final list = [...ref.read(selectedImagesProvider)];
-                    if (newIndex > oldIndex) newIndex -= 1;
-                    final item = list.removeAt(oldIndex);
-                    list.insert(newIndex, item);
-                    ref.read(selectedImagesProvider.notifier).state = list;
-                  },
-                  itemBuilder: (context, index) {
-                    final file = images[index];
-                    return ListTile(
-                      key: ValueKey(file.path),
-                      leading: const Icon(Icons.drag_handle),
-                      title: Text(file.path.split(Platform.pathSeparator).last),
-                    );
-                  },
-                ),
-            ],
-          ),
+          ],
         ),
+      ),
     };
   }
 
@@ -103,15 +105,18 @@ class ImageToPdfScreen extends ConsumerWidget {
     final picker = ImagePicker();
     final picked = await picker.pickMultiImage();
     if (picked.isEmpty) return;
-    ref.read(selectedImagesProvider.notifier).state =
-        [for (final item in picked) File(item.path)];
+    ref.read(selectedImagesProvider.notifier).state = [
+      for (final item in picked) File(item.path),
+    ];
   }
 
   Future<void> _createPdf(WidgetRef ref) async {
     ref.read(pdfJobStateProvider.notifier).state = const Loading();
     try {
-      final paths =
-          ref.read(selectedImagesProvider).map((file) => file.path).toList();
+      final paths = ref
+          .read(selectedImagesProvider)
+          .map((file) => file.path)
+          .toList();
       final result = await ref.read(pdfServiceProvider).imagesToPdf(paths);
       ref.read(pdfJobStateProvider.notifier).state = Success(result);
     } catch (_) {

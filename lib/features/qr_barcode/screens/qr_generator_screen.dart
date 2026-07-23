@@ -8,6 +8,7 @@ import 'package:gal/gal.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:utility_toolbox/core/services/ads_service.dart';
+import 'package:utility_toolbox/core/theme/app_colors.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/qr_barcode/providers/qr_providers.dart';
 
@@ -42,11 +43,14 @@ class _QrGeneratorScreenState extends ConsumerState<QrGeneratorScreen> {
     final bytes = await _captureQr();
     if (bytes == null || !mounted) return;
 
-    await Gal.putImageBytes(bytes, name: 'qr_${DateTime.now().millisecondsSinceEpoch}');
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Saved to gallery')),
+    await Gal.putImageBytes(
+      bytes,
+      name: 'qr_${DateTime.now().millisecondsSinceEpoch}',
     );
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Saved to gallery')));
     await ref.read(adsServiceProvider).showInterstitialIfAllowed();
   }
 
@@ -66,6 +70,7 @@ class _QrGeneratorScreenState extends ConsumerState<QrGeneratorScreen> {
 
     return ToolScaffold(
       title: 'Generate QR',
+      accentColor: AppColors.toolAccent('qr_barcode'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(

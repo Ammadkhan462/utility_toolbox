@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:utility_toolbox/core/theme/app_colors.dart';
 import 'package:utility_toolbox/core/widgets/empty_state.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/qr_barcode/providers/qr_providers.dart';
@@ -16,6 +17,7 @@ class ScanHistoryScreen extends ConsumerWidget {
 
     return ToolScaffold(
       title: 'Scan History',
+      accentColor: AppColors.toolAccent('qr_barcode'),
       actions: [
         if (history.isNotEmpty)
           PopupMenuButton<String>(
@@ -42,8 +44,9 @@ class ScanHistoryScreen extends ConsumerWidget {
                 return Dismissible(
                   key: ValueKey(item.id),
                   direction: DismissDirection.endToStart,
-                  onDismissed: (_) =>
-                      ref.read(scanHistoryProvider.notifier).deleteItem(item.id),
+                  onDismissed: (_) => ref
+                      .read(scanHistoryProvider.notifier)
+                      .deleteItem(item.id),
                   background: Container(
                     color: Theme.of(context).colorScheme.error,
                     alignment: Alignment.centerRight,
@@ -51,7 +54,11 @@ class ScanHistoryScreen extends ConsumerWidget {
                     child: const Icon(Icons.delete, color: Colors.white),
                   ),
                   child: ListTile(
-                    title: Text(item.content, maxLines: 2, overflow: TextOverflow.ellipsis),
+                    title: Text(
+                      item.content,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     subtitle: Text(
                       '${item.type.toUpperCase()} · ${DateFormat.yMMMd().add_jm().format(item.scannedAt)}',
                     ),
@@ -73,7 +80,8 @@ class ScanHistoryScreen extends ConsumerWidget {
                                       await Clipboard.setData(
                                         ClipboardData(text: item.content),
                                       );
-                                      if (context.mounted) Navigator.pop(context);
+                                      if (context.mounted)
+                                        Navigator.pop(context);
                                     },
                                     child: const Text('Copy'),
                                   ),

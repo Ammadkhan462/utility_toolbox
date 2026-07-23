@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:utility_toolbox/core/theme/app_colors.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/unit_converter/data/conversion_data.dart';
 import 'package:utility_toolbox/features/unit_converter/models/unit_category.dart';
@@ -18,6 +19,7 @@ class UnitConverterScreen extends ConsumerWidget {
 
     return ToolScaffold(
       title: 'Unit Converter',
+      accentColor: AppColors.toolAccent('unit_converter'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -127,8 +129,9 @@ class _UnitRow extends StatelessWidget {
             const SizedBox(height: 12),
             TextFormField(
               readOnly: readOnly,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: InputDecoration(
                 border: const OutlineInputBorder(),
                 hintText: readOnly ? 'Converted value' : 'Enter value',
