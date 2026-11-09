@@ -15,7 +15,11 @@ import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/translation/providers/translation_providers.dart';
 
 class TranslationScreen extends ConsumerStatefulWidget {
-  const TranslationScreen({super.key});
+  const TranslationScreen({super.key, this.initialText});
+
+  /// Text from the share sheet or the text-selection "Translate" action:
+  /// pre-filled and translated immediately.
+  final String? initialText;
 
   @override
   ConsumerState<TranslationScreen> createState() => _TranslationScreenState();
@@ -34,9 +38,17 @@ class _TranslationScreenState extends ConsumerState<TranslationScreen> {
   @override
   void initState() {
     super.initState();
+    final initial = widget.initialText;
     _inputCtrl = TextEditingController(
-      text: ref.read(translationInputProvider),
+      text: initial ?? ref.read(translationInputProvider),
     );
+    if (initial != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ref.read(translationInputProvider.notifier).state = initial;
+        ref.read(translationActionsProvider).translateTapped();
+      });
+    }
   }
 
   @override

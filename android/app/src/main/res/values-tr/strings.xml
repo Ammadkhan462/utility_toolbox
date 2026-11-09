@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="world_clock_widget_description">Sabitlediğiniz Dünya Saati şehirlerini ana ekranınızda canlı gösterir.</string>
+
+    <!-- Launcher long-press shortcuts. Short labels: max ~10 chars; long: max ~25. -->
+    <string name="shortcut_scan_doc_short">Belge tara</string>
+    <string name="shortcut_scan_doc_long">Belge tara</string>
+    <string name="shortcut_scan_qr_short">QR tara</string>
+    <string name="shortcut_scan_qr_long">QR kod tara</string>
+    <string name="shortcut_image_pdf_short">Resim→PDF</string>
+    <string name="shortcut_image_pdf_long">Resimleri PDF\'ye çevir</string>
+    <string name="shortcut_translate_short">Çevir</string>
+    <string name="shortcut_translate_long">Metin çevir</string>
+
+    <!-- Entry in the system text-selection menu (select text in any app). -->
+    <string name="process_text_translate">Çevir</string>
+
+    <!-- Quick Settings tile. -->
+    <string name="tile_scan_qr">QR tara</string>
+</resources>

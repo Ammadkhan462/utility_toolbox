@@ -209,6 +209,7 @@ class _CompressResultView extends ConsumerWidget {
         fileName: 'compressed_${DateTime.now().millisecondsSinceEpoch}',
         ext: 'pdf',
         mimeType: 'application/pdf',
+        toolId: 'compress_pdf',
       );
       messenger.showSnackBar(
         SnackBar(

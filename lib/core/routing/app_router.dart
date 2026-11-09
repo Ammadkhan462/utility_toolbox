@@ -2,161 +2,207 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:utility_toolbox/core/routing/app_routes.dart';
-import 'package:utility_toolbox/features/home/home_screen.dart';
-import 'package:utility_toolbox/features/onboarding/onboarding_screen.dart';
+import 'package:utility_toolbox/core/routing/seed_input.dart';
+import 'package:utility_toolbox/core/services/storage_service.dart';
+import 'package:utility_toolbox/core/tools/tool_input.dart';
+import 'package:utility_toolbox/core/utils/result.dart';
+import 'package:utility_toolbox/features/age_calculator/age_calculator_screen.dart';
+import 'package:utility_toolbox/features/ai_upscaler/providers/ai_upscaler_notifier.dart';
+import 'package:utility_toolbox/features/ai_upscaler/screens/ai_upscaler_screen.dart';
+import 'package:utility_toolbox/features/calculator/calculator_screen.dart';
+import 'package:utility_toolbox/features/color_picker/screens/color_picker_screen.dart';
+import 'package:utility_toolbox/features/compass/screens/compass_screen.dart';
+import 'package:utility_toolbox/features/doc_scanner/doc_scanner_screen.dart';
+import 'package:utility_toolbox/features/hash_generator/screens/hash_generator_screen.dart';
+import 'package:utility_toolbox/features/home/home_shell.dart';
+import 'package:utility_toolbox/features/image_compressor/providers/image_compressor_providers.dart';
+import 'package:utility_toolbox/features/image_compressor/screens/image_compressor_screen.dart';
+import 'package:utility_toolbox/features/image_enhancer/screens/image_enhancer_screen.dart';
+import 'package:utility_toolbox/features/image_resizer/image_resizer_screen.dart';
+import 'package:utility_toolbox/features/ip_ping/screens/ip_ping_screen.dart';
+import 'package:utility_toolbox/features/loan_calculator/screens/loan_calculator_screen.dart';
+import 'package:utility_toolbox/features/location_saver/screens/location_saver_screen.dart';
 import 'package:utility_toolbox/features/ocr/screens/ocr_screen.dart';
+import 'package:utility_toolbox/features/onboarding/onboarding_screen.dart';
+import 'package:utility_toolbox/features/password_generator/screens/password_generator_screen.dart';
+import 'package:utility_toolbox/features/pdf_toolkit/providers/pdf_providers.dart';
 import 'package:utility_toolbox/features/pdf_toolkit/screens/compress_pdf_screen.dart';
 import 'package:utility_toolbox/features/pdf_toolkit/screens/image_to_pdf_screen.dart';
 import 'package:utility_toolbox/features/pdf_toolkit/screens/merge_pdf_screen.dart';
 import 'package:utility_toolbox/features/pdf_toolkit/screens/pdf_home_screen.dart';
+import 'package:utility_toolbox/features/pdf_toolkit/screens/pdf_password_screen.dart';
+import 'package:utility_toolbox/features/pdf_toolkit/screens/pdf_to_images_screen.dart';
+import 'package:utility_toolbox/features/pdf_toolkit/screens/split_pdf_screen.dart';
 import 'package:utility_toolbox/features/qr_barcode/screens/qr_generator_screen.dart';
 import 'package:utility_toolbox/features/qr_barcode/screens/qr_home_screen.dart';
 import 'package:utility_toolbox/features/qr_barcode/screens/qr_scanner_screen.dart';
 import 'package:utility_toolbox/features/qr_barcode/screens/scan_history_screen.dart';
 import 'package:utility_toolbox/features/settings/screens/settings_screen.dart';
-import 'package:utility_toolbox/features/splash/splash_screen.dart';
+import 'package:utility_toolbox/features/smart_clipboard/screens/smart_clipboard_screen.dart';
 import 'package:utility_toolbox/features/text_utilities/screens/text_utilities_screen.dart';
+import 'package:utility_toolbox/features/timezone/screens/timezone_screen.dart';
 import 'package:utility_toolbox/features/translation/screens/translation_screen.dart';
 import 'package:utility_toolbox/features/unit_converter/screens/unit_converter_screen.dart';
-import 'package:utility_toolbox/features/password_generator/screens/password_generator_screen.dart';
-import 'package:utility_toolbox/features/image_compressor/screens/image_compressor_screen.dart';
-import 'package:utility_toolbox/features/hash_generator/screens/hash_generator_screen.dart';
-import 'package:utility_toolbox/features/color_picker/screens/color_picker_screen.dart';
-import 'package:utility_toolbox/features/loan_calculator/screens/loan_calculator_screen.dart';
+import 'package:utility_toolbox/features/video_converter/screens/video_converter_screen.dart';
 import 'package:utility_toolbox/features/wifi_qr/screens/wifi_qr_screen.dart';
 import 'package:utility_toolbox/features/wifi_speed_test/screens/wifi_speed_test_screen.dart';
-import 'package:utility_toolbox/features/ip_ping/screens/ip_ping_screen.dart';
-import 'package:utility_toolbox/features/timezone/screens/timezone_screen.dart';
-import 'package:utility_toolbox/features/compass/screens/compass_screen.dart';
-import 'package:utility_toolbox/features/location_saver/screens/location_saver_screen.dart';
 import 'package:utility_toolbox/features/word_to_pdf/screens/word_to_pdf_screen.dart';
-import 'package:utility_toolbox/features/video_converter/screens/video_converter_screen.dart';
-import 'package:utility_toolbox/features/image_enhancer/screens/image_enhancer_screen.dart';
-import 'package:utility_toolbox/features/smart_clipboard/screens/smart_clipboard_screen.dart';
-import 'package:utility_toolbox/features/ai_upscaler/screens/ai_upscaler_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
+GoRoute _route(String path, Widget Function(ToolInput? input) build) => GoRoute(
+  path: path,
+  builder: (_, state) => build(ToolInput.of(state.extra)),
+);
+
 final appRouterProvider = Provider<GoRouter>((ref) {
+  // No Flutter splash: the native (Android 12+) splash covers engine start
+  // and the app opens straight on the Tools tab. First-ever launch goes to
+  // onboarding, unless main() saw a share/shortcut intent and skipped it.
+  final seenOnboarding = ref.read(storageServiceProvider).getHasSeenOnboarding();
+
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
-    // Every cold start now boots into the splash screen first. SplashScreen
-    // itself decides — once its animation finishes — whether to route on to
-    // Onboarding (first-ever launch) or Home (returning user), based on
-    // StorageService.getHasSeenOnboarding().
-    initialLocation: AppRoutes.splash,
+    initialLocation: seenOnboarding ? AppRoutes.home : AppRoutes.onboarding,
     routes: [
-      GoRoute(path: AppRoutes.home, builder: (_, __) => const HomeScreen()),
-      GoRoute(
-        path: AppRoutes.settings,
-        builder: (_, __) => const SettingsScreen(),
-      ),
-      GoRoute(path: AppRoutes.splash, builder: (_, __) => const SplashScreen()),
-      GoRoute(
-        path: AppRoutes.onboarding,
-        builder: (_, __) => const OnboardingScreen(),
-      ),
+      GoRoute(path: AppRoutes.home, builder: (_, __) => const HomeShell()),
+      GoRoute(path: AppRoutes.settings, builder: (_, __) => const SettingsScreen()),
+      GoRoute(path: AppRoutes.onboarding, builder: (_, __) => const OnboardingScreen()),
+
+      // ── Scan & QR ──────────────────────────────────────────────────────
+      _route(AppRoutes.docScanner, (_) => const DocScannerScreen()),
       GoRoute(
         path: AppRoutes.qrBarcode,
         builder: (_, __) => const QrHomeScreen(),
         routes: [
-          GoRoute(path: 'scanner', builder: (_, __) => const QrScannerScreen()),
+          GoRoute(
+            path: 'scanner',
+            builder: (_, s) =>
+                QrScannerScreen(initialImagePath: ToolInput.of(s.extra)?.firstPath),
+          ),
           GoRoute(
             path: 'generator',
-            builder: (_, __) => const QrGeneratorScreen(),
+            builder: (_, s) => QrGeneratorScreen(initialText: ToolInput.of(s.extra)?.text),
           ),
-          GoRoute(
-            path: 'history',
-            builder: (_, __) => const ScanHistoryScreen(),
-          ),
+          GoRoute(path: 'history', builder: (_, __) => const ScanHistoryScreen()),
         ],
       ),
-      GoRoute(
-        path: AppRoutes.unitConverter,
-        builder: (_, __) => const UnitConverterScreen(),
-      ),
+      _route(AppRoutes.ocr, (i) => OcrScreen(initialImagePath: i?.firstPath)),
+      _route(AppRoutes.wifiQr, (_) => const WifiQrScreen()),
+
+      // ── PDF ────────────────────────────────────────────────────────────
       GoRoute(
         path: AppRoutes.pdfToolkit,
         builder: (_, __) => const PdfHomeScreen(),
         routes: [
           GoRoute(
             path: 'image-to-pdf',
-            builder: (_, __) => const ImageToPdfScreen(),
+            builder: (_, s) => SeedInput(
+              input: ToolInput.of(s.extra),
+              seed: (ref, input) {
+                ref.read(pdfJobStateProvider.notifier).state = const Idle();
+                ref.read(selectedImagesProvider.notifier).state = input.files;
+              },
+              child: const ImageToPdfScreen(),
+            ),
           ),
-          GoRoute(path: 'merge', builder: (_, __) => const MergePdfScreen()),
+          GoRoute(
+            path: 'merge',
+            builder: (_, s) => SeedInput(
+              input: ToolInput.of(s.extra),
+              seed: (ref, input) {
+                ref.read(pdfJobStateProvider.notifier).state = const Idle();
+                ref.read(selectedPdfsProvider.notifier).state = input.files;
+              },
+              child: const MergePdfScreen(),
+            ),
+          ),
           GoRoute(
             path: 'compress',
-            builder: (_, __) => const CompressPdfScreen(),
+            builder: (_, s) => SeedInput(
+              input: ToolInput.of(s.extra),
+              seed: (ref, input) {
+                ref.read(pdfJobStateProvider.notifier).state = const Idle();
+                ref.read(selectedSinglePdfProvider.notifier).state = input.firstFile;
+              },
+              child: const CompressPdfScreen(),
+            ),
+          ),
+          GoRoute(
+            path: 'split',
+            builder: (_, s) => SplitPdfScreen(initialPath: ToolInput.of(s.extra)?.firstPath),
+          ),
+          GoRoute(
+            path: 'to-images',
+            builder: (_, s) => PdfToImagesScreen(initialPath: ToolInput.of(s.extra)?.firstPath),
+          ),
+          GoRoute(
+            path: 'protect',
+            builder: (_, s) =>
+                PdfPasswordScreen(lock: true, initialPath: ToolInput.of(s.extra)?.firstPath),
+          ),
+          GoRoute(
+            path: 'unlock',
+            builder: (_, s) =>
+                PdfPasswordScreen(lock: false, initialPath: ToolInput.of(s.extra)?.firstPath),
           ),
         ],
       ),
-      GoRoute(
-        path: AppRoutes.textUtilities,
-        builder: (_, __) => const TextUtilitiesScreen(),
+      _route(AppRoutes.wordToPdf, (i) => WordToPdfScreen.withInput(i?.firstPath)),
+
+      // ── Photo & image ──────────────────────────────────────────────────
+      _route(
+        AppRoutes.imageCompressor,
+        (i) => SeedInput(
+          input: i,
+          seed: (ref, input) {
+            ref.read(compressionResultProvider.notifier).state = const Idle();
+            ref.read(selectedImageProvider.notifier).state = input.firstFile;
+          },
+          child: const ImageCompressorScreen(),
+        ),
       ),
-      GoRoute(path: AppRoutes.ocr, builder: (_, __) => const OcrScreen()),
-      GoRoute(
-        path: AppRoutes.translation,
-        builder: (_, __) => const TranslationScreen(),
+      _route(AppRoutes.imageResizer, (i) => ImageResizerScreen(initialPaths: i?.paths ?? const [])),
+      _route(AppRoutes.imageEnhancer, (_) => const ImageEnhancerScreen()),
+      _route(
+        AppRoutes.aiUpscaler,
+        (i) => SeedInput(
+          input: i,
+          seed: (ref, input) {
+            final file = input.firstFile;
+            if (file != null) ref.read(aiUpscalerProvider.notifier).setSource(file);
+          },
+          child: const AiUpscalerScreen(),
+        ),
       ),
-      GoRoute(
-        path: AppRoutes.passwordGenerator,
-        builder: (_, __) => const PasswordGeneratorScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.imageCompressor,
-        builder: (_, __) => const ImageCompressorScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.hashGenerator,
-        builder: (_, __) => const HashGeneratorScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.colorPicker,
-        builder: (_, __) => const ColorPickerScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.loanCalculator,
-        builder: (_, __) => const LoanCalculatorScreen(),
-      ),
-      GoRoute(path: AppRoutes.wifiQr, builder: (_, __) => const WifiQrScreen()),
-      GoRoute(
-        path: AppRoutes.wifiSpeedTest,
-        builder: (_, __) => const WifiSpeedTestScreen(),
-      ),
-      GoRoute(path: AppRoutes.ipPing, builder: (_, __) => const IpPingScreen()),
-      GoRoute(
-        path: AppRoutes.timezone,
-        builder: (_, __) => const TimezoneScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.compass,
-        builder: (_, __) => const CompassScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.locationSaver,
-        builder: (_, __) => const LocationSaverScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.wordToPdf,
-        builder: (_, __) => const WordToPdfScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.videoConverter,
-        builder: (_, __) => const VideoConverterScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.imageEnhancer,
-        builder: (_, __) => const ImageEnhancerScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.smartClipboard,
-        builder: (_, __) => const SmartClipboardScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.aiUpscaler,
-        builder: (_, __) => const AiUpscalerScreen(),
-      ),
+
+      // ── Text & translate ───────────────────────────────────────────────
+      _route(AppRoutes.translation, (i) => TranslationScreen(initialText: i?.text)),
+      _route(AppRoutes.textUtilities, (i) => TextUtilitiesScreen(initialText: i?.text)),
+      _route(AppRoutes.smartClipboard, (_) => const SmartClipboardScreen()),
+
+      // ── Calculate & convert ────────────────────────────────────────────
+      _route(AppRoutes.calculator, (_) => const CalculatorScreen()),
+      _route(AppRoutes.ageCalculator, (_) => const AgeCalculatorScreen()),
+      _route(AppRoutes.unitConverter, (_) => const UnitConverterScreen()),
+      _route(AppRoutes.loanCalculator, (_) => const LoanCalculatorScreen()),
+      _route(AppRoutes.timezone, (_) => const TimezoneScreen()),
+      _route(AppRoutes.colorPicker, (_) => const ColorPickerScreen()),
+
+      // ── Internet ───────────────────────────────────────────────────────
+      _route(AppRoutes.wifiSpeedTest, (_) => const WifiSpeedTestScreen()),
+      _route(AppRoutes.ipPing, (_) => const IpPingScreen()),
+
+      // ── Device & location ──────────────────────────────────────────────
+      _route(AppRoutes.compass, (_) => const CompassScreen()),
+      _route(AppRoutes.locationSaver, (_) => const LocationSaverScreen()),
+
+      // ── Security ───────────────────────────────────────────────────────
+      _route(AppRoutes.passwordGenerator, (_) => const PasswordGeneratorScreen()),
+      _route(AppRoutes.hashGenerator, (_) => const HashGeneratorScreen()),
+
+      // ── Video & audio ──────────────────────────────────────────────────
+      _route(AppRoutes.videoConverter, (_) => const VideoConverterScreen()),
     ],
   );
 });

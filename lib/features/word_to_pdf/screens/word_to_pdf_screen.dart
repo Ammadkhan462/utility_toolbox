@@ -10,6 +10,11 @@ import '../providers/word_to_pdf_providers.dart';
 class WordToPdfScreen extends ConsumerWidget {
   const WordToPdfScreen({super.key});
 
+  /// Router entry that converts a shared/opened .docx immediately.
+  static Widget withInput(String? path) => path == null
+      ? const WordToPdfScreen()
+      : _AutoConvert(path: path, child: const WordToPdfScreen());
+
   static final _accent = AppColors.toolAccent('word_to_pdf');
 
   @override
@@ -382,4 +387,27 @@ class _StepCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _AutoConvert extends ConsumerStatefulWidget {
+  const _AutoConvert({required this.path, required this.child});
+
+  final String path;
+  final Widget child;
+
+  @override
+  ConsumerState<_AutoConvert> createState() => _AutoConvertState();
+}
+
+class _AutoConvertState extends ConsumerState<_AutoConvert> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.read(wordToPdfProvider.notifier).convertFile(widget.path);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

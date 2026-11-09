@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Long-press the launcher icon. Each opens utilitytoolbox://tool/<toolId>,
+     handled by MainActivity → IncomingIntentService → ToolRegistry. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="doc_scanner"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_scan_doc"
+        android:shortcutShortLabel="@string/shortcut_scan_doc_short"
+        android:shortcutLongLabel="@string/shortcut_scan_doc_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="utilitytoolbox://tool/doc_scanner"
+            android:targetPackage="com.utilitytoolbox.smarttools"
+            android:targetClass="com.utilitytoolbox.smarttools.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="qr_scanner"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_scan_qr"
+        android:shortcutShortLabel="@string/shortcut_scan_qr_short"
+        android:shortcutLongLabel="@string/shortcut_scan_qr_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="utilitytoolbox://tool/qr_scanner"
+            android:targetPackage="com.utilitytoolbox.smarttools"
+            android:targetClass="com.utilitytoolbox.smarttools.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="image_to_pdf"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_image_pdf"
+        android:shortcutShortLabel="@string/shortcut_image_pdf_short"
+        android:shortcutLongLabel="@string/shortcut_image_pdf_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="utilitytoolbox://tool/image_to_pdf"
+            android:targetPackage="com.utilitytoolbox.smarttools"
+            android:targetClass="com.utilitytoolbox.smarttools.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="translation"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_translate"
+        android:shortcutShortLabel="@string/shortcut_translate_short"
+        android:shortcutLongLabel="@string/shortcut_translate_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="utilitytoolbox://tool/translation"
+            android:targetPackage="com.utilitytoolbox.smarttools"
+            android:targetClass="com.utilitytoolbox.smarttools.MainActivity" />
+    </shortcut>
+</shortcuts>

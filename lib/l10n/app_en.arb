@@ -1,0 +1,724 @@
+{
+  "@@locale": "en",
+  "appName": "Utility Toolbox",
+  "@appName": {
+    "description": "App name shown in headers. Keep the brand name untranslated."
+  },
+  "navTools": "Tools",
+  "@navTools": {
+    "description": "Bottom navigation tab: list of tools"
+  },
+  "navFiles": "My Files",
+  "@navFiles": {
+    "description": "Bottom navigation tab: files the app created"
+  },
+  "settingsTooltip": "Settings",
+  "@settingsTooltip": {
+    "description": "Tooltip for the settings button"
+  },
+  "searchHint": "Search: compress pdf, scan, jpg…",
+  "@searchHint": {
+    "description": "Hint in the tool search field. Use common search words in your language."
+  },
+  "quickActions": "Quick actions",
+  "@quickActions": {
+    "description": "Section header for the 4 most-used tools"
+  },
+  "favorites": "Favorites",
+  "@favorites": {
+    "description": "Section header for tools the user starred"
+  },
+  "recent": "Recent",
+  "@recent": {
+    "description": "Section header for recently used tools"
+  },
+  "searchNoResults": "No tools match “{query}”",
+  "@searchNoResults": {
+    "description": "Shown when search finds nothing",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "toolMenuAddFavorite": "Add to favorites",
+  "@toolMenuAddFavorite": {
+    "description": "Long-press menu action"
+  },
+  "toolMenuRemoveFavorite": "Remove from favorites",
+  "@toolMenuRemoveFavorite": {
+    "description": "Long-press menu action"
+  },
+  "toolMenuPinShortcut": "Add to home screen",
+  "@toolMenuPinShortcut": {
+    "description": "Long-press menu action: pin a shortcut to this tool on the launcher"
+  },
+  "pinShortcutRequested": "Confirm to add the shortcut to your home screen",
+  "@pinShortcutRequested": {
+    "description": "Snackbar after requesting a pinned shortcut"
+  },
+  "pinShortcutUnsupported": "Your home screen app doesn’t support shortcuts",
+  "@pinShortcutUnsupported": {
+    "description": "Snackbar when the launcher can't pin shortcuts"
+  },
+  "newBadge": "NEW",
+  "@newBadge": {
+    "description": "Small badge on newly added tools. Keep very short."
+  },
+  "catScan": "Scan & QR",
+  "@catScan": {
+    "description": "Tool category header"
+  },
+  "catPdf": "PDF",
+  "@catPdf": {
+    "description": "Tool category header"
+  },
+  "catImage": "Photo & image",
+  "@catImage": {
+    "description": "Tool category header"
+  },
+  "catText": "Text & translate",
+  "@catText": {
+    "description": "Tool category header"
+  },
+  "catCalc": "Calculate & convert",
+  "@catCalc": {
+    "description": "Tool category header"
+  },
+  "catNetwork": "Internet",
+  "@catNetwork": {
+    "description": "Tool category header"
+  },
+  "catDevice": "Device & location",
+  "@catDevice": {
+    "description": "Tool category header"
+  },
+  "catSecurity": "Security",
+  "@catSecurity": {
+    "description": "Tool category header"
+  },
+  "catMedia": "Video & audio",
+  "@catMedia": {
+    "description": "Tool category header"
+  },
+  "toolDocScannerTitle": "Document Scanner",
+  "@toolDocScannerTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolDocScannerDesc": "Scan paper to PDF with auto edges",
+  "@toolDocScannerDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolDocScannerKeywords": "scan paper, camscanner, document, pdf scanner, receipt",
+  "@toolDocScannerKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolQrScannerTitle": "Scan QR & Barcode",
+  "@toolQrScannerTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolQrScannerDesc": "From camera or a photo",
+  "@toolQrScannerDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolQrScannerKeywords": "qr reader, barcode, scan code",
+  "@toolQrScannerKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolQrGeneratorTitle": "Create QR Code",
+  "@toolQrGeneratorTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolQrGeneratorDesc": "Links, text, contacts and more",
+  "@toolQrGeneratorDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolQrGeneratorKeywords": "qr maker, generate qr, barcode generator",
+  "@toolQrGeneratorKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolOcrTitle": "Image to Text",
+  "@toolOcrTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolOcrDesc": "Copy text from any photo (OCR)",
+  "@toolOcrDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolOcrKeywords": "ocr, text scanner, extract text, copy text from image",
+  "@toolOcrKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolWifiQrTitle": "WiFi QR Code",
+  "@toolWifiQrTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolWifiQrDesc": "Share WiFi without typing the password",
+  "@toolWifiQrDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolWifiQrKeywords": "wifi password, share wifi",
+  "@toolWifiQrKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolImageToPdfTitle": "Image to PDF",
+  "@toolImageToPdfTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolImageToPdfDesc": "Turn photos into one PDF",
+  "@toolImageToPdfDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolImageToPdfKeywords": "jpg to pdf, photo to pdf, picture to pdf",
+  "@toolImageToPdfKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolMergePdfTitle": "Merge PDF",
+  "@toolMergePdfTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolMergePdfDesc": "Combine several PDFs into one",
+  "@toolMergePdfDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolMergePdfKeywords": "join pdf, combine pdf",
+  "@toolMergePdfKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolCompressPdfTitle": "Compress PDF",
+  "@toolCompressPdfTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolCompressPdfDesc": "Make a PDF smaller to send",
+  "@toolCompressPdfDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolCompressPdfKeywords": "reduce pdf size, shrink pdf",
+  "@toolCompressPdfKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolSplitPdfTitle": "Split PDF",
+  "@toolSplitPdfTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolSplitPdfDesc": "Extract or remove pages",
+  "@toolSplitPdfDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolSplitPdfKeywords": "extract pages, delete pages, cut pdf",
+  "@toolSplitPdfKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolPdfToImagesTitle": "PDF to JPG",
+  "@toolPdfToImagesTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolPdfToImagesDesc": "Save every page as an image",
+  "@toolPdfToImagesDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolPdfToImagesKeywords": "pdf to image, pdf to png, pdf pages",
+  "@toolPdfToImagesKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolProtectPdfTitle": "Lock PDF",
+  "@toolProtectPdfTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolProtectPdfDesc": "Add a password to a PDF",
+  "@toolProtectPdfDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolProtectPdfKeywords": "password pdf, encrypt pdf, secure pdf",
+  "@toolProtectPdfKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolUnlockPdfTitle": "Unlock PDF",
+  "@toolUnlockPdfTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolUnlockPdfDesc": "Remove a password you know",
+  "@toolUnlockPdfDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolUnlockPdfKeywords": "remove pdf password, decrypt pdf",
+  "@toolUnlockPdfKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolWordToPdfTitle": "Word to PDF",
+  "@toolWordToPdfTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolWordToPdfDesc": "Convert .docx documents",
+  "@toolWordToPdfDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolWordToPdfKeywords": "doc to pdf, docx, word",
+  "@toolWordToPdfKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolImageCompressorTitle": "Compress Photo",
+  "@toolImageCompressorTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolImageCompressorDesc": "Smaller file, same look",
+  "@toolImageCompressorDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolImageCompressorKeywords": "reduce image size, compress jpg, kb",
+  "@toolImageCompressorKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolImageResizerTitle": "Resize & Convert",
+  "@toolImageResizerTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolImageResizerDesc": "Exact size, JPG, PNG or WEBP",
+  "@toolImageResizerDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolImageResizerKeywords": "resize image, jpg to png, png to jpg, webp, passport size",
+  "@toolImageResizerKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolImageEnhancerTitle": "Photo Editor",
+  "@toolImageEnhancerTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolImageEnhancerDesc": "Filters, crop, brightness and more",
+  "@toolImageEnhancerDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolImageEnhancerKeywords": "edit photo, filter, crop, rotate",
+  "@toolImageEnhancerKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolAiUpscalerTitle": "AI Upscaler",
+  "@toolAiUpscalerTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolAiUpscalerDesc": "Enlarge photos up to 4× sharper",
+  "@toolAiUpscalerDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolAiUpscalerKeywords": "enhance, hd, increase resolution, blurry",
+  "@toolAiUpscalerKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolTranslationTitle": "Translate",
+  "@toolTranslationTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolTranslationDesc": "Offline, with voice and speech",
+  "@toolTranslationDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolTranslationKeywords": "translator, language, dictionary",
+  "@toolTranslationKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolTextUtilitiesTitle": "Text Tools",
+  "@toolTextUtilitiesTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolTextUtilitiesDesc": "Count words, change case, Base64",
+  "@toolTextUtilitiesDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolTextUtilitiesKeywords": "word counter, uppercase, lowercase, base64",
+  "@toolTextUtilitiesKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolSmartClipboardTitle": "Clipboard Manager",
+  "@toolSmartClipboardTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolSmartClipboardDesc": "Save, pin and search copied text",
+  "@toolSmartClipboardDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolSmartClipboardKeywords": "copy paste, notes, clipboard history",
+  "@toolSmartClipboardKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolCalculatorTitle": "Calculator",
+  "@toolCalculatorTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolCalculatorDesc": "Everyday calculator with history",
+  "@toolCalculatorDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolCalculatorKeywords": "calc, math, percent",
+  "@toolCalculatorKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolAgeCalculatorTitle": "Age & Date",
+  "@toolAgeCalculatorTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolAgeCalculatorDesc": "Exact age and days between dates",
+  "@toolAgeCalculatorDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolAgeCalculatorKeywords": "birthday, date difference, days counter",
+  "@toolAgeCalculatorKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolUnitConverterTitle": "Unit Converter",
+  "@toolUnitConverterTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolUnitConverterDesc": "Length, weight, temperature and more",
+  "@toolUnitConverterDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolUnitConverterKeywords": "convert units, cm to inch, kg to lb, celsius",
+  "@toolUnitConverterKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolLoanCalculatorTitle": "Loan & EMI",
+  "@toolLoanCalculatorTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolLoanCalculatorDesc": "Monthly payment and total interest",
+  "@toolLoanCalculatorDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolLoanCalculatorKeywords": "emi, mortgage, interest, installment",
+  "@toolLoanCalculatorKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolTimezoneTitle": "World Clock",
+  "@toolTimezoneTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolTimezoneDesc": "Time in any city, with a widget",
+  "@toolTimezoneDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolTimezoneKeywords": "time zone, clock, city time",
+  "@toolTimezoneKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolColorPickerTitle": "Color Picker",
+  "@toolColorPickerTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolColorPickerDesc": "HEX, RGB, HSL and CMYK",
+  "@toolColorPickerDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolColorPickerKeywords": "color code, hex, palette",
+  "@toolColorPickerKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolSpeedTestTitle": "Internet Speed Test",
+  "@toolSpeedTestTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolSpeedTestDesc": "Download, upload and ping",
+  "@toolSpeedTestDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolSpeedTestKeywords": "wifi speed, internet speed, mbps",
+  "@toolSpeedTestKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolIpPingTitle": "IP & Ping",
+  "@toolIpPingTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolIpPingDesc": "Your IP address and host reachability",
+  "@toolIpPingDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolIpPingKeywords": "my ip, ping, network",
+  "@toolIpPingKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolCompassTitle": "Compass",
+  "@toolCompassTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolCompassDesc": "Heading and bearing",
+  "@toolCompassDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolCompassKeywords": "direction, north, qibla",
+  "@toolCompassKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolLocationSaverTitle": "Save Location",
+  "@toolLocationSaverTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolLocationSaverDesc": "Remember and share GPS spots",
+  "@toolLocationSaverDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolLocationSaverKeywords": "parking, gps, map, coordinates",
+  "@toolLocationSaverKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolPasswordGeneratorTitle": "Password Generator",
+  "@toolPasswordGeneratorTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolPasswordGeneratorDesc": "Strong random passwords",
+  "@toolPasswordGeneratorDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolPasswordGeneratorKeywords": "secure password, random",
+  "@toolPasswordGeneratorKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolHashGeneratorTitle": "Hash Generator",
+  "@toolHashGeneratorTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolHashGeneratorDesc": "MD5, SHA-1, SHA-256 of text or files",
+  "@toolHashGeneratorDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolHashGeneratorKeywords": "checksum, md5, sha256",
+  "@toolHashGeneratorKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "toolVideoConverterTitle": "Video Converter",
+  "@toolVideoConverterTitle": {
+    "description": "Tool name (short, about 20 characters max)"
+  },
+  "toolVideoConverterDesc": "Video to MP3, GIF, MP4 and more",
+  "@toolVideoConverterDesc": {
+    "description": "One-line tool description (about 40 characters max)"
+  },
+  "toolVideoConverterKeywords": "video to mp3, gif maker, audio extract",
+  "@toolVideoConverterKeywords": {
+    "description": "Comma-separated search words people in your language would type to find this tool. Not shown in the UI. Add local synonyms freely; keep the English words too."
+  },
+  "filesEmptyTitle": "No files yet",
+  "@filesEmptyTitle": {
+    "description": "My Files empty state title"
+  },
+  "filesEmptyBody": "PDFs, images and other files you create will appear here so you can open or share them again.",
+  "@filesEmptyBody": {
+    "description": "My Files empty state body"
+  },
+  "fileOpen": "Open",
+  "@fileOpen": {
+    "description": "Action"
+  },
+  "fileShare": "Share",
+  "@fileShare": {
+    "description": "Action"
+  },
+  "fileRemoveFromList": "Remove from list",
+  "@fileRemoveFromList": {
+    "description": "Action: removes the entry, not the file"
+  },
+  "fileOpenFailed": "Couldn’t open this file. It may have been moved or deleted.",
+  "@fileOpenFailed": {
+    "description": "Error snackbar"
+  },
+  "filesClearList": "Clear list",
+  "@filesClearList": {
+    "description": "Action to clear the My Files list"
+  },
+  "filesClearConfirm": "Clear the list? Your files stay on the device.",
+  "@filesClearConfirm": {
+    "description": "Confirmation dialog body"
+  },
+  "incomingSheetTitle": "What do you want to do?",
+  "@incomingSheetTitle": {
+    "description": "Title of the sheet shown when a file or text is shared into the app"
+  },
+  "incomingImages": "{count, plural, =1{1 image} other{{count} images}}",
+  "@incomingImages": {
+    "description": "Subtitle of the share sheet",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "incomingPdfs": "{count, plural, =1{1 PDF} other{{count} PDFs}}",
+  "@incomingPdfs": {
+    "description": "Subtitle of the share sheet",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "incomingText": "Shared text",
+  "@incomingText": {
+    "description": "Subtitle of the share sheet"
+  },
+  "incomingDocument": "Word document",
+  "@incomingDocument": {
+    "description": "Subtitle of the share sheet"
+  },
+  "incomingVideo": "Video",
+  "@incomingVideo": {
+    "description": "Subtitle of the share sheet"
+  },
+  "incomingUnsupported": "This file type isn’t supported yet",
+  "@incomingUnsupported": {
+    "description": "Snackbar for unsupported shares"
+  },
+  "incomingFailed": "Couldn’t read the shared file",
+  "@incomingFailed": {
+    "description": "Snackbar when copying a shared file fails"
+  },
+  "settingsTitle": "Settings",
+  "@settingsTitle": {
+    "description": "Screen title"
+  },
+  "settingsAppearance": "Appearance",
+  "@settingsAppearance": {
+    "description": "Section header"
+  },
+  "settingsTheme": "Theme",
+  "@settingsTheme": {
+    "description": "Label"
+  },
+  "themeSystem": "Auto",
+  "@themeSystem": {
+    "description": "Theme option following the system"
+  },
+  "themeLight": "Light",
+  "@themeLight": {
+    "description": "Theme option"
+  },
+  "themeDark": "Dark",
+  "@themeDark": {
+    "description": "Theme option"
+  },
+  "settingsLanguage": "Language",
+  "@settingsLanguage": {
+    "description": "Label"
+  },
+  "languageSystem": "System default",
+  "@languageSystem": {
+    "description": "Language option following the device language"
+  },
+  "settingsPurchases": "Purchases",
+  "@settingsPurchases": {
+    "description": "Section header"
+  },
+  "removeAdsTitle": "Remove ads",
+  "@removeAdsTitle": {
+    "description": "Purchase tile title"
+  },
+  "removeAdsSubtitle": "One-time purchase, no subscription",
+  "@removeAdsSubtitle": {
+    "description": "Purchase tile subtitle"
+  },
+  "restorePurchasesTitle": "Restore purchases",
+  "@restorePurchasesTitle": {
+    "description": "Tile title"
+  },
+  "restorePurchasesSubtitle": "Recover a purchase on this device",
+  "@restorePurchasesSubtitle": {
+    "description": "Tile subtitle"
+  },
+  "settingsSupport": "Support & privacy",
+  "@settingsSupport": {
+    "description": "Section header"
+  },
+  "shareAppTitle": "Share app",
+  "@shareAppTitle": {
+    "description": "Tile title"
+  },
+  "shareAppSubtitle": "Tell a friend about Utility Toolbox",
+  "@shareAppSubtitle": {
+    "description": "Tile subtitle"
+  },
+  "shareAppMessage": "I use Utility Toolbox to scan documents, edit PDFs, read QR codes and translate offline. Free: {url}",
+  "@shareAppMessage": {
+    "description": "Text shared when the user taps Share app",
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "rateAppTitle": "Rate the app",
+  "@rateAppTitle": {
+    "description": "Tile title"
+  },
+  "rateAppSubtitle": "A quick review helps a lot",
+  "@rateAppSubtitle": {
+    "description": "Tile subtitle"
+  },
+  "privacyPolicyTitle": "Privacy policy",
+  "@privacyPolicyTitle": {
+    "description": "Tile title"
+  },
+  "privacyPolicySubtitle": "What the app accesses and why",
+  "@privacyPolicySubtitle": {
+    "description": "Tile subtitle"
+  },
+  "privacyChoicesTitle": "Ad privacy choices",
+  "@privacyChoicesTitle": {
+    "description": "Tile title opening the consent form"
+  },
+  "privacyChoicesSubtitle": "Change your consent for personalised ads",
+  "@privacyChoicesSubtitle": {
+    "description": "Tile subtitle"
+  },
+  "versionLabel": "Version {version}",
+  "@versionLabel": {
+    "description": "Footer",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingSkip": "Skip",
+  "@onboardingSkip": {
+    "description": "Button"
+  },
+  "onboardingNext": "Next",
+  "@onboardingNext": {
+    "description": "Button"
+  },
+  "onboardingStart": "Get started",
+  "@onboardingStart": {
+    "description": "Button on last page"
+  },
+  "onboarding1Title": "Every tool,\none app",
+  "@onboarding1Title": {
+    "description": "Onboarding page 1 title (two short lines)"
+  },
+  "onboarding1Body": "Scan documents, edit PDFs, read QR codes, translate and resize photos — without installing ten apps.",
+  "@onboarding1Body": {
+    "description": "Onboarding page 1 body"
+  },
+  "onboarding2Title": "Works from\nany app",
+  "@onboarding2Title": {
+    "description": "Onboarding page 2 title (two short lines)"
+  },
+  "onboarding2Body": "Share a photo or PDF to Utility Toolbox, select text to translate it, or long-press the app icon for shortcuts.",
+  "@onboarding2Body": {
+    "description": "Onboarding page 2 body"
+  },
+  "onboarding3Title": "Fast, offline\nand private",
+  "@onboarding3Title": {
+    "description": "Onboarding page 3 title (two short lines)"
+  },
+  "onboarding3Body": "Almost everything runs on your phone. Your files are never uploaded unless you turn on a cloud option yourself.",
+  "@onboarding3Body": {
+    "description": "Onboarding page 3 body"
+  },
+  "commonCancel": "Cancel",
+  "@commonCancel": {
+    "description": "Button"
+  },
+  "commonClear": "Clear",
+  "@commonClear": {
+    "description": "Button"
+  }
+}

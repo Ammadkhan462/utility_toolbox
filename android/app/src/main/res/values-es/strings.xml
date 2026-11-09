@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="world_clock_widget_description">Muestra en vivo las ciudades que fijaste en Reloj mundial, directo en tu pantalla de inicio.</string>
+
+    <!-- Launcher long-press shortcuts. Short labels: max ~10 chars; long: max ~25. -->
+    <string name="shortcut_scan_doc_short">Escáner</string>
+    <string name="shortcut_scan_doc_long">Escanear un documento</string>
+    <string name="shortcut_scan_qr_short">Leer QR</string>
+    <string name="shortcut_scan_qr_long">Escanear un código QR</string>
+    <string name="shortcut_image_pdf_short">Foto→PDF</string>
+    <string name="shortcut_image_pdf_long">Convertir fotos a PDF</string>
+    <string name="shortcut_translate_short">Traducir</string>
+    <string name="shortcut_translate_long">Traducir texto</string>
+
+    <!-- Entry in the system text-selection menu (select text in any app). -->
+    <string name="process_text_translate">Traducir</string>
+
+    <!-- Quick Settings tile. -->
+    <string name="tile_scan_qr">Leer QR</string>
+</resources>

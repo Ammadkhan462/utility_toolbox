@@ -4,7 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gal/gal.dart';
+import 'package:utility_toolbox/core/utils/file_utils.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:utility_toolbox/core/services/ads_service.dart';
@@ -15,7 +15,10 @@ import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/qr_barcode/providers/qr_providers.dart';
 
 class QrGeneratorScreen extends ConsumerStatefulWidget {
-  const QrGeneratorScreen({super.key});
+  const QrGeneratorScreen({super.key, this.initialText});
+
+  /// Text or a link shared into the app: turned into a QR code right away.
+  final String? initialText;
 
   @override
   ConsumerState<QrGeneratorScreen> createState() => _QrGeneratorScreenState();
@@ -23,7 +26,18 @@ class QrGeneratorScreen extends ConsumerStatefulWidget {
 
 class _QrGeneratorScreenState extends ConsumerState<QrGeneratorScreen> {
   final _qrKey = GlobalKey();
-  final _controller = TextEditingController();
+  late final _controller = TextEditingController(text: widget.initialText);
+
+  @override
+  void initState() {
+    super.initState();
+    final initial = widget.initialText;
+    if (initial != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) ref.read(generatorTextProvider.notifier).state = initial;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -45,14 +59,16 @@ class _QrGeneratorScreenState extends ConsumerState<QrGeneratorScreen> {
     final bytes = await _captureQr();
     if (bytes == null || !mounted) return;
 
-    await Gal.putImageBytes(
-      bytes,
-      name: 'qr_${DateTime.now().millisecondsSinceEpoch}',
+    final ok = await FileUtils.saveImageToGallery(
+      bytes: bytes,
+      fileName: 'qr_${DateTime.now().millisecondsSinceEpoch}.png',
+      mimeType: 'image/png',
+      toolId: 'qr_generator',
     );
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Saved to gallery')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(ok ? 'Saved to gallery' : 'Could not save to your gallery')),
+    );
     await ref.read(adsServiceProvider).showInterstitialIfAllowed();
   }
 

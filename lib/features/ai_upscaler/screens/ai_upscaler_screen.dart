@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:gal/gal.dart';
+import 'package:utility_toolbox/core/utils/file_utils.dart';
 import 'package:utility_toolbox/core/widgets/feature_badge.dart';
 import 'package:utility_toolbox/core/widgets/premium_button.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
@@ -520,29 +520,14 @@ class _ResultCard extends StatelessWidget {
 
   Future<void> _saveToGallery(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
-    try {
-      final hasAccess = await Gal.hasAccess(toAlbum: true);
-      if (!hasAccess) {
-        final granted = await Gal.requestAccess(toAlbum: true);
-        if (!granted) {
-          messenger.showSnackBar(const SnackBar(
-            content: Text('Photos permission is needed to save to your gallery.'),
-          ));
-          return;
-        }
-      }
-      await Gal.putImage(result.outputFile.path, album: 'UtilityBox');
-      messenger.showSnackBar(const SnackBar(
-        content: Text('Saved to gallery'),
-        backgroundColor: Color(0xFF22C55E),
-      ));
-    } on GalException catch (e) {
-      messenger.showSnackBar(SnackBar(
-        content: Text('Could not save: ${e.type.message}'),
-      ));
-    } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Could not save: $e')));
-    }
+    final ok = await FileUtils.saveImageToGallery(
+      bytes: await result.outputFile.readAsBytes(),
+      fileName: 'upscaled_${DateTime.now().millisecondsSinceEpoch}.jpg',
+      toolId: 'ai_upscaler',
+    );
+    messenger.showSnackBar(SnackBar(
+      content: Text(ok ? 'Saved to gallery' : 'Could not save to your gallery'),
+    ));
   }
 
   @override

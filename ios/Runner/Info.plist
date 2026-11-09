@@ -51,6 +51,12 @@
 	<string>Used to pick images for the QR generator, OCR, and PDF tools.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Used to save generated QR codes and PDFs to your photo library.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Used for voice input in the translator.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Used to turn your speech into text for translation.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Used to save your current location in Save Location.</string>
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-3940256099942544~1458002511</string>
 </dict>

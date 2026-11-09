@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -13,7 +14,11 @@ import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/qr_barcode/providers/qr_providers.dart';
 
 class QrScannerScreen extends ConsumerStatefulWidget {
-  const QrScannerScreen({super.key});
+  const QrScannerScreen({super.key, this.initialImagePath});
+
+  /// A photo shared into the app: decode the code in it instead of (first)
+  /// opening the camera.
+  final String? initialImagePath;
 
   @override
   ConsumerState<QrScannerScreen> createState() => _QrScannerScreenState();
@@ -29,7 +34,46 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
   @override
   void initState() {
     super.initState();
-    _checkPermission();
+    final initial = widget.initialImagePath;
+    if (initial == null) {
+      _checkPermission();
+    } else {
+      // Don't ask for the camera before showing what was in the photo.
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await _scanImage(initial);
+        if (mounted) _checkPermission();
+      });
+    }
+  }
+
+  Future<void> _pickFromGallery() async {
+    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (picked == null || !mounted) return;
+    await _scanImage(picked.path);
+  }
+
+  /// Decodes a QR code/barcode from a photo (gallery or shared).
+  Future<void> _scanImage(String path) async {
+    final controller = _controller ?? MobileScannerController(autoStart: false);
+    try {
+      final capture = await controller.analyzeImage(path);
+      final value = capture?.barcodes.firstOrNull?.rawValue;
+      if (!mounted) return;
+      if (value == null || value.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No QR code or barcode found in this photo.')),
+        );
+        return;
+      }
+      await _handleValue(value);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Couldn't read this photo.")),
+      );
+    } finally {
+      if (!identical(controller, _controller)) controller.dispose();
+    }
   }
 
   Future<void> _checkPermission() async {
@@ -58,7 +102,10 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
 
     _lastScanned = value;
     _lastScanTime = now;
+    await _handleValue(value);
+  }
 
+  Future<void> _handleValue(String value) async {
     final qrService = ref.read(qrServiceProvider);
     final item = qrService.createHistoryItem(value);
     await ref.read(scanHistoryProvider.notifier).addItem(item);
@@ -151,6 +198,13 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
       return ToolScaffold(
         title: 'Scan',
         accentColor: AppColors.toolAccent('qr_barcode'),
+        actions: [
+          IconButton(
+            tooltip: 'Scan from photo',
+            icon: const Icon(Icons.photo_library_outlined),
+            onPressed: _pickFromGallery,
+          ),
+        ],
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -183,6 +237,13 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
     return ToolScaffold(
       title: 'Scan',
       accentColor: AppColors.toolAccent('qr_barcode'),
+      actions: [
+        IconButton(
+          tooltip: 'Scan from photo',
+          icon: const Icon(Icons.photo_library_outlined),
+          onPressed: _pickFromGallery,
+        ),
+      ],
       body: MobileScanner(
         controller: _controller,
         onDetect: _onDetect,

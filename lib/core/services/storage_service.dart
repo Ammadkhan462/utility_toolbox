@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:utility_toolbox/core/files/output_record.dart';
 import 'package:utility_toolbox/features/qr_barcode/models/scan_history_item.dart';
 
 class StorageService {
@@ -21,6 +22,15 @@ class StorageService {
   static const _clipboardBoxName = 'clipboard_items';
   static const _hasSeenOnboardingKey = 'has_seen_onboarding';
   static const _cloudUpscaleEnabledKey = 'ai_upscaler_cloud_enabled';
+  static const _favoritesKey = 'favorite_tools';
+  static const _recentToolsKey = 'recent_tools';
+  static const _outputsKey = 'output_records_v1';
+  static const _successCountKey = 'success_count';
+  static const _lastReviewPromptKey = 'last_review_prompt_at';
+  static const _localeKey = 'locale_code';
+
+  static const maxRecentTools = 8;
+  static const maxOutputs = 100;
 
   static const _defaultPinnedCities = ['Lahore', 'London', 'New York', 'Dubai'];
 
@@ -126,6 +136,75 @@ class StorageService {
     await _prefs.setString(_pinnedCitiesKey, jsonEncode(cities));
   }
 
+  // ── Tools: favorites & recents ─────────────────────────────────────────
+
+  List<String> getFavoriteTools() => _prefs.getStringList(_favoritesKey) ?? [];
+
+  Future<void> setFavoriteTools(List<String> ids) async {
+    await _prefs.setStringList(_favoritesKey, ids);
+  }
+
+  List<String> getRecentTools() => _prefs.getStringList(_recentToolsKey) ?? [];
+
+  Future<void> setRecentTools(List<String> ids) async {
+    await _prefs.setStringList(
+      _recentToolsKey,
+      ids.take(maxRecentTools).toList(),
+    );
+  }
+
+  // ── My Files ───────────────────────────────────────────────────────────
+
+  List<OutputRecord> getOutputs() {
+    final raw = _prefs.getString(_outputsKey);
+    if (raw == null) return [];
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return [];
+      return decoded.map(OutputRecord.fromJson).whereType<OutputRecord>().toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> setOutputs(List<OutputRecord> records) async {
+    await _prefs.setString(
+      _outputsKey,
+      jsonEncode(records.take(maxOutputs).map((r) => r.toJson()).toList()),
+    );
+  }
+
+  // ── Engagement (review prompt, ad pacing) ──────────────────────────────
+
+  /// Number of jobs the user has completed successfully (files saved,
+  /// scans done, …). Drives the in-app review prompt and ad pacing.
+  int getSuccessCount() => _prefs.getInt(_successCountKey) ?? 0;
+
+  Future<int> incrementSuccessCount() async {
+    final next = getSuccessCount() + 1;
+    await _prefs.setInt(_successCountKey, next);
+    return next;
+  }
+
+  int getLastReviewPromptAt() => _prefs.getInt(_lastReviewPromptKey) ?? 0;
+
+  Future<void> setLastReviewPromptAt(int epochMs) async {
+    await _prefs.setInt(_lastReviewPromptKey, epochMs);
+  }
+
+  // ── Language ───────────────────────────────────────────────────────────
+
+  /// Null means "follow the device language".
+  String? getLocaleCode() => _prefs.getString(_localeKey);
+
+  Future<void> setLocaleCode(String? code) async {
+    if (code == null) {
+      await _prefs.remove(_localeKey);
+    } else {
+      await _prefs.setString(_localeKey, code);
+    }
+  }
+
   List<ScanHistoryItem> getScanHistory() {
     final box = _scanHistoryBox;
     if (box == null) return [];
@@ -155,4 +234,10 @@ final storageServiceProvider = Provider<StorageService>((ref) {
 
 final themeModeProvider = StateProvider<ThemeMode>((ref) {
   return ref.watch(storageServiceProvider).getThemeMode();
+});
+
+/// Null = follow the device language.
+final localeProvider = StateProvider<Locale?>((ref) {
+  final code = ref.watch(storageServiceProvider).getLocaleCode();
+  return code == null ? null : Locale(code);
 });

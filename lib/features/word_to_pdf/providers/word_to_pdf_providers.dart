@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -63,72 +64,43 @@ class WordToPdfNotifier extends StateNotifier<WordToPdfState> {
         state = const WordToPdfState();
         return;
       }
+      await convertFile(result.files.first.path!);
+    } catch (e) {
+      state = state.copyWith(status: WordToPdfStatus.error, error: e.toString());
+    }
+  }
 
-      final inputPath = result.files.first.path!;
-      state = state.copyWith(
-        status: WordToPdfStatus.converting,
-        inputPath: inputPath,
-        progress: 0.2,
-      );
-
-      // ── Extract text from .docx ─────────────────────────────────
+  /// Converts a .docx at [inputPath] — from the picker, the share sheet or
+  /// "Open with". Text extraction and PDF layout run in a background
+  /// isolate so large documents can't freeze the UI.
+  Future<void> convertFile(String inputPath) async {
+    state = WordToPdfState(
+      status: WordToPdfStatus.converting,
+      inputPath: inputPath,
+      progress: 0.2,
+    );
+    try {
       final bytes = await File(inputPath).readAsBytes();
       state = state.copyWith(progress: 0.4);
 
-      final text = docxToText(bytes);
-      state = state.copyWith(progress: 0.6);
-
-      // ── Build PDF ───────────────────────────────────────────────
-      final pdf = pw.Document();
-      final lines = text.split('\n');
-
-      // Split into pages ~50 lines each
-      const linesPerPage = 50;
-      for (var i = 0; i < lines.length; i += linesPerPage) {
-        final chunk = lines.skip(i).take(linesPerPage).join('\n');
-        pdf.addPage(
-          pw.Page(
-            pageFormat: PdfPageFormat.a4,
-            margin: const pw.EdgeInsets.all(40),
-            build: (_) =>
-                pw.Text(chunk, style: const pw.TextStyle(fontSize: 11)),
-          ),
-        );
-      }
-
-      // If no text extracted, add placeholder page
-      if (lines.isEmpty || text.trim().isEmpty) {
-        pdf.addPage(
-          pw.Page(
-            build: (_) => pw.Center(
-              child: pw.Text(
-                'No extractable text found in this document.',
-                style: const pw.TextStyle(fontSize: 14),
-              ),
-            ),
-          ),
-        );
-      }
-
+      final pdfBytes = await compute(_docxToPdfBytes, bytes);
+      if (!mounted) return;
       state = state.copyWith(progress: 0.85);
 
-      // ── Save output ─────────────────────────────────────────────
       final outDir = await getTemporaryDirectory();
       final outName = '${p.basenameWithoutExtension(inputPath)}.pdf';
       final outPath = p.join(outDir.path, outName);
-      final pdfBytes = await pdf.save();
       await File(outPath).writeAsBytes(pdfBytes);
 
+      if (!mounted) return;
       state = state.copyWith(
         status: WordToPdfStatus.done,
         outputPath: outPath,
         progress: 1.0,
       );
     } catch (e) {
-      state = state.copyWith(
-        status: WordToPdfStatus.error,
-        error: e.toString(),
-      );
+      if (!mounted) return;
+      state = state.copyWith(status: WordToPdfStatus.error, error: e.toString());
     }
   }
 
@@ -145,6 +117,7 @@ class WordToPdfNotifier extends StateNotifier<WordToPdfState> {
       fileName: baseName,
       ext: 'pdf',
       mimeType: 'application/pdf',
+      toolId: 'word_to_pdf',
     );
   }
 
@@ -155,3 +128,39 @@ final wordToPdfProvider =
     StateNotifierProvider<WordToPdfNotifier, WordToPdfState>(
       (_) => WordToPdfNotifier(),
     );
+
+const _newline = '\n';
+
+/// Runs in a background isolate (see [WordToPdfNotifier.convertFile]).
+Future<Uint8List> _docxToPdfBytes(Uint8List bytes) async {
+  final text = docxToText(bytes);
+  final pdf = pw.Document();
+  final lines = text.split(_newline);
+
+  // ~50 lines per A4 page.
+  const linesPerPage = 50;
+  for (var i = 0; i < lines.length; i += linesPerPage) {
+    final chunk = lines.skip(i).take(linesPerPage).join(_newline);
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(40),
+        build: (_) => pw.Text(chunk, style: const pw.TextStyle(fontSize: 11)),
+      ),
+    );
+  }
+
+  if (text.trim().isEmpty) {
+    pdf.addPage(
+      pw.Page(
+        build: (_) => pw.Center(
+          child: pw.Text(
+            'No extractable text found in this document.',
+            style: const pw.TextStyle(fontSize: 14),
+          ),
+        ),
+      ),
+    );
+  }
+  return pdf.save();
+}

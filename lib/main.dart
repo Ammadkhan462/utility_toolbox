@@ -4,10 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:utility_toolbox/app.dart';
+import 'package:utility_toolbox/core/files/outputs_providers.dart';
+import 'package:utility_toolbox/core/platform/system_bridge.dart';
 import 'package:utility_toolbox/core/services/ads_service.dart';
 import 'package:utility_toolbox/core/services/iap_service.dart';
 import 'package:utility_toolbox/core/services/notification_service.dart';
 import 'package:utility_toolbox/core/services/storage_service.dart';
+import 'package:utility_toolbox/core/utils/file_utils.dart';
 import 'package:utility_toolbox/features/timezone/providers/timezone_providers.dart';
 
 Future<void> main() async {
@@ -27,12 +30,23 @@ Future<void> main() async {
     debugPrint('storageService.initHive error: $e');
   }
 
+  // Opened from the share sheet / "Open with" / a shortcut: the user came
+  // to do a job, so don't put onboarding in front of it.
+  if (!storageService.getHasSeenOnboarding() &&
+      await SystemBridge.instance.hasInitialIntent()) {
+    await storageService.setHasSeenOnboarding(true);
+  }
+
   final container = ProviderContainer(
     overrides: [storageServiceProvider.overrideWithValue(storageService)],
   );
 
+  // Every saved file lands in My Files and counts as a completed job.
+  FileUtils.onSaved = (record) => container.read(outputsProvider.notifier).add(record);
+
   if (!kIsWeb) {
-    // Defer heavy initializations until after first frame to reduce cold-start latency.
+    // Defer heavy initializations until after first frame to reduce
+    // cold-start latency.
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
         await NotificationService.initialize();

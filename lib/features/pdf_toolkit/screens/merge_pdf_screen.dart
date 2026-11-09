@@ -191,6 +191,7 @@ class _MergeResultView extends ConsumerWidget {
         fileName: 'merged_${DateTime.now().millisecondsSinceEpoch}',
         ext: 'pdf',
         mimeType: 'application/pdf',
+        toolId: 'merge_pdf',
       );
       messenger.showSnackBar(
         SnackBar(

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="world_clock_widget_description">আপনার পিন করা বিশ্ব ঘড়ির শহরগুলো, লাইভ, সরাসরি হোম স্ক্রিনে।</string>
+
+    <!-- Launcher long-press shortcuts. Short labels: max ~10 chars; long: max ~25. -->
+    <string name="shortcut_scan_doc_short">স্ক্যান</string>
+    <string name="shortcut_scan_doc_long">ডকুমেন্ট স্ক্যান করুন</string>
+    <string name="shortcut_scan_qr_short">QR স্ক্যান</string>
+    <string name="shortcut_scan_qr_long">QR কোড স্ক্যান করুন</string>
+    <string name="shortcut_image_pdf_short">ছবি→PDF</string>
+    <string name="shortcut_image_pdf_long">ছবি থেকে PDF বানান</string>
+    <string name="shortcut_translate_short">অনুবাদ</string>
+    <string name="shortcut_translate_long">লেখা অনুবাদ করুন</string>
+
+    <!-- Entry in the system text-selection menu (select text in any app). -->
+    <string name="process_text_translate">অনুবাদ</string>
+
+    <!-- Quick Settings tile. -->
+    <string name="tile_scan_qr">QR স্ক্যান</string>
+</resources>

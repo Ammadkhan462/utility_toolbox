@@ -1,4 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="world_clock_widget_description">Shows your pinned World Clock cities, live, right on your home screen.</string>
+
+    <!-- Launcher long-press shortcuts. Short labels: max ~10 chars; long: max ~25. -->
+    <string name="shortcut_scan_doc_short">Scan doc</string>
+    <string name="shortcut_scan_doc_long">Scan a document</string>
+    <string name="shortcut_scan_qr_short">Scan QR</string>
+    <string name="shortcut_scan_qr_long">Scan a QR code</string>
+    <string name="shortcut_image_pdf_short">Image→PDF</string>
+    <string name="shortcut_image_pdf_long">Convert images to PDF</string>
+    <string name="shortcut_translate_short">Translate</string>
+    <string name="shortcut_translate_long">Translate text</string>
+
+    <!-- Entry in the system text-selection menu (select text in any app). -->
+    <string name="process_text_translate">Translate</string>
+
+    <!-- Quick Settings tile. -->
+    <string name="tile_scan_qr">Scan QR</string>
 </resources>

@@ -1,9 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gal/gal.dart';
+import 'package:utility_toolbox/core/utils/file_utils.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:saver_gallery/saver_gallery.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:utility_toolbox/core/utils/result.dart';
 import 'package:utility_toolbox/core/widgets/glass_card.dart';
@@ -373,32 +372,14 @@ class _ResultCard extends StatelessWidget {
 
   Future<void> _save(BuildContext context, File file) async {
     final messenger = ScaffoldMessenger.of(context);
-    try {
-      final hasAccess = await Gal.hasAccess();
-      if (!hasAccess) {
-        final granted = await Gal.requestAccess();
-        if (!granted) {
-          messenger.showSnackBar(
-            const SnackBar(content: Text('Gallery permission denied')),
-          );
-          return;
-        }
-      }
-      await Gal.putImage(file.path, album: 'Utility Toolbox');
-      messenger.showSnackBar(const SnackBar(content: Text('Saved to gallery!')));
-    } catch (_) {
-      try {
-        await SaverGallery.saveFile(
-          filePath: file.path,
-          fileName: 'compressed_${DateTime.now().millisecondsSinceEpoch}.jpg',
-          androidRelativePath: 'Pictures/UtilityToolbox',
-          skipIfExists: false,
-        );
-        messenger.showSnackBar(const SnackBar(content: Text('Saved to gallery!')));
-      } catch (e) {
-        messenger.showSnackBar(SnackBar(content: Text('Failed to save: $e')));
-      }
-    }
+    final ok = await FileUtils.saveImageToGallery(
+      bytes: await file.readAsBytes(),
+      fileName: 'compressed_${DateTime.now().millisecondsSinceEpoch}.jpg',
+      toolId: 'image_compressor',
+    );
+    messenger.showSnackBar(SnackBar(
+      content: Text(ok ? 'Saved to gallery!' : 'Could not save to your gallery'),
+    ));
   }
 }
 

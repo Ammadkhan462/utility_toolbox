@@ -141,6 +141,7 @@ class ImageToPdfScreen extends ConsumerWidget {
         fileName: 'images_${DateTime.now().millisecondsSinceEpoch}',
         ext: 'pdf',
         mimeType: 'application/pdf',
+        toolId: 'image_to_pdf',
       );
       messenger.showSnackBar(
         SnackBar(

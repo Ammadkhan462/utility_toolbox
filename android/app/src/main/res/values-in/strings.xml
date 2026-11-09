@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="world_clock_widget_description">Menampilkan kota Jam Dunia yang Anda sematkan, langsung di layar utama.</string>
+
+    <!-- Launcher long-press shortcuts. Short labels: max ~10 chars; long: max ~25. -->
+    <string name="shortcut_scan_doc_short">Scan dok</string>
+    <string name="shortcut_scan_doc_long">Scan dokumen</string>
+    <string name="shortcut_scan_qr_short">Scan QR</string>
+    <string name="shortcut_scan_qr_long">Scan kode QR</string>
+    <string name="shortcut_image_pdf_short">Foto→PDF</string>
+    <string name="shortcut_image_pdf_long">Ubah gambar jadi PDF</string>
+    <string name="shortcut_translate_short">Terjemah</string>
+    <string name="shortcut_translate_long">Terjemahkan teks</string>
+
+    <!-- Entry in the system text-selection menu (select text in any app). -->
+    <string name="process_text_translate">Terjemahkan</string>
+
+    <!-- Quick Settings tile. -->
+    <string name="tile_scan_qr">Scan QR</string>
+</resources>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="world_clock_widget_description">आपके पिन किए गए विश्व घड़ी शहर, लाइव, सीधे आपकी होम स्क्रीन पर।</string>
+
+    <!-- Launcher long-press shortcuts. Short labels: max ~10 chars; long: max ~25. -->
+    <string name="shortcut_scan_doc_short">स्कैन</string>
+    <string name="shortcut_scan_doc_long">डॉक्यूमेंट स्कैन करें</string>
+    <string name="shortcut_scan_qr_short">QR स्कैन</string>
+    <string name="shortcut_scan_qr_long">QR कोड स्कैन करें</string>
+    <string name="shortcut_image_pdf_short">फ़ोटो→PDF</string>
+    <string name="shortcut_image_pdf_long">फ़ोटो को PDF में बदलें</string>
+    <string name="shortcut_translate_short">अनुवाद</string>
+    <string name="shortcut_translate_long">टेक्स्ट का अनुवाद करें</string>
+
+    <!-- Entry in the system text-selection menu (select text in any app). -->
+    <string name="process_text_translate">अनुवाद करें</string>
+
+    <!-- Quick Settings tile. -->
+    <string name="tile_scan_qr">QR स्कैन</string>
+</resources>

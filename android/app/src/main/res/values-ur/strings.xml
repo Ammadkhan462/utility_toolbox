@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="world_clock_widget_description">آپ کے پن کیے گئے عالمی گھڑی کے شہر، لائیو، سیدھے آپ کی ہوم اسکرین پر۔</string>
+
+    <!-- Launcher long-press shortcuts. Short labels: max ~10 chars; long: max ~25. -->
+    <string name="shortcut_scan_doc_short">اسکین</string>
+    <string name="shortcut_scan_doc_long">ڈاکیومنٹ اسکین کریں</string>
+    <string name="shortcut_scan_qr_short">QR اسکین</string>
+    <string name="shortcut_scan_qr_long">QR کوڈ اسکین کریں</string>
+    <string name="shortcut_image_pdf_short">تصویر→PDF</string>
+    <string name="shortcut_image_pdf_long">تصویروں کو PDF میں بدلیں</string>
+    <string name="shortcut_translate_short">ترجمہ</string>
+    <string name="shortcut_translate_long">ٹیکسٹ کا ترجمہ کریں</string>
+
+    <!-- Entry in the system text-selection menu (select text in any app). -->
+    <string name="process_text_translate">ترجمہ کریں</string>
+
+    <!-- Quick Settings tile. -->
+    <string name="tile_scan_qr">QR اسکین</string>
+</resources>

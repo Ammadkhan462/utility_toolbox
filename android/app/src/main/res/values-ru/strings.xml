@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="world_clock_widget_description">Закреплённые города из «Мирового времени» прямо на главном экране.</string>
+
+    <!-- Launcher long-press shortcuts. Short labels: max ~10 chars; long: max ~25. -->
+    <string name="shortcut_scan_doc_short">Скан</string>
+    <string name="shortcut_scan_doc_long">Сканировать документ</string>
+    <string name="shortcut_scan_qr_short">QR-сканер</string>
+    <string name="shortcut_scan_qr_long">Сканировать QR-код</string>
+    <string name="shortcut_image_pdf_short">Фото→PDF</string>
+    <string name="shortcut_image_pdf_long">Фото в PDF</string>
+    <string name="shortcut_translate_short">Перевод</string>
+    <string name="shortcut_translate_long">Перевести текст</string>
+
+    <!-- Entry in the system text-selection menu (select text in any app). -->
+    <string name="process_text_translate">Перевести</string>
+
+    <!-- Quick Settings tile. -->
+    <string name="tile_scan_qr">QR-сканер</string>
+</resources>

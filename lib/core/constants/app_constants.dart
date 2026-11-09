@@ -12,6 +12,7 @@ class AppConstants {
   static const String playStoreUrl =
       'https://play.google.com/store/apps/details?id=com.utilitytoolbox.smarttools';
 
-  static const Duration interstitialCooldown = Duration(seconds: 60);
+  /// At most one interstitial every 3 minutes (ratings suffer above that).
+  static const Duration interstitialCooldown = Duration(minutes: 3);
   static const int translationsBeforeInterstitial = 3;
 }

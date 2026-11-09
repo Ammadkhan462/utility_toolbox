@@ -53,3 +53,6 @@ replay_pid*.log
 /android/app/.cxx/
 .github/modernize/
 __pycache__/
+
+# Claude Code local state (agent worktrees)
+.claude/

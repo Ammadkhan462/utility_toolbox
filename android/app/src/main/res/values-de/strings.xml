@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="world_clock_widget_description">Zeigt deine angehefteten Weltuhr-Städte live auf dem Startbildschirm.</string>
+
+    <!-- Launcher long-press shortcuts. Short labels: max ~10 chars; long: max ~25. -->
+    <string name="shortcut_scan_doc_short">Scannen</string>
+    <string name="shortcut_scan_doc_long">Dokument scannen</string>
+    <string name="shortcut_scan_qr_short">QR scannen</string>
+    <string name="shortcut_scan_qr_long">QR-Code scannen</string>
+    <string name="shortcut_image_pdf_short">Bild→PDF</string>
+    <string name="shortcut_image_pdf_long">Bilder in PDF umwandeln</string>
+    <string name="shortcut_translate_short">Übersetzen</string>
+    <string name="shortcut_translate_long">Text übersetzen</string>
+
+    <!-- Entry in the system text-selection menu (select text in any app). -->
+    <string name="process_text_translate">Übersetzen</string>
+
+    <!-- Quick Settings tile. -->
+    <string name="tile_scan_qr">QR scannen</string>
+</resources>

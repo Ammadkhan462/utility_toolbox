@@ -29,7 +29,11 @@ import 'package:utility_toolbox/features/ocr/providers/ocr_providers.dart';
 // ─────────────────────────────────────────────────────────────────────────────
 
 class OcrScreen extends ConsumerStatefulWidget {
-  const OcrScreen({super.key});
+  const OcrScreen({super.key, this.initialImagePath});
+
+  /// A photo shared into the app (or handed over by another tool): read it
+  /// straight away.
+  final String? initialImagePath;
 
   @override
   ConsumerState<OcrScreen> createState() => _OcrScreenState();
@@ -41,7 +45,6 @@ class _OcrScreenState extends ConsumerState<OcrScreen> {
     // Read everything we need BEFORE the first await so ref is accessed
     // synchronously and cannot be disposed between reads.
     final permission = ref.read(permissionServiceProvider);
-    final ocrService = ref.read(ocrServiceProvider);
 
     // Only the camera needs a runtime permission. The gallery uses the
     // system photo picker via image_picker, which needs no permission.
@@ -70,7 +73,22 @@ class _OcrScreenState extends ConsumerState<OcrScreen> {
     if (!mounted) return;
     if (picked == null) return;
 
-    final file = File(picked.path);
+    await _recognize(File(picked.path));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    final initial = widget.initialImagePath;
+    if (initial != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _recognize(File(initial));
+      });
+    }
+  }
+
+  Future<void> _recognize(File file) async {
+    final ocrService = ref.read(ocrServiceProvider);
 
     // Set state synchronously — no await between here and the OCR call.
     ref.read(ocrImageProvider.notifier).state = file;

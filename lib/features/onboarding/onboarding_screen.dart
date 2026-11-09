@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:utility_toolbox/core/routing/app_routes.dart';
 import 'package:utility_toolbox/core/services/storage_service.dart';
 import 'package:utility_toolbox/core/theme/app_colors.dart';
+import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 
 /// ─────────────────────────────────────────────────────────────────────────────
 ///  OnboardingScreen  –  First-launch tutorial slideshow
@@ -33,64 +34,43 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _pageController = PageController();
   int _page = 0;
 
-  static const _pages = <_OnboardingPageData>[
+  /// Three short slides: what it is, the "works from any app" habit hook,
+  /// and the privacy promise. Fewer slides = more people reach the app.
+  List<_OnboardingPageData> _pagesFor(AppLocalizations l) => [
     _OnboardingPageData(
-      icons: [
-        Icons.auto_awesome_rounded,
+      icons: const [
+        Icons.document_scanner_rounded,
         Icons.qr_code_scanner_rounded,
         Icons.picture_as_pdf_rounded,
       ],
-      colors: [AppColors.brand, AppColors.accentTeal],
-      title: 'Welcome to\nUtility Toolbox',
-      subtitle:
-          '22 powerful tools, beautifully designed, and all living in one place on your phone.',
+      colors: const [AppColors.brand, AppColors.accentTeal],
+      title: l.onboarding1Title,
+      subtitle: l.onboarding1Body,
     ),
     _OnboardingPageData(
-      icons: [
-        Icons.document_scanner_outlined,
+      icons: const [
+        Icons.share_rounded,
         Icons.translate_rounded,
-        Icons.auto_awesome_rounded,
+        Icons.touch_app_rounded,
       ],
-      colors: [AppColors.accentPink, AppColors.brand],
-      title: 'Smarter\nwith AI',
-      subtitle:
-          'Scan text with OCR, translate on the fly, and upscale photos — powered by on-device AI.',
+      colors: const [AppColors.accentPink, AppColors.brand],
+      title: l.onboarding2Title,
+      subtitle: l.onboarding2Body,
     ),
     _OnboardingPageData(
-      icons: [
-        Icons.picture_as_pdf_rounded,
-        Icons.qr_code_scanner_rounded,
-        Icons.movie_filter_rounded,
-      ],
-      colors: [Color(0xFFFF8642), AppColors.accentTeal],
-      title: 'Handle Any\nFile in Seconds',
-      subtitle:
-          'Merge, compress and convert PDFs, generate QR codes, and convert video — no desktop required.',
-    ),
-    _OnboardingPageData(
-      icons: [
-        Icons.lock_rounded,
-        Icons.straighten_rounded,
-        Icons.explore_rounded,
-      ],
-      colors: [Color(0xFF3D9BFF), AppColors.brand],
-      title: 'A Tool for\nEvery Day',
-      subtitle:
-          'Passwords, unit conversions, WiFi speed tests, a compass, loan calculators — always within reach.',
-    ),
-    _OnboardingPageData(
-      icons: [
+      icons: const [
         Icons.verified_user_rounded,
         Icons.offline_bolt_rounded,
         Icons.flash_on_rounded,
       ],
-      colors: [AppColors.success, AppColors.accentTeal],
-      title: 'Your Data\nStays Yours',
-      subtitle:
-          'Most tools run fully on-device — fast, private, and ready even without a connection.',
+      colors: const [AppColors.success, AppColors.accentTeal],
+      title: l.onboarding3Title,
+      subtitle: l.onboarding3Body,
       isLast: true,
     ),
   ];
+
+  static const _pageCount = 3;
 
   @override
   void dispose() {
@@ -104,7 +84,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   void _next() {
-    if (_page == _pages.length - 1) {
+    if (_page == _pageCount - 1) {
       _finish();
     } else {
       _pageController.nextPage(
@@ -125,7 +105,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
-    final data = _pages[_page];
+    final l = AppLocalizations.of(context);
+    final pages = _pagesFor(l);
+    final data = pages[_page];
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -180,7 +162,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       child: Row(
                         children: [
                           Text(
-                            '${_page + 1} / ${_pages.length}',
+                            '${_page + 1} / ${pages.length}',
                             style: TextStyle(
                               color: Colors.white.withValues(
                                 alpha: isDark ? 0.45 : 0.75,
@@ -207,8 +189,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                                     vertical: 8,
                                   ),
                                 ),
-                                child: const Text(
-                                  'Skip',
+                                child: Text(
+                                  l.onboardingSkip,
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
@@ -225,17 +207,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     Expanded(
                       child: PageView.builder(
                         controller: _pageController,
-                        itemCount: _pages.length,
+                        itemCount: pages.length,
                         onPageChanged: (i) => setState(() => _page = i),
                         itemBuilder: (context, i) =>
-                            _SlideContent(data: _pages[i], isDark: isDark),
+                            _SlideContent(data: pages[i], isDark: isDark),
                       ),
                     ),
 
                     // ── Page indicator ───────────────────────────────────
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(_pages.length, (i) {
+                      children: List.generate(pages.length, (i) {
                         final active = i == _page;
                         return AnimatedContainer(
                           duration: const Duration(milliseconds: 280),
@@ -280,7 +262,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           const SizedBox(width: 14),
                           Expanded(
                             child: _GradientCtaButton(
-                              label: data.isLast ? 'Get Started' : 'Next',
+                              label: data.isLast ? l.onboardingStart : l.onboardingNext,
                               icon: data.isLast
                                   ? Icons.check_rounded
                                   : Icons.arrow_forward_rounded,

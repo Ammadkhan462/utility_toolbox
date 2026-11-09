@@ -7,7 +7,9 @@ import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/text_utilities/providers/text_utilities_providers.dart';
 
 class TextUtilitiesScreen extends ConsumerStatefulWidget {
-  const TextUtilitiesScreen({super.key});
+  const TextUtilitiesScreen({super.key, this.initialText});
+
+  final String? initialText;
 
   @override
   ConsumerState<TextUtilitiesScreen> createState() =>
@@ -23,8 +25,14 @@ class _TextUtilitiesScreenState extends ConsumerState<TextUtilitiesScreen> {
   @override
   void initState() {
     super.initState();
-    _inputCtrl  = TextEditingController();
+    _inputCtrl  = TextEditingController(text: widget.initialText);
     _outputCtrl = TextEditingController();
+    final initial = widget.initialText;
+    if (initial != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) ref.read(textInputProvider.notifier).state = initial;
+      });
+    }
   }
 
   @override
