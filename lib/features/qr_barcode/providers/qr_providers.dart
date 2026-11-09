@@ -5,7 +5,7 @@ import 'package:utility_toolbox/features/qr_barcode/services/qr_service.dart';
 
 final qrServiceProvider = Provider<QrService>((ref) => QrService());
 
-final generatorTextProvider = StateProvider<String>((ref) => '');
+final generatorTextProvider = StateProvider.autoDispose<String>((ref) => '');
 
 final scanHistoryProvider =
     StateNotifierProvider<ScanHistoryNotifier, List<ScanHistoryItem>>((ref) {

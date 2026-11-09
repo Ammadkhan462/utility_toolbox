@@ -2,9 +2,9 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:utility_toolbox/core/utils/result.dart';
 
-final selectedImageProvider = StateProvider<File?>((ref) => null);
-final qualityProvider = StateProvider<double>((ref) => 80);
-final compressionResultProvider = StateProvider<Result<CompressResult>>(
+final selectedImageProvider = StateProvider.autoDispose<File?>((ref) => null);
+final qualityProvider = StateProvider.autoDispose<double>((ref) => 80);
+final compressionResultProvider = StateProvider.autoDispose<Result<CompressResult>>(
   (ref) => const Idle(),
 );
 

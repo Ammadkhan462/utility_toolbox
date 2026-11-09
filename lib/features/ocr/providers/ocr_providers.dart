@@ -9,18 +9,18 @@ export 'package:utility_toolbox/features/ocr/services/ocr_service.dart'
 
 final ocrServiceProvider = Provider<OcrService>((ref) => OcrService());
 
-final ocrImageProvider = StateProvider<File?>((ref) => null);
+final ocrImageProvider = StateProvider.autoDispose<File?>((ref) => null);
 
 final ocrResultProvider =
-    StateProvider<Result<String>>((ref) => const Idle());
+    StateProvider.autoDispose<Result<String>>((ref) => const Idle());
 
-final ocrTextProvider = StateProvider<String>((ref) => '');
+final ocrTextProvider = StateProvider.autoDispose<String>((ref) => '');
 
 /// Full structured result (blocks + lines + normalised rects).
-final ocrDetailedResultProvider = StateProvider<OcrResult?>((_) => null);
+final ocrDetailedResultProvider = StateProvider.autoDispose<OcrResult?>((_) => null);
 
 /// Index of the currently highlighted block (-1 = none).
-final ocrHighlightedBlockProvider = StateProvider<int>((_) => -1);
+final ocrHighlightedBlockProvider = StateProvider.autoDispose<int>((_) => -1);
 
 /// Human-readable label shown during the loading phase.
-final ocrLoadingMessageProvider = StateProvider<String>((_) => 'Preparing image…');
+final ocrLoadingMessageProvider = StateProvider.autoDispose<String>((_) => 'Preparing image…');

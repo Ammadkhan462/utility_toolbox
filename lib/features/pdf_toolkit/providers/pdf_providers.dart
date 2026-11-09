@@ -7,14 +7,14 @@ import 'package:utility_toolbox/features/pdf_toolkit/services/pdf_service.dart';
 
 final pdfServiceProvider = Provider<PdfService>((ref) => PdfService());
 
-final selectedImagesProvider = StateProvider<List<File>>((ref) => []);
+final selectedImagesProvider = StateProvider.autoDispose<List<File>>((ref) => []);
 
-final selectedPdfsProvider = StateProvider<List<File>>((ref) => []);
+final selectedPdfsProvider = StateProvider.autoDispose<List<File>>((ref) => []);
 
 final pdfCompressionLevelProvider =
-    StateProvider<PdfCompressionLevel>((ref) => PdfCompressionLevel.medium);
+    StateProvider.autoDispose<PdfCompressionLevel>((ref) => PdfCompressionLevel.medium);
 
 final pdfJobStateProvider =
-    StateProvider<Result<PdfJobResult>>((ref) => const Idle());
+    StateProvider.autoDispose<Result<PdfJobResult>>((ref) => const Idle());
 
-final selectedSinglePdfProvider = StateProvider<File?>((ref) => null);
+final selectedSinglePdfProvider = StateProvider.autoDispose<File?>((ref) => null);

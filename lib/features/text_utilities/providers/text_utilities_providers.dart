@@ -3,25 +3,25 @@ import 'package:utility_toolbox/features/text_utilities/services/text_service.da
 
 final textServiceProvider = Provider<TextService>((ref) => TextService());
 
-final textInputProvider = StateProvider<String>((ref) => '');
+final textInputProvider = StateProvider.autoDispose<String>((ref) => '');
 
-final base64ModeProvider = StateProvider<bool>((ref) => false);
+final base64ModeProvider = StateProvider.autoDispose<bool>((ref) => false);
 
-final base64OutputProvider = StateProvider<String>((ref) => '');
+final base64OutputProvider = StateProvider.autoDispose<String>((ref) => '');
 
-final base64ErrorProvider = StateProvider<String?>((ref) => null);
+final base64ErrorProvider = StateProvider.autoDispose<String?>((ref) => null);
 
-final wordCountProvider = Provider<int>((ref) {
+final wordCountProvider = Provider.autoDispose<int>((ref) {
   final text = ref.watch(textInputProvider);
   return ref.watch(textServiceProvider).wordCount(text);
 });
 
-final characterCountProvider = Provider<int>((ref) {
+final characterCountProvider = Provider.autoDispose<int>((ref) {
   final text = ref.watch(textInputProvider);
   return ref.watch(textServiceProvider).characterCount(text, includeSpaces: true);
 });
 
-final characterCountNoSpacesProvider = Provider<int>((ref) {
+final characterCountNoSpacesProvider = Provider.autoDispose<int>((ref) {
   final text = ref.watch(textInputProvider);
   return ref.watch(textServiceProvider).characterCount(text, includeSpaces: false);
 });
