@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:utility_toolbox/core/constants/ad_unit_ids.dart';
@@ -12,13 +13,23 @@ class AdsService {
   bool _isLoadingInterstitial = false;
 
   Future<void> initialize() async {
+    if (!AdUnitIds.isConfigured) {
+      // Release build without real ad unit IDs (see AdUnitIds). Don't even
+      // initialise the SDK: no ads, no invalid requests.
+      debugPrint(
+        '[AdsService] Live ad unit IDs not configured — ads disabled. '
+        'Pass --dart-define=ADMOB_BANNER_ID/ADMOB_INTERSTITIAL_ID.',
+      );
+      return;
+    }
     await MobileAds.instance.initialize();
-    if (!_storage.getRemoveAdsPurchased()) {
+    if (shouldShowAds) {
       loadInterstitial();
     }
   }
 
-  bool get shouldShowAds => !_storage.getRemoveAdsPurchased();
+  bool get shouldShowAds =>
+      AdUnitIds.isConfigured && !_storage.getRemoveAdsPurchased();
 
   BannerAd? getBannerAd(String placement) {
     if (!shouldShowAds) return null;

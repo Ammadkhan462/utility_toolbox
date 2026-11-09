@@ -43,3 +43,13 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Audit cleanup (2026-11): never commit debug dumps, archives or tool leftovers
+*.zip
+*.hprof
+hs_err_pid*.log
+replay_pid*.log
+/android/build/
+/android/app/.cxx/
+.github/modernize/
+__pycache__/
