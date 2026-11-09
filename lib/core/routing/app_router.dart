@@ -43,6 +43,7 @@ import 'package:utility_toolbox/features/text_utilities/screens/text_utilities_s
 import 'package:utility_toolbox/features/timezone/screens/timezone_screen.dart';
 import 'package:utility_toolbox/features/translation/screens/translation_screen.dart';
 import 'package:utility_toolbox/features/unit_converter/screens/unit_converter_screen.dart';
+import 'package:utility_toolbox/features/video_converter/providers/video_converter_providers.dart';
 import 'package:utility_toolbox/features/video_converter/screens/video_converter_screen.dart';
 import 'package:utility_toolbox/features/wifi_qr/screens/wifi_qr_screen.dart';
 import 'package:utility_toolbox/features/wifi_speed_test/screens/wifi_speed_test_screen.dart';
@@ -202,7 +203,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       _route(AppRoutes.hashGenerator, (_) => const HashGeneratorScreen()),
 
       // ── Video & audio ──────────────────────────────────────────────────
-      _route(AppRoutes.videoConverter, (_) => const VideoConverterScreen()),
+      _route(
+        AppRoutes.videoConverter,
+        (i) => SeedInput(
+          input: i,
+          seed: (ref, input) {
+            final path = input.firstPath;
+            if (path != null) ref.read(videoConverterProvider.notifier).loadFile(path);
+          },
+          child: const VideoConverterScreen(),
+        ),
+      ),
     ],
   );
 });

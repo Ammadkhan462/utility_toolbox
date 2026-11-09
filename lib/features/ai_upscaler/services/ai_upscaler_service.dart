@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
@@ -10,6 +11,15 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:utility_toolbox/features/ai_upscaler/providers/upscaler_providers.dart';
 import 'package:utility_toolbox/features/ai_upscaler/services/real_esrgan_processor.dart';
+
+/// Thrown by [AiUpscalerService.upscale] when [AiUpscalerService.cancel] was
+/// called mid-run. The notifier treats any error after its own cancel() as
+/// "back to idle", and the message contains "cancel" for its error mapping.
+class UpscaleCancelledException implements Exception {
+  const UpscaleCancelledException();
+  @override
+  String toString() => 'Upscale cancelled';
+}
 
 class AiUpscalerService {
   /// Your Hugging Face Space URL (Docker/FastAPI backend running
@@ -31,24 +41,31 @@ class AiUpscalerService {
   /// have opted in (see `useCloud` on [upscale]) before anything is sent.
   static bool get cloudAvailable => cloudBackendUrl.isNotEmpty;
 
-  /// Paste your Replicate token to enable Replicate as a *paid* secondary
-  /// cloud fallback (after the free HF backend, before on-device).
-  /// Leave empty to skip it entirely.
-  static const String replicateToken = '';
-
-  static const _model =
-      'nightmareai/real-esrgan:42fed1c4974146d4d2414e2be2c5277c7fcf05fcc3a73abf41610695738c1d7b';
-
   // Cancellation: current isolate can be killed via this reference
   Isolate? _activeIsolate;
   http.Client? _activeHttpClient;
 
+  /// Completed with [UpscaleCancelledException] by [cancel], so an awaiting
+  /// caller is released even though a killed isolate never answers on its
+  /// result port.
+  Completer<Object?>? _activeRun;
+  bool _cancelled = false;
+
   /// Cancel any in-progress upscale immediately
   void cancel() {
+    _cancelled = true;
     _activeIsolate?.kill(priority: Isolate.immediate);
     _activeIsolate = null;
     _activeHttpClient?.close();
     _activeHttpClient = null;
+    final run = _activeRun;
+    if (run != null && !run.isCompleted) {
+      run.completeError(const UpscaleCancelledException());
+    }
+  }
+
+  void _throwIfCancelled() {
+    if (_cancelled) throw const UpscaleCancelledException();
   }
 
   void dispose() => cancel();
@@ -77,6 +94,7 @@ class AiUpscalerService {
     required void Function(double progress, String label) onProgress,
     bool useCloud = false,
   }) async {
+    _cancelled = false;
     // Privacy gate: the photo leaves the device ONLY when the user has
     // explicitly enabled cloud processing. Default is on-device.
     if (!useCloud) {
@@ -102,23 +120,13 @@ class AiUpscalerService {
           onProgress: onProgress,
         );
       } catch (e) {
-        debugPrint('[AiUpscaler] HF cloud failed → next fallback: $e');
+        // cancel() closes the HTTP client, which surfaces here as a
+        // ClientException — don't treat that as "cloud down, go on-device".
+        _throwIfCancelled();
+        debugPrint('[AiUpscaler] HF cloud failed → on-device fallback: $e');
       }
     }
-    // 2) Optional paid Replicate fallback, if configured.
-    if (replicateToken.isNotEmpty) {
-      try {
-        return await _cloudUpscale(
-          source: source,
-          factor: factor,
-          mode: mode,
-          onProgress: onProgress,
-        );
-      } catch (e) {
-        debugPrint('[AiUpscaler] Replicate failed → on-device: $e');
-      }
-    }
-    // 3) On-device real TFLite Real-ESRGAN — always available, offline.
+    // 2) On-device real TFLite Real-ESRGAN — always available, offline.
     onProgress(0.08, 'Cloud unavailable — using on-device processing…');
     return _onDeviceUpscale(
       source: source,
@@ -146,6 +154,22 @@ class AiUpscalerService {
 
     final client = http.Client();
     _activeHttpClient = client;
+    try {
+      return await _sendCloudRequest(client, source, factor, mode, onProgress);
+    } finally {
+      // Always release the client's sockets (previously only nulled).
+      client.close();
+      if (identical(_activeHttpClient, client)) _activeHttpClient = null;
+    }
+  }
+
+  Future<File> _sendCloudRequest(
+    http.Client client,
+    File source,
+    UpscaleFactor factor,
+    EnhanceMode mode,
+    void Function(double, String) onProgress,
+  ) async {
 
     // Skip GFPGAN's face-restoration pass for illustration/art content —
     // running a real-face GAN on anime/drawn faces produces bad artifacts.
@@ -174,7 +198,6 @@ class AiUpscalerService {
 
     onProgress(0.5, 'AI restoring faces & detail…');
     final res = await http.Response.fromStream(streamed);
-    _activeHttpClient = null;
 
     if (res.statusCode != 200) {
       String detail = 'HTTP ${res.statusCode}';
@@ -188,79 +211,6 @@ class AiUpscalerService {
     final dir = await getTemporaryDirectory();
     final out = File(
       '${dir.path}/${p.basenameWithoutExtension(source.path)}_ai_cloud.jpg',
-    );
-    await out.writeAsBytes(res.bodyBytes);
-    return out;
-  }
-
-  // ── Cloud: optional paid Replicate fallback ─────────────────────────────
-
-  Future<File> _cloudUpscale({
-    required File source,
-    required UpscaleFactor factor,
-    required EnhanceMode mode,
-    required void Function(double, String) onProgress,
-  }) async {
-    onProgress(0.05, 'Uploading image…');
-
-    final bytes = await source.readAsBytes();
-    final b64 = base64Encode(bytes);
-    final dataUri = 'data:image/jpeg;base64,$b64';
-
-    onProgress(0.15, 'Starting AI upscale…');
-
-    final startRes = await http
-        .post(
-          Uri.parse('https://api.replicate.com/v1/predictions'),
-          headers: {
-            'Authorization': 'Token $replicateToken',
-            'Content-Type': 'application/json',
-          },
-          body: jsonEncode({
-            'version': _model.split(':')[1],
-            'input': {
-              'image': dataUri,
-              'scale': factor.multiplier,
-              'face_enhance': mode == EnhanceMode.face,
-            },
-          }),
-        )
-        .timeout(const Duration(seconds: 30));
-
-    if (startRes.statusCode != 201) {
-      throw Exception('API ${startRes.statusCode}');
-    }
-
-    final id = (jsonDecode(startRes.body) as Map)['id'] as String;
-    final pollUrl = 'https://api.replicate.com/v1/predictions/$id';
-
-    for (var i = 0; i < 45; i++) {
-      await Future.delayed(const Duration(seconds: 2));
-      final res = await http.get(
-        Uri.parse(pollUrl),
-        headers: {'Authorization': 'Token $replicateToken'},
-      );
-      final data = jsonDecode(res.body) as Map<String, dynamic>;
-      onProgress(0.18 + (i / 45) * 0.72, 'AI running… (${data['status']})');
-
-      if (data['status'] == 'succeeded') {
-        final output = data['output'];
-        final url = output is List ? output[0] as String : output as String;
-        onProgress(0.94, 'Downloading result…');
-        return _downloadFile(url, source);
-      }
-      if (data['status'] == 'failed' || data['status'] == 'canceled') {
-        throw Exception('Prediction ${data['status']}: ${data['error']}');
-      }
-    }
-    throw Exception('Cloud timed out after 90s');
-  }
-
-  Future<File> _downloadFile(String url, File source) async {
-    final res = await http.get(Uri.parse(url));
-    final dir = await getTemporaryDirectory();
-    final out = File(
-      '${dir.path}/${p.basenameWithoutExtension(source.path)}_ai.jpg',
     );
     await out.writeAsBytes(res.bodyBytes);
     return out;
@@ -308,33 +258,21 @@ class AiUpscalerService {
         modelData.lengthInBytes,
       );
 
-      final receivePort = ReceivePort();
-      final progressPort = ReceivePort();
+      _throwIfCancelled();
 
-      final isolate = await Isolate.spawn(
+      final result = await _runIsolate<RealEsrganArgs>(
         runRealEsrgan,
-        RealEsrganArgs(
+        (resultPort, progressPort) => RealEsrganArgs(
           imageBytes: bytes,
           modelBytes: modelBytes,
           targetScale: factor.multiplier,
           denoise: denoise,
           outPath: outPath,
-          sendPort: receivePort.sendPort,
-          progressPort: progressPort.sendPort,
+          sendPort: resultPort,
+          progressPort: progressPort,
         ),
+        onProgress,
       );
-      _activeIsolate = isolate;
-
-      progressPort.listen((msg) {
-        if (msg is List && msg.length == 2) {
-          onProgress(msg[0] as double, msg[1] as String);
-        }
-      });
-
-      final result = await receivePort.first;
-      _activeIsolate = null;
-      progressPort.close();
-      receivePort.close();
 
       if (result is String && !result.startsWith('AI_ERROR:')) {
         final out = File(result);
@@ -343,7 +281,12 @@ class AiUpscalerService {
             : out;
       }
       debugPrint('[AiUpscaler] AI model failed → bicubic fallback: $result');
+    } on UpscaleCancelledException {
+      rethrow;
     } catch (e) {
+      // A cancel can also surface as some other error (e.g. from the killed
+      // isolate); never fall back to bicubic after the user cancelled.
+      _throwIfCancelled();
       debugPrint('[AiUpscaler] AI path failed → bicubic fallback: $e');
     }
 
@@ -361,47 +304,15 @@ class AiUpscalerService {
   }
 
   // Light post-processing on top of the real AI output — colour grading and
-  // an optional extra sharpen pass, both cheap single-pass operations.
+  // an optional extra sharpen pass. Cheap per pixel, but the AI output can be
+  // tens of megapixels, so decode/loop/encode runs off the UI isolate.
   Future<File> _postProcess(
     File file, {
     required EnhanceMode mode,
     required double sharpen,
   }) async {
-    var image = img.decodeImage(await file.readAsBytes());
-    if (image == null) return file;
-
-    if (sharpen > 0.05) {
-      final strength = sharpen.clamp(0.0, 1.0);
-      final blurred = img.gaussianBlur(image, radius: 1);
-      for (final px in image) {
-        final bx = blurred.getPixel(px.x, px.y);
-        final r = (px.r + strength * (px.r - bx.r)).clamp(0, 255).round();
-        final g = (px.g + strength * (px.g - bx.g)).clamp(0, 255).round();
-        final b = (px.b + strength * (px.b - bx.b)).clamp(0, 255).round();
-        image.setPixelRgba(px.x, px.y, r, g, b, 255);
-      }
-    }
-
-    image = switch (mode) {
-      EnhanceMode.photo => img.adjustColor(
-        image,
-        contrast: 1.08,
-        saturation: 1.05,
-      ),
-      EnhanceMode.illustration => img.adjustColor(
-        image,
-        saturation: 1.2,
-        contrast: 1.1,
-      ),
-      EnhanceMode.face => img.adjustColor(
-        image,
-        brightness: 1.04,
-        contrast: 1.06,
-      ),
-      _ => image,
-    };
-
-    await file.writeAsBytes(img.encodePng(image));
+    await Isolate.run(_postProcessTask(file.path, mode, sharpen));
+    _throwIfCancelled();
     return file;
   }
 
@@ -416,38 +327,144 @@ class AiUpscalerService {
     required String outPath,
     required void Function(double, String) onProgress,
   }) async {
-    final receivePort = ReceivePort();
-    final progressPort = ReceivePort();
-
-    final isolate = await Isolate.spawn(
+    _throwIfCancelled();
+    final result = await _runIsolate<_ProcessArgs>(
       _processAll,
-      _ProcessArgs(
+      (resultPort, progressPort) => _ProcessArgs(
         bytes: bytes,
         scale: factor.multiplier,
         mode: mode,
         denoise: denoise,
         sharpen: sharpen,
         outPath: outPath,
-        sendPort: receivePort.sendPort,
-        progressPort: progressPort.sendPort,
+        sendPort: resultPort,
+        progressPort: progressPort,
       ),
+      onProgress,
     );
-    _activeIsolate = isolate;
 
+    if (result is String && result == outPath) return File(result);
+    throw Exception(result);
+  }
+
+  /// Spawns [entry] in a killable isolate and returns the first message it
+  /// sends on its result port.
+  ///
+  /// Unlike a bare `await receivePort.first`, this can't hang forever: it
+  /// also completes when the isolate dies (onExit / onError — e.g. OOM or
+  /// [cancel]'s kill), and [cancel] completes it directly with
+  /// [UpscaleCancelledException]. All ports are closed in every case.
+  Future<Object?> _runIsolate<T>(
+    void Function(T) entry,
+    T Function(SendPort resultPort, SendPort progressPort) buildArgs,
+    void Function(double, String) onProgress,
+  ) async {
+    final resultPort = ReceivePort();
+    final progressPort = ReceivePort();
+    final exitPort = ReceivePort();
+    final errorPort = ReceivePort();
+    final done = Completer<Object?>();
+    _activeRun = done;
+
+    resultPort.listen((msg) {
+      if (!done.isCompleted) done.complete(msg);
+    });
+    // Messages from one isolate arrive in order, so a normal result is
+    // always seen before the exit notification.
+    exitPort.listen((_) {
+      if (done.isCompleted) return;
+      done.completeError(
+        _cancelled
+            ? const UpscaleCancelledException()
+            : Exception('Processing stopped unexpectedly'),
+      );
+    });
+    errorPort.listen((err) {
+      if (done.isCompleted) return;
+      final msg = err is List && err.isNotEmpty ? err.first : err;
+      done.completeError(Exception('Processing failed: $msg'));
+    });
     progressPort.listen((msg) {
+      if (_cancelled) return;
       if (msg is List && msg.length == 2) {
         onProgress(msg[0] as double, msg[1] as String);
       }
     });
 
-    final result = await receivePort.first;
-    _activeIsolate = null;
-    progressPort.close();
-    receivePort.close();
-
-    if (result is String) return File(result);
-    throw Exception(result);
+    try {
+      final isolate = await Isolate.spawn<T>(
+        entry,
+        buildArgs(resultPort.sendPort, progressPort.sendPort),
+        onExit: exitPort.sendPort,
+        onError: errorPort.sendPort,
+      );
+      _activeIsolate = isolate;
+      // cancel() may have run while we were spawning.
+      if (_cancelled) {
+        isolate.kill(priority: Isolate.immediate);
+        if (!done.isCompleted) {
+          done.completeError(const UpscaleCancelledException());
+        }
+      }
+      return await done.future;
+    } finally {
+      _activeIsolate = null;
+      if (identical(_activeRun, done)) _activeRun = null;
+      resultPort.close();
+      progressPort.close();
+      exitPort.close();
+      errorPort.close();
+    }
   }
+}
+
+// ── Post-processing (runs in a short-lived isolate via Isolate.run) ────────
+
+// Built at top level so the closure captures only these three values — never
+// the service instance, whose Isolate / http.Client fields can't be sent.
+void Function() _postProcessTask(
+  String path,
+  EnhanceMode mode,
+  double sharpen,
+) => () => _postProcessSync(path, mode, sharpen);
+
+void _postProcessSync(String path, EnhanceMode mode, double sharpen) {
+  final file = File(path);
+  var image = img.decodeImage(file.readAsBytesSync());
+  if (image == null) return;
+
+  if (sharpen > 0.05) {
+    final strength = sharpen.clamp(0.0, 1.0);
+    final blurred = img.gaussianBlur(image, radius: 1);
+    for (final px in image) {
+      final bx = blurred.getPixel(px.x, px.y);
+      final r = (px.r + strength * (px.r - bx.r)).clamp(0, 255).round();
+      final g = (px.g + strength * (px.g - bx.g)).clamp(0, 255).round();
+      final b = (px.b + strength * (px.b - bx.b)).clamp(0, 255).round();
+      image.setPixelRgba(px.x, px.y, r, g, b, 255);
+    }
+  }
+
+  image = switch (mode) {
+    EnhanceMode.photo => img.adjustColor(
+      image,
+      contrast: 1.08,
+      saturation: 1.05,
+    ),
+    EnhanceMode.illustration => img.adjustColor(
+      image,
+      saturation: 1.2,
+      contrast: 1.1,
+    ),
+    EnhanceMode.face => img.adjustColor(
+      image,
+      brightness: 1.04,
+      contrast: 1.06,
+    ),
+    _ => image,
+  };
+
+  file.writeAsBytesSync(img.encodePng(image));
 }
 
 // ── Single-isolate pipeline ────────────────────────────────────────────────
@@ -494,7 +511,7 @@ Future<void> _processAll(_ProcessArgs args) async {
     const maxInputPx = 1_500_000; // 1.5 megapixels
     final inputPx = image.width * image.height;
     if (inputPx > maxInputPx) {
-      final ratio = (maxInputPx / inputPx).sqrt();
+      final ratio = math.sqrt(maxInputPx / inputPx);
       final capW = (image.width * ratio).round();
       final capH = (image.height * ratio).round();
       _progress(
@@ -580,19 +597,4 @@ Future<void> _processAll(_ProcessArgs args) async {
   } catch (e) {
     args.sendPort.send('Processing failed: $e');
   }
-}
-
-// Dart extension — sqrt not on double in older SDKs
-extension _DoubleExt on double {
-  double sqrt() => _sqrt(this);
-}
-
-double _sqrt(double v) {
-  // Newton-Raphson sqrt — avoids dart:math import in isolate
-  if (v <= 0) return 0;
-  var x = v / 2;
-  for (var i = 0; i < 20; i++) {
-    x = (x + v / x) / 2;
-  }
-  return x;
 }

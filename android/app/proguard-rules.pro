@@ -30,9 +30,11 @@
 -keep class com.tfliteflutter.** { *; }
 -keepclassmembers class com.tfliteflutter.** { *; }
 
-# FFmpeg Kit
--keep class com.arthenica.ffmpegkit.** { *; }
--dontwarn com.arthenica.ffmpegkit.**
+# FFmpeg Kit (ffmpeg_kit_flutter_new_audio). Its Java package is
+# com.antonkarpenko.ffmpegkit (NOT the original com.arthenica.ffmpegkit);
+# JNI calls back into FFmpegKitConfig, so keep it whole. The plugin also
+# ships these as consumer rules; repeated here so the dependency is explicit.
+-keep class com.antonkarpenko.ffmpegkit.** { *; }
 
 # Google ML Kit
 -keep class com.google.mlkit.** { *; }
@@ -42,7 +44,24 @@
 -keep class com.google.mlkit.vision.text.japanese.** { *; }
 -keep class com.google.mlkit.vision.text.korean.** { *; }
 
+# Play Core (deferred components). The Flutter embedding references these
+# classes from FlutterPlayStoreSplitApplication / PlayStoreDeferredComponentManager,
+# but the app uses neither deferred components nor the Play Core library, so
+# they are legitimately absent. Exactly the list R8 reported (missing_rules.txt).
+-dontwarn com.google.android.play.core.splitcompat.SplitCompatApplication
+-dontwarn com.google.android.play.core.splitinstall.SplitInstallException
+-dontwarn com.google.android.play.core.splitinstall.SplitInstallManager
+-dontwarn com.google.android.play.core.splitinstall.SplitInstallManagerFactory
+-dontwarn com.google.android.play.core.splitinstall.SplitInstallRequest$Builder
+-dontwarn com.google.android.play.core.splitinstall.SplitInstallRequest
+-dontwarn com.google.android.play.core.splitinstall.SplitInstallSessionState
+-dontwarn com.google.android.play.core.splitinstall.SplitInstallStateUpdatedListener
+-dontwarn com.google.android.play.core.tasks.OnFailureListener
+-dontwarn com.google.android.play.core.tasks.OnSuccessListener
+-dontwarn com.google.android.play.core.tasks.Task
+
 # General rules
--dontwarn **
+# (No blanket `-dontwarn **`: it hid real missing-class problems. Add
+# targeted -dontwarn lines only for classes R8 actually reports.)
 -keepattributes *Annotation*
 -keepattributes SourceFile,LineNumberTable

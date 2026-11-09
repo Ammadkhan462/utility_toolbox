@@ -470,6 +470,7 @@ class ToolRegistry {
       title: (l) => l.toolVideoConverterTitle,
       description: (l) => l.toolVideoConverterDesc,
       keywords: (l) => l.toolVideoConverterKeywords,
+      accepts: const {InputKind.video},
     ),
   ];
 

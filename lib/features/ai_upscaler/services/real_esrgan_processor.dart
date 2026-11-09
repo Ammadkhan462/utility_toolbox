@@ -14,6 +14,7 @@
 
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:math' as math;
 import 'dart:typed_data';
 import 'package:image/image.dart' as img;
 import 'package:tflite_flutter/tflite_flutter.dart';
@@ -84,7 +85,7 @@ Future<void> runRealEsrgan(RealEsrganArgs args) async {
     var tilesX = ((source.width + kStepIn - 1) / kStepIn).ceil();
     var tilesY = ((source.height + kStepIn - 1) / kStepIn).ceil();
     if (tilesX * tilesY > maxTiles) {
-      final ratio = (maxTiles / (tilesX * tilesY)).sqrt();
+      final ratio = math.sqrt(maxTiles / (tilesX * tilesY));
       final newW = (source.width * ratio).round().clamp(kStepIn, 1 << 20);
       final newH = (source.height * ratio).round().clamp(kStepIn, 1 << 20);
       _progress(
@@ -113,7 +114,6 @@ Future<void> runRealEsrgan(RealEsrganArgs args) async {
     }
 
     _progress(pp, 0.28, 'Loading AI model…');
-    final interpreter = _createInterpreter(args.modelBytes);
 
     final srcW = source.width;
     final srcH = source.height;
@@ -141,68 +141,75 @@ Future<void> runRealEsrgan(RealEsrganArgs args) async {
       ),
     ];
 
-    for (var ty = 0; ty < tilesY; ty++) {
-      for (var tx = 0; tx < tilesX; tx++) {
-        final inX0 = tx * kStepIn - kPad;
-        final inY0 = ty * kStepIn - kPad;
+    final (interpreter, gpuDelegate) = _createInterpreter(args.modelBytes);
+    // Native TFLite memory is not GC-managed: release it even when a tile
+    // throws, otherwise every failed run leaks the interpreter (and the GPU
+    // delegate's buffers).
+    try {
+      for (var ty = 0; ty < tilesY; ty++) {
+        for (var tx = 0; tx < tilesX; tx++) {
+          final inX0 = tx * kStepIn - kPad;
+          final inY0 = ty * kStepIn - kPad;
 
-        // Fill the input tile, edge-replicating out-of-bounds pixels.
-        for (var dy = 0; dy < kTileIn; dy++) {
-          final sy = (inY0 + dy).clamp(0, srcH - 1);
-          final rowBase = sy * srcW * 3;
-          final row = input[0][dy];
-          for (var dx = 0; dx < kTileIn; dx++) {
-            final sx = (inX0 + dx).clamp(0, srcW - 1);
-            final idx = rowBase + sx * 3;
-            final px = row[dx];
-            px[0] = srcBytes[idx].toDouble();
-            px[1] = srcBytes[idx + 1].toDouble();
-            px[2] = srcBytes[idx + 2].toDouble();
+          // Fill the input tile, edge-replicating out-of-bounds pixels.
+          for (var dy = 0; dy < kTileIn; dy++) {
+            final sy = (inY0 + dy).clamp(0, srcH - 1);
+            final rowBase = sy * srcW * 3;
+            final row = input[0][dy];
+            for (var dx = 0; dx < kTileIn; dx++) {
+              final sx = (inX0 + dx).clamp(0, srcW - 1);
+              final idx = rowBase + sx * 3;
+              final px = row[dx];
+              px[0] = srcBytes[idx].toDouble();
+              px[1] = srcBytes[idx + 1].toDouble();
+              px[2] = srcBytes[idx + 2].toDouble();
+            }
           }
-        }
 
-        interpreter.run(input, output);
+          interpreter.run(input, output);
 
-        // Crop the overlap border from the output (except at true image
-        // edges, where we keep the full crop since there's no neighbour
-        // to blend with) and stitch into the final buffer.
-        final cropL = tx == 0 ? 0 : kPad * kModelScale;
-        final cropT = ty == 0 ? 0 : kPad * kModelScale;
-        final cropR = tx == tilesX - 1 ? 0 : kPad * kModelScale;
-        final cropB = ty == tilesY - 1 ? 0 : kPad * kModelScale;
+          // Crop the overlap border from the output (except at true image
+          // edges, where we keep the full crop since there's no neighbour
+          // to blend with) and stitch into the final buffer.
+          final cropL = tx == 0 ? 0 : kPad * kModelScale;
+          final cropT = ty == 0 ? 0 : kPad * kModelScale;
+          final cropR = tx == tilesX - 1 ? 0 : kPad * kModelScale;
+          final cropB = ty == tilesY - 1 ? 0 : kPad * kModelScale;
 
-        final destX0 = tx * kStepOut - (tx == 0 ? 0 : kPad * kModelScale);
-        final destY0 = ty * kStepOut - (ty == 0 ? 0 : kPad * kModelScale);
-        final tileOut = output[0];
+          final destX0 = tx * kStepOut - (tx == 0 ? 0 : kPad * kModelScale);
+          final destY0 = ty * kStepOut - (ty == 0 ? 0 : kPad * kModelScale);
+          final tileOut = output[0];
 
-        for (var y = cropT; y < kTileOut - cropB; y++) {
-          final dy = destY0 + (y - cropT);
-          if (dy < 0 || dy >= outH) continue;
-          final rowBase = dy * outW * 3;
-          final srcRow = tileOut[y];
-          for (var x = cropL; x < kTileOut - cropR; x++) {
-            final dx = destX0 + (x - cropL);
-            if (dx < 0 || dx >= outW) continue;
-            final px = srcRow[x];
-            final o = rowBase + dx * 3;
-            outBuffer[o] = px[0].clamp(0, 255).round();
-            outBuffer[o + 1] = px[1].clamp(0, 255).round();
-            outBuffer[o + 2] = px[2].clamp(0, 255).round();
+          for (var y = cropT; y < kTileOut - cropB; y++) {
+            final dy = destY0 + (y - cropT);
+            if (dy < 0 || dy >= outH) continue;
+            final rowBase = dy * outW * 3;
+            final srcRow = tileOut[y];
+            for (var x = cropL; x < kTileOut - cropR; x++) {
+              final dx = destX0 + (x - cropL);
+              if (dx < 0 || dx >= outW) continue;
+              final px = srcRow[x];
+              final o = rowBase + dx * 3;
+              outBuffer[o] = px[0].clamp(0, 255).round();
+              outBuffer[o + 1] = px[1].clamp(0, 255).round();
+              outBuffer[o + 2] = px[2].clamp(0, 255).round();
+            }
           }
-        }
 
-        doneTiles++;
-        if (doneTiles % 4 == 0 || doneTiles == totalTiles) {
-          _progress(
-            pp,
-            0.3 + (doneTiles / totalTiles) * 0.6,
-            'AI upscaling… ($doneTiles/$totalTiles tiles)',
-          );
+          doneTiles++;
+          if (doneTiles % 4 == 0 || doneTiles == totalTiles) {
+            _progress(
+              pp,
+              0.3 + (doneTiles / totalTiles) * 0.6,
+              'AI upscaling… ($doneTiles/$totalTiles tiles)',
+            );
+          }
         }
       }
+    } finally {
+      interpreter.close();
+      gpuDelegate?.delete();
     }
-
-    interpreter.close();
 
     _progress(pp, 0.94, 'Saving…');
     final result = img.Image.fromBytes(
@@ -226,17 +233,6 @@ Future<void> runRealEsrgan(RealEsrganArgs args) async {
   }
 }
 
-extension _DoubleSqrt on double {
-  double sqrt() {
-    if (this <= 0) return 0;
-    var x = this / 2;
-    for (var i = 0; i < 20; i++) {
-      x = (x + this / x) / 2;
-    }
-    return x;
-  }
-}
-
 // ── Interpreter creation: try GPU delegate first, fall back to CPU ────────
 //
 // The 50x50 tiles are tiny, so GPU delegate mainly helps by cutting
@@ -246,13 +242,20 @@ extension _DoubleSqrt on double {
 // that and silently continue on plain CPU (with 4 threads + XNNPACK,
 // which tflite_flutter enables by default), so this never breaks a run,
 // it only sometimes speeds one up.
-Interpreter _createInterpreter(Uint8List modelBytes) {
+//
+// Returns the interpreter plus the GPU delegate it uses (if any); the caller
+// must close the interpreter and then delete the delegate — Interpreter.close
+// does not free delegates.
+(Interpreter, GpuDelegateV2?) _createInterpreter(Uint8List modelBytes) {
   final cpuOptions = InterpreterOptions()..threads = 4;
 
   if (Platform.isAndroid) {
+    GpuDelegateV2? delegate;
+    Interpreter? gpuInterpreter;
     try {
-      final gpuOptions = InterpreterOptions()..addDelegate(GpuDelegateV2());
-      final gpuInterpreter = Interpreter.fromBuffer(
+      delegate = GpuDelegateV2();
+      final gpuOptions = InterpreterOptions()..addDelegate(delegate);
+      gpuInterpreter = Interpreter.fromBuffer(
         modelBytes,
         options: gpuOptions,
       );
@@ -273,12 +276,21 @@ Interpreter _createInterpreter(Uint8List modelBytes) {
         ),
       ];
       gpuInterpreter.run(probeIn, probeOut);
-      return gpuInterpreter;
+      return (gpuInterpreter, delegate);
     } catch (_) {
-      // GPU delegate unavailable/unstable on this device — fall through.
+      // GPU delegate unavailable/unstable on this device — release whatever
+      // the failed probe allocated, then fall through to CPU.
+      try {
+        gpuInterpreter?.close();
+      } catch (_) {}
+      try {
+        delegate?.delete();
+      } catch (_) {}
     }
   }
 
-  return Interpreter.fromBuffer(modelBytes, options: cpuOptions)
-    ..allocateTensors();
+  return (
+    Interpreter.fromBuffer(modelBytes, options: cpuOptions)..allocateTensors(),
+    null,
+  );
 }

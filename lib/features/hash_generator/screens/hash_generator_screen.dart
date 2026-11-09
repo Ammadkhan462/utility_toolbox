@@ -11,10 +11,6 @@ import 'package:utility_toolbox/features/hash_generator/providers/hash_providers
 const _accentColor = Color(0xFF3B82F6);
 const _accentGlow  = Color(0xFF60A5FA);
 
-// File hash result lives as a screen-local state for simplicity.
-final _fileHashResultProvider =
-    StateProvider<Result<String>>((ref) => const Idle());
-
 class HashGeneratorScreen extends ConsumerWidget {
   const HashGeneratorScreen({super.key});
 
@@ -206,13 +202,13 @@ class _FileHashSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef watchRef) {
     final file   = watchRef.watch(hashFileProvider);
-    final result = watchRef.watch(_fileHashResultProvider);
+    final result = watchRef.watch(fileHashResultProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         GestureDetector(
-          onTap: () => _pickFile(watchRef),
+          onTap: () => _pickFile(context, watchRef),
           child: Container(
             height: 100,
             decoration: BoxDecoration(
@@ -253,7 +249,7 @@ class _FileHashSection extends ConsumerWidget {
                           ),
                         ),
                         TextButton(
-                          onPressed: () => _pickFile(watchRef),
+                          onPressed: () => _pickFile(context, watchRef),
                           child: const Text('Change'),
                         ),
                       ],
@@ -264,7 +260,11 @@ class _FileHashSection extends ConsumerWidget {
         const SizedBox(height: 16),
         if (file != null)
           PremiumButton(
-            onPressed: result is Loading ? null : () => _hashFile(watchRef, file),
+            onPressed: result is Loading
+                ? null
+                : () => watchRef
+                      .read(fileHashResultProvider.notifier)
+                      .hash(file, algo),
             icon: result is Loading ? null : Icons.tag_rounded,
             label: result is Loading ? 'Hashing…' : 'Generate Hash',
             gradient: const LinearGradient(colors: [_accentColor, _accentGlow]),
@@ -281,24 +281,15 @@ class _FileHashSection extends ConsumerWidget {
     );
   }
 
-  Future<void> _pickFile(WidgetRef ref) async {
+  Future<void> _pickFile(BuildContext context, WidgetRef ref) async {
     final result = await FilePicker.platform.pickFiles();
+    // The screen may have been closed while the picker was open; `ref` must
+    // not be used after the widget is disposed.
+    if (!context.mounted) return;
     if (result != null && result.files.single.path != null) {
       ref.read(hashFileProvider.notifier).state =
           File(result.files.single.path!);
-      ref.read(_fileHashResultProvider.notifier).state = const Idle();
-    }
-  }
-
-  Future<void> _hashFile(WidgetRef ref, File file) async {
-    ref.read(_fileHashResultProvider.notifier).state = const Loading();
-    try {
-      final bytes = await file.readAsBytes();
-      final hash  = hashFile(bytes, algo);
-      ref.read(_fileHashResultProvider.notifier).state = Success(hash);
-    } catch (e) {
-      ref.read(_fileHashResultProvider.notifier).state =
-          ErrorResult('Failed to hash file: $e');
+      ref.read(fileHashResultProvider.notifier).reset();
     }
   }
 }

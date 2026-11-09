@@ -74,8 +74,7 @@ After downloading, your project must look like this:
 your_project/
 └── assets/
     └── models/
-        ├── realesrgan_x2.tflite   ← required
-        └── realesrgan_x4.tflite   ← required
+        └── realesrgan_x4.tflite   ← required (used for both 2× and 4×)
 ```
 
 ---

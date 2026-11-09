@@ -96,6 +96,10 @@ class AiUpscalerNotifier extends StateNotifier<UpscalerState> {
       final origW = dims[0];
       final origH = dims[1];
 
+      // Cancelled while reading dimensions (before the service started):
+      // cancel() already reset state to idle — don't start the job anyway.
+      if (!mounted || state.status != UpscaleStatus.processing) return;
+
       final outFile = await _service.upscale(
         source: src,
         factor: state.factor,

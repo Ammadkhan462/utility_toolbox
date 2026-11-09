@@ -153,14 +153,18 @@ class VideoConverterScreen extends ConsumerWidget {
             // ── Progress bar ───────────────────────────────────────────
             if (isConverting) ...[
               Text(
-                'Converting… this may take a while',
+                state.progress > 0
+                    ? 'Converting… ${(state.progress * 100).round()}%'
+                    : 'Converting… this may take a while',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 8),
               LinearProgressIndicator(
-                value: state.progress > 0.1 ? state.progress : null,
+                // Indeterminate until the first statistics tick (or when the
+                // input duration could not be probed).
+                value: state.progress > 0 ? state.progress : null,
                 color: _accent,
                 borderRadius: BorderRadius.circular(4),
               ),
@@ -261,7 +265,12 @@ class VideoConverterScreen extends ConsumerWidget {
                   gradient: AppColors.toolGradient('video_converter'),
                 )
               else
-                const Center(child: CircularProgressIndicator()),
+                PremiumOutlineButton(
+                  onPressed: notifier.cancel,
+                  icon: Icons.stop_circle_outlined,
+                  label: 'Cancel',
+                  accent: _accent,
+                ),
             ],
 
             const SizedBox(height: 16),

@@ -19,9 +19,30 @@ class ImageEnhancerService {
 
     final dir = await getTemporaryDirectory();
     final name = p.basenameWithoutExtension(source.path);
-    final out = File('${dir.path}/${name}_enhanced.jpg');
+    // Unique name per render: Flutter's ImageCache keys FileImage by path,
+    // so re-using `${name}_enhanced.jpg` kept showing the previous render.
+    final stamp = DateTime.now().millisecondsSinceEpoch;
+    final out = File('${dir.path}/${name}_enhanced_$stamp.jpg');
     await out.writeAsBytes(outBytes);
+    await _deleteOlderRenders(dir, '${name}_enhanced_', keep: out.path);
     return out;
+  }
+
+  /// Best-effort cleanup so repeated edits don't pile up in the cache dir.
+  Future<void> _deleteOlderRenders(
+    Directory dir,
+    String prefix, {
+    required String keep,
+  }) async {
+    try {
+      await for (final e in dir.list(followLinks: false)) {
+        if (e is File &&
+            e.path != keep &&
+            p.basename(e.path).startsWith(prefix)) {
+          await e.delete();
+        }
+      }
+    } catch (_) {}
   }
 }
 

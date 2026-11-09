@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
@@ -38,9 +39,9 @@ class ImageCompressorService {
         }
       })();
 
+      // compressAndGetFile returns an XFile? (cross_file), not a dart:io File.
       if (compressed != null) {
-        final path = (compressed as dynamic).path as String;
-        final file = File(path);
+        final file = File(compressed.path);
         if (await file.exists() && await file.length() > 0) {
           return file;
         }
@@ -49,20 +50,34 @@ class ImageCompressorService {
       // Fallback to pure Dart image processing below
     }
 
-    // Pure Dart image package fallback — guarantees compression succeeds across all platforms
-    final bytes = await source.readAsBytes();
-    final decoded = img.decodeImage(bytes);
-    if (decoded == null) {
-      throw Exception('Could not decode image for compression');
-    }
-
-    img.Image toEncode = decoded;
-    if (targetWidth > 0 && decoded.width > targetWidth) {
-      toEncode = img.copyResize(decoded, width: targetWidth);
-    }
-
-    final jpgBytes = img.encodeJpg(toEncode, quality: quality.clamp(1, 100));
-    await out.writeAsBytes(jpgBytes);
+    // Pure Dart image package fallback — guarantees compression succeeds across all platforms.
+    // Decoding/encoding a 12 MP photo in pure Dart takes seconds, so it runs
+    // on a background isolate instead of freezing the UI (ANR risk).
+    await Isolate.run(
+      _fallbackTask(source.path, out.path, quality.clamp(1, 100), targetWidth),
+    );
     return out;
   }
 }
+
+// Top-level so the isolate closure captures only plain values.
+Future<void> Function() _fallbackTask(
+  String sourcePath,
+  String outPath,
+  int quality,
+  int targetWidth,
+) => () async {
+  final bytes = await File(sourcePath).readAsBytes();
+  final decoded = img.decodeImage(bytes);
+  if (decoded == null) {
+    throw Exception('Could not decode image for compression');
+  }
+
+  img.Image toEncode = decoded;
+  if (targetWidth > 0 && decoded.width > targetWidth) {
+    toEncode = img.copyResize(decoded, width: targetWidth);
+  }
+
+  final jpgBytes = img.encodeJpg(toEncode, quality: quality);
+  await File(outPath).writeAsBytes(jpgBytes);
+};

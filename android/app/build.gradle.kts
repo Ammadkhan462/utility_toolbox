@@ -39,7 +39,10 @@ android {
     }
 
     signingConfigs {
-        create("release") {
+        // Only define the real release config when key.properties exists
+        // (it is git-ignored). CI and worktrees fall back to debug signing
+        // below so `flutter build appbundle --release` still works there.
+        if (keystorePropertiesFile.exists()) create("release") {
             keyAlias = keystoreProperties.getProperty("keyAlias")
             keyPassword = keystoreProperties.getProperty("keyPassword")
             storeFile = keystoreProperties
@@ -51,10 +54,20 @@ android {
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = if (keystorePropertiesFile.exists()) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
 
-            isMinifyEnabled = false
-            isShrinkResources = false
+            // R8: shrinks/optimises the dex and strips unused resources.
+            // Keep rules for reflection/JNI users live in proguard-rules.pro.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
 }
