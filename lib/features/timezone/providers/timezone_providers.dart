@@ -106,8 +106,10 @@ final pinnedCityDataProvider = Provider<List<TzCity>>((ref) {
       .toList();
 });
 
-// Clock refresh (every second)
-final clockTickProvider = StreamProvider<DateTime>((ref) {
+// Clock refresh (every second). autoDispose so the 1 Hz timer stops when the
+// World Clock screen is closed (only that screen watches it; the home-screen
+// widget sync reads pinnedCitiesProvider, not this).
+final clockTickProvider = StreamProvider.autoDispose<DateTime>((ref) {
   return Stream.periodic(const Duration(seconds: 1), (_) => DateTime.now());
 });
 

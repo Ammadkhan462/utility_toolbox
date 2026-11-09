@@ -43,18 +43,23 @@ class CompassNotifier extends StateNotifier<CompassState> {
 
   void _init() {
     try {
+      // Missing sensors surface as stream errors, not as a synchronous throw.
       _accelSub = accelerometerEventStream().listen((event) {
         _gravity = [event.x, event.y, event.z];
         _compute();
-      });
+      }, onError: (_) => _markUnavailable());
 
       _magSub = magnetometerEventStream().listen((event) {
         _geomagnetic = [event.x, event.y, event.z];
         _compute();
-      });
+      }, onError: (_) => _markUnavailable());
     } catch (_) {
       state = state.copyWith(isAvailable: false);
     }
+  }
+
+  void _markUnavailable() {
+    if (mounted) state = state.copyWith(isAvailable: false);
   }
 
   void _compute() {
@@ -97,6 +102,9 @@ class CompassNotifier extends StateNotifier<CompassState> {
   }
 }
 
+// autoDispose: the accelerometer + magnetometer subscriptions are cancelled
+// (via CompassNotifier.dispose) as soon as the compass screen is closed,
+// instead of draining battery for the rest of the app session.
 final compassProvider =
-    StateNotifierProvider<CompassNotifier, CompassState>(
+    StateNotifierProvider.autoDispose<CompassNotifier, CompassState>(
         (_) => CompassNotifier());
