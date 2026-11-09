@@ -59,4 +59,7 @@
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/world_clock_widget_in
+                android:resource="@xml/world_clock_widget_info" />
+        </receiver>
+    </application>
+</manifest>
