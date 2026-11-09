@@ -3,15 +3,22 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  ffmpeg_kit_flutter_new
+  file_saver
   file_selector_windows
+  flutter_tts
   gal
+  geolocator_windows
   permission_handler_windows
   printing
   share_plus
+  speech_to_text_windows
   url_launcher_windows
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
+  jni
+  tflite_flutter
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)

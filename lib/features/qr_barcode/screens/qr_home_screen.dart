@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:utility_toolbox/core/routing/app_routes.dart';
 import 'package:utility_toolbox/core/theme/app_colors.dart';
 import 'package:utility_toolbox/core/widgets/empty_state.dart';
+import 'package:utility_toolbox/core/widgets/feature_badge.dart';
+import 'package:utility_toolbox/core/widgets/premium_button.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 
 class QrHomeScreen extends StatelessWidget {
@@ -79,15 +81,23 @@ class _ScanTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accent = AppColors.toolAccent('qr_barcode');
+
     return EmptyState(
       icon: Icons.qr_code_scanner_rounded,
       gradient: gradient,
+      title: 'Scan a code',
       message:
           'Point your camera at a QR code or barcode to scan it instantly.',
-      action: FilledButton.icon(
+      badges: [
+        FeatureBadge(icon: Icons.bolt_rounded, label: 'Instant', accent: accent),
+        FeatureBadge(icon: Icons.history_rounded, label: 'Saved history', accent: accent),
+      ],
+      action: PremiumButton(
         onPressed: onStartScan,
-        icon: const Icon(Icons.camera_alt_rounded),
-        label: const Text('Start scanning'),
+        icon: Icons.camera_alt_rounded,
+        label: 'Start scanning',
+        gradient: gradient,
       ),
     );
   }
@@ -101,15 +111,23 @@ class _GenerateTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accent = AppColors.toolAccent('qr_barcode');
+
     return EmptyState(
       icon: Icons.qr_code_2_rounded,
       gradient: gradient,
+      title: 'Create a code',
       message:
           'Create a QR code from text or a URL, then save or share it.',
-      action: FilledButton.icon(
+      badges: [
+        FeatureBadge(icon: Icons.share_rounded, label: 'Share anywhere', accent: accent),
+        FeatureBadge(icon: Icons.download_rounded, label: 'Save as image', accent: accent),
+      ],
+      action: PremiumButton(
         onPressed: onOpenGenerator,
-        icon: const Icon(Icons.edit_rounded),
-        label: const Text('Open generator'),
+        icon: Icons.edit_rounded,
+        label: 'Open generator',
+        gradient: gradient,
       ),
     );
   }

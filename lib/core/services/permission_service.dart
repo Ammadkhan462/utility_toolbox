@@ -6,6 +6,9 @@ enum PermissionOutcome { granted, denied, permanentlyDenied }
 class PermissionService {
   Future<PermissionOutcome> requestCamera() => _request(Permission.camera);
 
+  Future<PermissionOutcome> requestMicrophone() =>
+      _request(Permission.microphone);
+
   Future<PermissionOutcome> requestPhotos() async {
     if (await Permission.photos.isGranted ||
         await Permission.storage.isGranted) {

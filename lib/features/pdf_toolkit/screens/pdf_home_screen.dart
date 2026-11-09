@@ -9,8 +9,8 @@ import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 class PdfHomeScreen extends StatelessWidget {
   const PdfHomeScreen({super.key});
 
-  static const _gradient = LinearGradient(
-    colors: [AppColors.toolPdfToolkit, Color(0xFFEF4444)],
+  static final _gradient = LinearGradient(
+    colors: [AppColors.toolAccent('pdf_toolkit'), const Color(0xFFEF4444)],
   );
 
   @override

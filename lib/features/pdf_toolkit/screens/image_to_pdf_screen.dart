@@ -10,6 +10,7 @@ import 'package:utility_toolbox/core/utils/result.dart';
 import 'package:utility_toolbox/core/widgets/error_state.dart';
 import 'package:utility_toolbox/core/widgets/loading_indicator.dart';
 import 'package:utility_toolbox/core/theme/app_colors.dart';
+import 'package:utility_toolbox/core/widgets/premium_button.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/pdf_toolkit/models/pdf_job_result.dart';
 import 'package:utility_toolbox/features/pdf_toolkit/providers/pdf_providers.dart';
@@ -56,6 +57,7 @@ class ImageToPdfScreen extends ConsumerWidget {
       Success(data: final result) => _ResultView(
         result: result,
         onShare: () => Share.shareXFiles([XFile(result.filePath)]),
+        onDownload: () => _download(context, ref, result),
         onDone: () async {
           await ref.read(adsServiceProvider).showInterstitialIfAllowed();
           ref.read(pdfJobStateProvider.notifier).state = const Idle();
@@ -66,10 +68,12 @@ class ImageToPdfScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            OutlinedButton.icon(
+            PremiumOutlineButton(
               onPressed: () => _pickImages(ref),
-              icon: const Icon(Icons.photo_library_outlined),
-              label: const Text('Pick images'),
+              icon: Icons.photo_library_outlined,
+              label: 'Pick images',
+              accent: AppColors.toolAccent('pdf_toolkit'),
+              dense: true,
             ),
             const SizedBox(height: 16),
             if (images.isEmpty)
@@ -79,9 +83,8 @@ class ImageToPdfScreen extends ConsumerWidget {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: images.length,
-                onReorder: (oldIndex, newIndex) {
+                onReorderItem: (oldIndex, newIndex) {
                   final list = [...ref.read(selectedImagesProvider)];
-                  if (newIndex > oldIndex) newIndex -= 1;
                   final item = list.removeAt(oldIndex);
                   list.insert(newIndex, item);
                   ref.read(selectedImagesProvider.notifier).state = list;
@@ -125,17 +128,48 @@ class ImageToPdfScreen extends ConsumerWidget {
       );
     }
   }
+
+  Future<void> _download(
+    BuildContext context,
+    WidgetRef ref,
+    PdfJobResult result,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final outcome = await FileUtils.saveToDownloads(
+        sourcePath: result.filePath,
+        fileName: 'images_${DateTime.now().millisecondsSinceEpoch}',
+        ext: 'pdf',
+        mimeType: 'application/pdf',
+      );
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            outcome == SaveOutcome.downloaded
+                ? 'Saved to Downloads — check your notification to open it.'
+                : 'Opened share sheet — choose where to save the file.',
+          ),
+        ),
+      );
+      ref.read(pdfJobStateProvider.notifier).state = const Idle();
+      ref.read(selectedImagesProvider.notifier).state = [];
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Download failed: $e')));
+    }
+  }
 }
 
 class _ResultView extends StatelessWidget {
   const _ResultView({
     required this.result,
     required this.onShare,
+    required this.onDownload,
     required this.onDone,
   });
 
   final PdfJobResult result;
   final VoidCallback onShare;
+  final VoidCallback onDownload;
   final VoidCallback onDone;
 
   @override
@@ -148,9 +182,35 @@ class _ResultView extends StatelessWidget {
           Text('PDF ready (${result.pageCount} pages)'),
           Text('Size: ${FileUtils.formatFileSize(result.fileSizeBytes)}'),
           const SizedBox(height: 16),
-          FilledButton(onPressed: onShare, child: const Text('Share')),
+          Row(
+            children: [
+              Expanded(
+                child: PremiumOutlineButton(
+                  onPressed: onShare,
+                  icon: Icons.share_rounded,
+                  label: 'Share',
+                  accent: AppColors.toolAccent('pdf_toolkit'),
+                  dense: true,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: PremiumButton(
+                  onPressed: onDownload,
+                  icon: Icons.download_rounded,
+                  label: 'Download',
+                  accent: AppColors.toolAccent('pdf_toolkit'),
+                  dense: true,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 8),
-          FilledButton.tonal(onPressed: onDone, child: const Text('Done')),
+          PremiumOutlineButton(
+            onPressed: onDone,
+            label: 'Done',
+            accent: AppColors.toolAccent('pdf_toolkit'),
+          ),
         ],
       ),
     );

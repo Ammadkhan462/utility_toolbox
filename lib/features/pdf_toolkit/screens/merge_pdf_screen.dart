@@ -10,6 +10,7 @@ import 'package:utility_toolbox/core/utils/result.dart';
 import 'package:utility_toolbox/core/widgets/error_state.dart';
 import 'package:utility_toolbox/core/widgets/loading_indicator.dart';
 import 'package:utility_toolbox/core/theme/app_colors.dart';
+import 'package:utility_toolbox/core/widgets/premium_button.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/pdf_toolkit/models/pdf_job_result.dart';
 import 'package:utility_toolbox/features/pdf_toolkit/providers/pdf_providers.dart';
@@ -59,10 +60,12 @@ class MergePdfScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            OutlinedButton.icon(
+            PremiumOutlineButton(
               onPressed: () => _pickPdfs(ref),
-              icon: const Icon(Icons.upload_file),
-              label: const Text('Pick PDF files'),
+              icon: Icons.upload_file,
+              label: 'Pick PDF files',
+              accent: AppColors.toolAccent('pdf_toolkit'),
+              dense: true,
             ),
             const SizedBox(height: 16),
             if (pdfs.isEmpty)
@@ -72,9 +75,8 @@ class MergePdfScreen extends ConsumerWidget {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: pdfs.length,
-                onReorder: (oldIndex, newIndex) {
+                onReorderItem: (oldIndex, newIndex) {
                   final list = [...ref.read(selectedPdfsProvider)];
-                  if (newIndex > oldIndex) newIndex -= 1;
                   final item = list.removeAt(oldIndex);
                   list.insert(newIndex, item);
                   ref.read(selectedPdfsProvider.notifier).state = list;
@@ -101,10 +103,15 @@ class MergePdfScreen extends ConsumerWidget {
       allowMultiple: true,
     );
     if (result == null) return;
-    ref.read(selectedPdfsProvider.notifier).state = [
+
+    final existing = ref.read(selectedPdfsProvider);
+    final existingPaths = existing.map((f) => f.path).toSet();
+    final newFiles = [
       for (final file in result.files)
-        if (file.path != null) File(file.path!),
+        if (file.path != null && existingPaths.add(file.path!))
+          File(file.path!),
     ];
+    ref.read(selectedPdfsProvider.notifier).state = [...existing, ...newFiles];
   }
 
   Future<void> _merge(WidgetRef ref) async {
@@ -137,22 +144,67 @@ class _MergeResultView extends ConsumerWidget {
           Text('Merged PDF (${result.pageCount} pages)'),
           Text('Size: ${FileUtils.formatFileSize(result.fileSizeBytes)}'),
           const SizedBox(height: 16),
-          FilledButton(
-            onPressed: () => Share.shareXFiles([XFile(result.filePath)]),
-            child: const Text('Share'),
+          Row(
+            children: [
+              Expanded(
+                child: PremiumOutlineButton(
+                  onPressed: () => Share.shareXFiles([XFile(result.filePath)]),
+                  icon: Icons.share_rounded,
+                  label: 'Share',
+                  accent: AppColors.toolAccent('pdf_toolkit'),
+                  dense: true,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: PremiumButton(
+                  onPressed: () => _download(context, result),
+                  icon: Icons.download_rounded,
+                  label: 'Download',
+                  accent: AppColors.toolAccent('pdf_toolkit'),
+                  dense: true,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
-          FilledButton.tonal(
+          PremiumOutlineButton(
             onPressed: () async {
               await this.ref
                   .read(adsServiceProvider)
                   .showInterstitialIfAllowed();
               this.ref.read(pdfJobStateProvider.notifier).state = const Idle();
             },
-            child: const Text('Done'),
+            label: 'Done',
+            accent: AppColors.toolAccent('pdf_toolkit'),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _download(BuildContext context, PdfJobResult result) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final outcome = await FileUtils.saveToDownloads(
+        sourcePath: result.filePath,
+        fileName: 'merged_${DateTime.now().millisecondsSinceEpoch}',
+        ext: 'pdf',
+        mimeType: 'application/pdf',
+      );
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            outcome == SaveOutcome.downloaded
+                ? 'Saved to Downloads — check your notification to open it.'
+                : 'Opened share sheet — choose where to save the file.',
+          ),
+        ),
+      );
+      ref.read(pdfJobStateProvider.notifier).state = const Idle();
+      ref.read(selectedPdfsProvider.notifier).state = [];
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Download failed: $e')));
+    }
   }
 }

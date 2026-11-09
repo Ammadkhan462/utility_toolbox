@@ -80,8 +80,9 @@ class ScanHistoryScreen extends ConsumerWidget {
                                       await Clipboard.setData(
                                         ClipboardData(text: item.content),
                                       );
-                                      if (context.mounted)
+                                      if (context.mounted) {
                                         Navigator.pop(context);
+                                      }
                                     },
                                     child: const Text('Copy'),
                                   ),

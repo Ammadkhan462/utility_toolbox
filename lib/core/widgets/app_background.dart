@@ -36,7 +36,7 @@ class AppBackground extends StatelessWidget {
             left: -60,
             size: 180,
             color: isDark
-                ? AppColors.accentCyan.withValues(alpha: 0.12)
+                ? AppColors.accentTeal.withValues(alpha: 0.12)
                 : AppColors.accentPink.withValues(alpha: 0.14),
           ),
           _Orb(
@@ -45,7 +45,7 @@ class AppBackground extends StatelessWidget {
             size: 160,
             color: isDark
                 ? AppColors.accentPink.withValues(alpha: 0.1)
-                : AppColors.accentCyan.withValues(alpha: 0.16),
+                : AppColors.accentTeal.withValues(alpha: 0.16),
           ),
         ],
         child,

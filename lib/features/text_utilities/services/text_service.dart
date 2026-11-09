@@ -20,12 +20,16 @@ class TextService {
     if (text.isEmpty) return text;
     return text
         .split(' ')
-        .map(
-          (word) => word.isEmpty
-              ? word
-              : '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}',
-        )
+        .map((word) => word.isEmpty
+            ? word
+            : '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}')
         .join(' ');
+  }
+
+  String toSentenceCase(String text) {
+    if (text.isEmpty) return text;
+    final lower = text.toLowerCase();
+    return lower[0].toUpperCase() + lower.substring(1);
   }
 
   String encodeBase64(String text) => base64Encode(utf8.encode(text));

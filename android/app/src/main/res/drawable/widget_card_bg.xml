@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Fully transparent widget background.
+
+  Previously this drew a translucent black "card" (#26000000 solid + a
+  faint white stroke) behind the clock rows. Combined with the launcher's
+  own default widget surface, that's the dark rounded shade visible behind
+  the widget in the screenshot. This is now plain transparent so nothing
+  is drawn behind the text at all. Text keeps its drop shadow (see
+  widget_world_clock.xml) so it stays readable directly over the wallpaper.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@android:color/transparent" />
+</shape>

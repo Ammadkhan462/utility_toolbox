@@ -1,24 +1,95 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mlkit_translation/google_mlkit_translation.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:utility_toolbox/core/constants/app_constants.dart';
 import 'package:utility_toolbox/core/services/ads_service.dart';
+import 'package:utility_toolbox/core/services/permission_service.dart';
 import 'package:utility_toolbox/core/services/storage_service.dart';
 import 'package:utility_toolbox/core/utils/result.dart';
+import 'package:utility_toolbox/features/translation/services/translation_voice_service.dart';
 
+/// Every language the on-device ML Kit translation model ships with (59 in
+/// total, including Urdu) — sourced directly from `TranslateLanguage.values`
+/// rather than a hand-picked subset, so the list stays complete even if the
+/// package adds more later. Sorted alphabetically by display name so a list
+/// this long is easy to scan in the dropdown.
 final supportedLanguagesProvider = Provider<List<TranslateLanguage>>((ref) {
-  return [
-    TranslateLanguage.english,
-    TranslateLanguage.spanish,
-    TranslateLanguage.french,
-    TranslateLanguage.german,
-    TranslateLanguage.italian,
-    TranslateLanguage.portuguese,
-    TranslateLanguage.arabic,
-    TranslateLanguage.hindi,
-    TranslateLanguage.chinese,
-    TranslateLanguage.japanese,
-  ];
+  final all = TranslateLanguage.values.toList();
+  all.sort(
+    (a, b) => translateLanguageDisplayName(a)
+        .compareTo(translateLanguageDisplayName(b)),
+  );
+  return all;
 });
+
+/// Friendly display name for a [TranslateLanguage], shared by the language
+/// dropdowns and the "Listening in …" voice-input status text. Falls back
+/// to the raw enum name for any future language the package adds before
+/// this map is updated.
+String translateLanguageDisplayName(TranslateLanguage lang) {
+  return switch (lang) {
+    TranslateLanguage.afrikaans   => 'Afrikaans',
+    TranslateLanguage.albanian    => 'Albanian',
+    TranslateLanguage.arabic      => 'Arabic',
+    TranslateLanguage.belarusian  => 'Belarusian',
+    TranslateLanguage.bengali     => 'Bengali',
+    TranslateLanguage.bulgarian   => 'Bulgarian',
+    TranslateLanguage.catalan     => 'Catalan',
+    TranslateLanguage.chinese     => 'Chinese (Simplified)',
+    TranslateLanguage.croatian    => 'Croatian',
+    TranslateLanguage.czech       => 'Czech',
+    TranslateLanguage.danish      => 'Danish',
+    TranslateLanguage.dutch       => 'Dutch',
+    TranslateLanguage.english     => 'English',
+    TranslateLanguage.esperanto   => 'Esperanto',
+    TranslateLanguage.estonian    => 'Estonian',
+    TranslateLanguage.finnish     => 'Finnish',
+    TranslateLanguage.french      => 'French',
+    TranslateLanguage.galician    => 'Galician',
+    TranslateLanguage.georgian    => 'Georgian',
+    TranslateLanguage.german      => 'German',
+    TranslateLanguage.greek       => 'Greek',
+    TranslateLanguage.gujarati    => 'Gujarati',
+    TranslateLanguage.haitian     => 'Haitian Creole',
+    TranslateLanguage.hebrew      => 'Hebrew',
+    TranslateLanguage.hindi       => 'Hindi',
+    TranslateLanguage.hungarian   => 'Hungarian',
+    TranslateLanguage.icelandic   => 'Icelandic',
+    TranslateLanguage.indonesian  => 'Indonesian',
+    TranslateLanguage.irish       => 'Irish',
+    TranslateLanguage.italian     => 'Italian',
+    TranslateLanguage.japanese    => 'Japanese',
+    TranslateLanguage.kannada     => 'Kannada',
+    TranslateLanguage.korean      => 'Korean',
+    TranslateLanguage.latvian     => 'Latvian',
+    TranslateLanguage.lithuanian  => 'Lithuanian',
+    TranslateLanguage.macedonian  => 'Macedonian',
+    TranslateLanguage.malay       => 'Malay',
+    TranslateLanguage.maltese     => 'Maltese',
+    TranslateLanguage.marathi     => 'Marathi',
+    TranslateLanguage.norwegian   => 'Norwegian',
+    TranslateLanguage.persian     => 'Persian (Farsi)',
+    TranslateLanguage.polish      => 'Polish',
+    TranslateLanguage.portuguese  => 'Portuguese',
+    TranslateLanguage.romanian    => 'Romanian',
+    TranslateLanguage.russian     => 'Russian',
+    TranslateLanguage.slovak      => 'Slovak',
+    TranslateLanguage.slovenian   => 'Slovenian',
+    TranslateLanguage.spanish     => 'Spanish',
+    TranslateLanguage.swahili     => 'Swahili',
+    TranslateLanguage.swedish     => 'Swedish',
+    TranslateLanguage.tagalog     => 'Tagalog (Filipino)',
+    TranslateLanguage.tamil       => 'Tamil',
+    TranslateLanguage.telugu      => 'Telugu',
+    TranslateLanguage.thai        => 'Thai',
+    TranslateLanguage.turkish     => 'Turkish',
+    TranslateLanguage.ukrainian   => 'Ukrainian',
+    TranslateLanguage.urdu        => 'Urdu',
+    TranslateLanguage.vietnamese  => 'Vietnamese',
+    TranslateLanguage.welsh       => 'Welsh',
+  };
+}
+
 
 final sourceLanguageProvider =
     StateProvider<TranslateLanguage>((ref) => TranslateLanguage.english);
@@ -34,6 +105,23 @@ final translationResultProvider =
 final modelDownloadStateProvider =
     StateProvider<Result<void>>((ref) => const Idle());
 
+// ── Voice input (speech → text) ───────────────────────────────────────────
+
+/// True while the mic is actively listening.
+final isListeningProvider = StateProvider<bool>((ref) => false);
+
+/// Set when speech recognition can't start (no mic permission, unsupported
+/// device, etc). Cleared automatically on the next successful listen.
+final voiceInputErrorProvider = StateProvider<String?>((ref) => null);
+
+// ── Voice output (text → speech) ──────────────────────────────────────────
+
+/// True while the translation is being read aloud.
+final isSpeakingProvider = StateProvider<bool>((ref) => false);
+
+/// Local file path of the most recently generated translation audio clip.
+final generatedAudioProvider = StateProvider<Result<String>>((ref) => const Idle());
+
 final translationActionsProvider = Provider<TranslationActions>((ref) {
   return TranslationActions(ref);
 });
@@ -43,6 +131,165 @@ class TranslationActions {
 
   final Ref _ref;
   final _modelManager = OnDeviceTranslatorModelManager();
+
+  // Guards against the "stop" flow running twice for a single listening
+  // session — both an explicit stopVoiceInput() call and the engine's own
+  // onStatus callback ('done'/'notListening') can report the same stop.
+  bool _stopHandled = true;
+
+  // ── Voice input ───────────────────────────────────────────────────────
+
+  /// Starts listening in the currently selected source language and
+  /// streams live transcript text straight into [translationInputProvider].
+  ///
+  /// The mic stays open and keeps capturing speech — through normal
+  /// pauses — until the user explicitly taps the mic again (or the OS
+  /// ends the session on its own). Either way, stopping the mic
+  /// automatically closes the audio session and, if there's something to
+  /// translate, immediately starts translation.
+  Future<void> startVoiceInput() async {
+    final permission =
+        await _ref.read(permissionServiceProvider).requestMicrophone();
+    if (permission != PermissionOutcome.granted) {
+      _ref.read(voiceInputErrorProvider.notifier).state =
+          permission == PermissionOutcome.permanentlyDenied
+              ? 'Microphone access is blocked. Enable it in Settings to use voice input.'
+              : 'Microphone permission is needed for voice input.';
+      return;
+    }
+
+    _ref.read(voiceInputErrorProvider.notifier).state = null;
+    final source = _ref.read(sourceLanguageProvider);
+    final voice = _ref.read(translationVoiceServiceProvider);
+
+    _stopHandled = false;
+    _ref.read(isListeningProvider.notifier).state = true;
+
+    await voice.startListening(
+      isoCode: source.bcpCode,
+      onResult: (text, isFinal) {
+        // Stream every partial AND final transcript straight into the
+        // input field. We deliberately do NOT stop listening here just
+        // because a "final" chunk came in — with continuous dictation the
+        // engine can emit several final segments during one long session
+        // (e.g. after each sentence-ending pause), and stopping on the
+        // first one is exactly what made the mic look like it "turned
+        // itself off". Only an explicit stop (user tap) or the engine's
+        // own status callback ends the session.
+        _ref.read(translationInputProvider.notifier).state = text;
+      },
+      onStatus: (status) {
+        if (status == 'done' || status == 'notListening') {
+          _handleListeningStopped();
+        }
+      },
+      onError: (error) {
+        _handleListeningStopped(autoTranslate: false);
+        _ref.read(voiceInputErrorProvider.notifier).state = error;
+      },
+    );
+  }
+
+  /// User-initiated stop: ends the recording, closes the mic/audio
+  /// session, and — if there's captured text — automatically runs
+  /// translation for the currently selected languages.
+  Future<void> stopVoiceInput() async {
+    await _ref.read(translationVoiceServiceProvider).stopListening();
+    _handleListeningStopped();
+  }
+
+  /// Ends the recording and discards it without translating.
+  Future<void> cancelVoiceInput() async {
+    await _ref.read(translationVoiceServiceProvider).cancelListening();
+    _handleListeningStopped(autoTranslate: false);
+  }
+
+  void _handleListeningStopped({bool autoTranslate = true}) {
+    if (_stopHandled) return;
+    _stopHandled = true;
+
+    if (_ref.read(isListeningProvider)) {
+      _ref.read(isListeningProvider.notifier).state = false;
+    }
+
+    if (!autoTranslate) return;
+
+    final input = _ref.read(translationInputProvider).trim();
+    final source = _ref.read(sourceLanguageProvider);
+    final target = _ref.read(targetLanguageProvider);
+    if (input.isNotEmpty && source.bcpCode != target.bcpCode) {
+      translate();
+    }
+  }
+
+  /// Handles a tap on the main "Translate" button. If the mic is still
+  /// listening, closes it first (which itself triggers translation once
+  /// the audio session has ended) instead of translating over a live
+  /// recording.
+  Future<void> translateTapped() async {
+    if (_ref.read(isListeningProvider)) {
+      await stopVoiceInput();
+      return;
+    }
+    await translate();
+  }
+
+  // ── Voice output ──────────────────────────────────────────────────────
+
+  /// Reads the current translation result aloud in the target language.
+  Future<void> speakTranslation() async {
+    final result = _ref.read(translationResultProvider);
+    if (result is! Success<String>) return;
+
+    final target = _ref.read(targetLanguageProvider);
+    final voice = _ref.read(translationVoiceServiceProvider);
+
+    _ref.read(isSpeakingProvider.notifier).state = true;
+    await voice.speak(result.data, target.bcpCode);
+    _ref.read(isSpeakingProvider.notifier).state = false;
+  }
+
+  Future<void> stopSpeaking() async {
+    await _ref.read(translationVoiceServiceProvider).stopSpeaking();
+    _ref.read(isSpeakingProvider.notifier).state = false;
+  }
+
+  /// Synthesizes the current translation to an audio file so it can be
+  /// shared or saved, separate from the immediate "Play" preview.
+  Future<void> generateTranslationAudio() async {
+    final result = _ref.read(translationResultProvider);
+    if (result is! Success<String>) return;
+
+    final target = _ref.read(targetLanguageProvider);
+    final voice = _ref.read(translationVoiceServiceProvider);
+
+    _ref.read(generatedAudioProvider.notifier).state = const Loading();
+
+    final path = await voice.synthesizeToFile(
+      result.data,
+      target.bcpCode,
+      'translation_${DateTime.now().millisecondsSinceEpoch}',
+    );
+
+    if (path == null) {
+      _ref.read(generatedAudioProvider.notifier).state = const ErrorResult(
+        'Could not generate an audio file on this device.',
+      );
+      return;
+    }
+
+    _ref.read(generatedAudioProvider.notifier).state = Success(path);
+  }
+
+  Future<void> shareGeneratedAudio() async {
+    final result = _ref.read(generatedAudioProvider);
+    if (result is! Success<String>) return;
+    await Share.shareXFiles([XFile(result.data)]);
+  }
+
+  void resetGeneratedAudio() {
+    _ref.read(generatedAudioProvider.notifier).state = const Idle();
+  }
 
   Future<bool> ensureModelsDownloaded() async {
     final source = _ref.read(sourceLanguageProvider);
@@ -81,6 +328,7 @@ class TranslationActions {
     final target = _ref.read(targetLanguageProvider);
     if (source.bcpCode == target.bcpCode) return;
 
+    resetGeneratedAudio();
     _ref.read(translationResultProvider.notifier).state = const Loading();
 
     final ready = await ensureModelsDownloaded();

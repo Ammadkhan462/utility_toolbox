@@ -23,55 +23,79 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeModeProvider);
+    // Watch the live themeModeProvider — this is what drives the toggle.
+    final themeMode          = ref.watch(themeModeProvider);
     final removeAdsPurchased = ref.watch(settingsRemoveAdsPurchasedProvider);
-    final actions = ref.watch(settingsActionsProvider);
-    final theme = Theme.of(context);
+    final actions            = ref.watch(settingsActionsProvider);
+    final theme              = Theme.of(context);
+    final isDark             = theme.brightness == Brightness.dark;
 
     return ToolScaffold(
       title: 'Settings',
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
         children: [
+          // ── Appearance ────────────────────────────────────────────────
           const SectionHeader(
             title: 'Appearance',
             subtitle: 'Customize how the app looks',
           ),
           _SettingsCard(
-            child: SwitchListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-              title: const Text('Dark mode'),
-              subtitle: const Text('Use dark theme'),
-              value: themeMode == ThemeMode.dark,
-              onChanged: (value) {
-                actions.setThemeMode(value ? ThemeMode.dark : ThemeMode.light);
-              },
+            child: Column(
+              children: [
+                // Three-way theme picker (System / Light / Dark)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.contrast_rounded,
+                        size: 20,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 10),
+                      Text('Theme', style: theme.textTheme.titleSmall),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 14),
+                  child: _ThemeSegmentedButton(
+                    current: themeMode,
+                    onChanged: actions.setThemeMode,
+                  ),
+                ),
+              ],
             ),
           ),
+          const SizedBox(height: 4),
+
+          // ── Purchases ─────────────────────────────────────────────────
           const SectionHeader(
             title: 'Purchases',
             subtitle: 'Manage in-app purchases',
           ),
-          if (!removeAdsPurchased)
+          if (!removeAdsPurchased) ...[
             FeatureTile(
               icon: Icons.block_rounded,
               title: 'Remove Ads',
               subtitle: 'One-time purchase — enjoy an ad-free experience',
-              gradient: AppColors.brandGradient(
-                dark: theme.brightness == Brightness.dark,
-              ),
+              gradient: AppColors.brandGradient(dark: isDark),
               onTap: actions.purchaseRemoveAds,
             ),
-          if (!removeAdsPurchased) const SizedBox(height: 12),
+            const SizedBox(height: 12),
+          ],
           FeatureTile(
             icon: Icons.restore_rounded,
             title: 'Restore Purchases',
             subtitle: 'Recover previous purchases on this device',
             gradient: const LinearGradient(
-              colors: [AppColors.brand, AppColors.accentCyan],
+              colors: [AppColors.brand, AppColors.accentTeal],
             ),
             onTap: actions.restorePurchases,
           ),
+
+          // ── Support ───────────────────────────────────────────────────
           const SectionHeader(
             title: 'Support',
             subtitle: 'Help us grow & stay connected',
@@ -101,14 +125,17 @@ class SettingsScreen extends ConsumerWidget {
             gradient: AppColors.toolGradient('unit_converter'),
             onTap: () => _launchUrl(AppConstants.privacyPolicyUrl),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
+
+          // ── Version ───────────────────────────────────────────────────
           FutureBuilder<PackageInfo>(
             future: PackageInfo.fromPlatform(),
             builder: (context, snapshot) {
               final version = snapshot.data?.version ?? '…';
+              final build   = snapshot.data?.buildNumber ?? '';
               return Center(
                 child: Text(
-                  'Version $version',
+                  'Version $version ($build)',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -121,6 +148,48 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 }
+
+// ── Three-way theme picker ─────────────────────────────────────────────────
+
+class _ThemeSegmentedButton extends StatelessWidget {
+  const _ThemeSegmentedButton({
+    required this.current,
+    required this.onChanged,
+  });
+
+  final ThemeMode current;
+  final void Function(ThemeMode) onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return SegmentedButton<ThemeMode>(
+      expandedInsets: EdgeInsets.zero,
+      segments: const [
+        ButtonSegment(
+          value: ThemeMode.system,
+          icon: Icon(Icons.brightness_auto_rounded),
+          label: Text('Auto'),
+        ),
+        ButtonSegment(
+          value: ThemeMode.light,
+          icon: Icon(Icons.light_mode_rounded),
+          label: Text('Light'),
+        ),
+        ButtonSegment(
+          value: ThemeMode.dark,
+          icon: Icon(Icons.dark_mode_rounded),
+          label: Text('Dark'),
+        ),
+      ],
+      selected: {current},
+      onSelectionChanged: (set) {
+        if (set.isNotEmpty) onChanged(set.first);
+      },
+    );
+  }
+}
+
+// ── Settings card container ────────────────────────────────────────────────
 
 class _SettingsCard extends StatelessWidget {
   const _SettingsCard({required this.child});

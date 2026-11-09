@@ -9,6 +9,8 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:utility_toolbox/core/services/ads_service.dart';
 import 'package:utility_toolbox/core/theme/app_colors.dart';
+import 'package:utility_toolbox/core/widgets/empty_state.dart';
+import 'package:utility_toolbox/core/widgets/premium_button.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/qr_barcode/providers/qr_providers.dart';
 
@@ -67,57 +69,84 @@ class _QrGeneratorScreenState extends ConsumerState<QrGeneratorScreen> {
   Widget build(BuildContext context) {
     final text = ref.watch(generatorTextProvider);
     final hasText = text.trim().isNotEmpty;
+    final accent = AppColors.toolAccent('qr_barcode');
+    final gradient = AppColors.toolGradient('qr_barcode');
 
     return ToolScaffold(
       title: 'Generate QR',
-      accentColor: AppColors.toolAccent('qr_barcode'),
+      accentColor: accent,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             TextField(
               controller: _controller,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                filled: true,
                 labelText: 'Text or URL',
                 hintText: 'Enter content to encode',
+                prefixIcon: Icon(Icons.link_rounded, color: accent),
               ),
               onChanged: (value) =>
                   ref.read(generatorTextProvider.notifier).state = value,
             ),
             const SizedBox(height: 24),
             if (hasText)
-              RepaintBoundary(
-                key: _qrKey,
-                child: Container(
-                  color: Colors.white,
-                  padding: const EdgeInsets.all(16),
-                  child: QrImageView(
-                    data: text,
-                    version: QrVersions.auto,
-                    size: 220,
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: accent.withValues(alpha: 0.18),
+                      blurRadius: 24,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: RepaintBoundary(
+                  key: _qrKey,
+                  child: Container(
+                    color: Colors.white,
+                    padding: const EdgeInsets.all(16),
+                    child: QrImageView(
+                      data: text,
+                      version: QrVersions.auto,
+                      size: 220,
+                    ),
                   ),
                 ),
               )
             else
-              const Padding(
-                padding: EdgeInsets.all(32),
-                child: Text('Enter text above to preview your QR code.'),
+              EmptyState(
+                icon: Icons.qr_code_2_rounded,
+                gradient: gradient,
+                message: 'Enter text above to preview your QR code.',
               ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
             Row(
               children: [
                 Expanded(
-                  child: FilledButton(
+                  child: PremiumButton(
                     onPressed: hasText ? _saveToGallery : null,
-                    child: const Text('Save to Gallery'),
+                    icon: Icons.download_rounded,
+                    label: 'Save to Gallery',
+                    gradient: gradient,
+                    dense: true,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: FilledButton.tonal(
+                  child: PremiumOutlineButton(
                     onPressed: hasText ? _shareQr : null,
-                    child: const Text('Share'),
+                    icon: Icons.share_rounded,
+                    label: 'Share',
+                    accent: accent,
+                    dense: true,
                   ),
                 ),
               ],
