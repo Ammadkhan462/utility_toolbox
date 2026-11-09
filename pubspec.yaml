@@ -33,6 +33,12 @@ dependencies:
   intl: ^0.20.2
   url_launcher: ^6.3.1
   google_fonts: ^6.2.1
+  # Kept in dependencies (not dev_dependencies) even though lib/ never
+  # imports it: it ships an Android plugin class, and with it as a dev
+  # dependency the release build's GeneratedPluginRegistrant still referenced
+  # FlutterNativeSplashPlugin while the plugin project was excluded, failing
+  # :app:compileReleaseJavaWithJavac (Flutter 3.47).
+  flutter_native_splash: ^2.4.1
   flutter_image_compress: ^2.3.0
   crypto: ^3.0.3
   path: ^1.9.0
@@ -58,8 +64,6 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^5.0.0
   flutter_launcher_icons: ^0.14.4
-  # Build-time only (generates the native splash resources).
-  flutter_native_splash: ^2.4.1
 
 flutter:
   uses-material-design: true
