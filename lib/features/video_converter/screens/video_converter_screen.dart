@@ -4,18 +4,66 @@ import 'package:utility_toolbox/core/theme/app_colors.dart';
 import 'package:utility_toolbox/core/widgets/gradient_icon_badge.dart';
 import 'package:utility_toolbox/core/widgets/premium_button.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
+import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 import '../providers/video_converter_providers.dart';
+
+/// Localized one-line description for an output format (names stay as is).
+String _formatDescription(AppLocalizations l, String ext) => switch (ext) {
+  'mp4' => l.videoFmtMostCompatible,
+  'mov' => l.videoFmtApple,
+  'mkv' => l.videoFmtFlexible,
+  'avi' => l.videoFmtLegacy,
+  'gif' => l.videoFmtGif,
+  'mp3' => l.videoFmtAudioOnly,
+  'm4a' => l.videoFmtAudioAac,
+  'aac' => l.videoFmtAudioRaw,
+  'wav' => l.videoFmtWav,
+  _ => '',
+};
+
+/// m:ss (or h:mm:ss) — digits only, so it reads the same in every language.
+String _formatDuration(double secs) {
+  final total = secs.round();
+  final h = total ~/ 3600;
+  final m = (total % 3600) ~/ 60;
+  final s = (total % 60).toString().padLeft(2, '0');
+  return h > 0 ? '$h:${m.toString().padLeft(2, '0')}:$s' : '$m:$s';
+}
 
 class VideoConverterScreen extends ConsumerWidget {
   const VideoConverterScreen({super.key});
 
   static final _accent = AppColors.toolAccent('video_converter');
 
+  Future<void> _save(BuildContext context, VideoConverterNotifier notifier) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l = AppLocalizations.of(context);
+    final ok = await notifier.saveToDownloads();
+    if (ok == null) return; // fell back to the share sheet
+    messenger.showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              ok ? Icons.check_circle_rounded : Icons.error_outline_rounded,
+              color: ok ? AppColors.success : AppColors.error,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(ok ? l.commonSavedToDownloads : l.commonSaveFailed),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state    = ref.watch(videoConverterProvider);
     final notifier = ref.read(videoConverterProvider.notifier);
     final theme    = Theme.of(context);
+    final l        = AppLocalizations.of(context);
     final isConverting = state.status == VideoConvertStatus.converting;
     final isDone       = state.status == VideoConvertStatus.done;
     final isError      = state.status == VideoConvertStatus.error;
@@ -23,7 +71,7 @@ class VideoConverterScreen extends ConsumerWidget {
                          state.status == VideoConvertStatus.probing || isConverting;
 
     return ToolScaffold(
-      title: 'Video Converter',
+      title: l.toolVideoConverterTitle,
       accentColor: _accent,
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
@@ -60,8 +108,13 @@ class VideoConverterScreen extends ConsumerWidget {
                         iconSize: 26,
                       ),
                     const SizedBox(height: 10),
-                    Text(
-                      state.inputFilename ?? 'Tap to pick a video',
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                      state.inputFilename ?? l.videoPickHint,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.titleMedium?.copyWith(
                         color: state.inputPath != null
                             ? theme.colorScheme.onSurface
@@ -69,10 +122,18 @@ class VideoConverterScreen extends ConsumerWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    if (state.probeInfo != null) ...[
+                    ),
+                    if (state.probeFormat != null ||
+                        state.probeDurationSec != null) ...[
                       const SizedBox(height: 4),
                       Text(
-                        state.probeInfo!,
+                        l.videoProbeInfo(
+                          state.probeFormat ?? '?',
+                          state.probeDurationSec == null
+                              ? '?'
+                              : _formatDuration(state.probeDurationSec!),
+                        ),
+                        textAlign: TextAlign.center,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -95,7 +156,7 @@ class VideoConverterScreen extends ConsumerWidget {
 
             // ── Output format picker ───────────────────────────────────
             Text(
-              'Output Format',
+              l.videoOutputFormat,
               style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: theme.colorScheme.onSurfaceVariant,
@@ -134,7 +195,7 @@ class VideoConverterScreen extends ConsumerWidget {
                           ),
                         ),
                         Text(
-                          fmt.description,
+                          _formatDescription(l, fmt.ext),
                           style: TextStyle(
                             color: selected
                                 ? Colors.white70
@@ -154,8 +215,8 @@ class VideoConverterScreen extends ConsumerWidget {
             if (isConverting) ...[
               Text(
                 state.progress > 0
-                    ? 'Converting… ${(state.progress * 100).round()}%'
-                    : 'Converting… this may take a while',
+                    ? l.videoConvertingPercent((state.progress * 100).round())
+                    : l.videoConvertingWait,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -190,8 +251,8 @@ class VideoConverterScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Conversion complete!',
-                              style: TextStyle(
+                          Text(l.videoDone,
+                              style: const TextStyle(
                                   color: AppColors.success,
                                   fontWeight: FontWeight.bold)),
                           Text(state.outputFilename ?? '',
@@ -221,11 +282,34 @@ class VideoConverterScreen extends ConsumerWidget {
                     const Icon(Icons.error_outline, color: AppColors.error),
                     const SizedBox(width: 10),
                     Expanded(
-                      child: Text(
-                        state.error ?? 'Conversion failed.',
-                        style: const TextStyle(color: AppColors.error, fontSize: 12),
-                        maxLines: 6,
-                        overflow: TextOverflow.ellipsis,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            state.errorKind == VideoErrorKind.unsupported
+                                ? l.videoErrorUnsupported
+                                : l.commonErrorGeneric,
+                            style: const TextStyle(
+                              color: AppColors.error,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          if ((state.error ?? '').isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            // Technical FFmpeg detail: always left-to-right.
+                            Text(
+                              state.error!,
+                              textDirection: TextDirection.ltr,
+                              style: const TextStyle(
+                                color: AppColors.error,
+                                fontSize: 11,
+                              ),
+                              maxLines: 6,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                   ],
@@ -236,17 +320,34 @@ class VideoConverterScreen extends ConsumerWidget {
 
             // ── Action buttons ─────────────────────────────────────────
             if (isDone) ...[
-              PremiumButton(
-                onPressed: notifier.share,
-                icon: Icons.share_rounded,
-                label: 'Share / Save Output',
-                gradient: AppColors.toolGradient('video_converter'),
+              Row(
+                children: [
+                  // Saves to Downloads + My Files; sharing alone never
+                  // registered the output anywhere.
+                  Expanded(
+                    child: PremiumButton(
+                      onPressed: () => _save(context, notifier),
+                      icon: Icons.download_rounded,
+                      label: l.commonSave,
+                      gradient: AppColors.toolGradient('video_converter'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: PremiumOutlineButton(
+                      onPressed: notifier.share,
+                      icon: Icons.share_rounded,
+                      label: l.commonShare,
+                      accent: _accent,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 10),
               PremiumOutlineButton(
                 onPressed: notifier.reset,
                 icon: Icons.refresh_rounded,
-                label: 'Convert Another',
+                label: l.videoConvertAnother,
                 accent: _accent,
               ),
             ] else ...[
@@ -254,21 +355,21 @@ class VideoConverterScreen extends ConsumerWidget {
                 PremiumButton(
                   onPressed: isBusy ? null : notifier.pickFile,
                   icon: isBusy ? null : Icons.video_file_rounded,
-                  label: 'Pick Video File',
+                  label: l.videoPickButton,
                   gradient: AppColors.toolGradient('video_converter'),
                 )
               else if (!isConverting)
                 PremiumButton(
                   onPressed: notifier.convert,
                   icon: Icons.movie_filter_rounded,
-                  label: 'Convert to ${state.outputFormat.label.toUpperCase()}',
+                  label: l.videoConvertTo(state.outputFormat.label.toUpperCase()),
                   gradient: AppColors.toolGradient('video_converter'),
                 )
               else
                 PremiumOutlineButton(
                   onPressed: notifier.cancel,
                   icon: Icons.stop_circle_outlined,
-                  label: 'Cancel',
+                  label: l.commonCancel,
                   accent: _accent,
                 ),
             ],
@@ -279,7 +380,7 @@ class VideoConverterScreen extends ConsumerWidget {
                 child: TextButton.icon(
                   onPressed: notifier.reset,
                   icon: const Icon(Icons.close_rounded, size: 16),
-                  label: const Text('Clear'),
+                  label: Text(l.commonClear),
                 ),
               ),
           ],

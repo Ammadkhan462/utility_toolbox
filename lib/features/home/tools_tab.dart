@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:utility_toolbox/core/widgets/app_logo.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:utility_toolbox/core/routing/app_routes.dart';
@@ -154,15 +155,7 @@ class _Header extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 12, 8, 8),
       child: Row(
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: Image.asset(
-              'assets/images/app_logo.png',
-              width: 36,
-              height: 36,
-              cacheWidth: 108,
-            ),
-          ),
+          const AppLogo(size: 36),
           const SizedBox(width: 12),
           Expanded(
             child: Text(

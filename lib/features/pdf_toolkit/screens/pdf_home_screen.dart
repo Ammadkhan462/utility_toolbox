@@ -1,53 +1,46 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:utility_toolbox/core/routing/app_routes.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:utility_toolbox/core/theme/app_colors.dart';
+import 'package:utility_toolbox/core/tools/tool_providers.dart';
+import 'package:utility_toolbox/core/tools/tool_registry.dart';
 import 'package:utility_toolbox/core/widgets/feature_tile.dart';
 import 'package:utility_toolbox/core/widgets/section_header.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
+import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 
-class PdfHomeScreen extends StatelessWidget {
+/// Lists every PDF tool from the registry, so new PDF tools show up here
+/// without touching this screen.
+class PdfHomeScreen extends ConsumerWidget {
   const PdfHomeScreen({super.key});
 
-  static final _gradient = LinearGradient(
-    colors: [AppColors.toolAccent('pdf_toolkit'), const Color(0xFFEF4444)],
-  );
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final tools = [
+      for (final tool in ToolRegistry.all)
+        if (tool.category == ToolCategory.pdf) tool,
+    ];
     return ToolScaffold(
-      title: 'PDF Toolkit',
+      title: l.pdfHomeTitle,
       accentColor: AppColors.toolAccent('pdf_toolkit'),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+        padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 24),
         children: [
-          const SectionHeader(
-            title: 'PDF Tools',
-            subtitle: 'Create, combine, and optimize your documents',
+          SectionHeader(
+            title: l.pdfHomeSection,
+            subtitle: l.pdfHomeSubtitle,
           ),
-          FeatureTile(
-            icon: Icons.image_outlined,
-            title: 'Image to PDF',
-            subtitle: 'Convert photos into a PDF document',
-            gradient: _gradient,
-            onTap: () => context.push('${AppRoutes.pdfToolkit}/image-to-pdf'),
-          ),
-          const SizedBox(height: 12),
-          FeatureTile(
-            icon: Icons.merge_type_rounded,
-            title: 'Merge PDFs',
-            subtitle: 'Combine multiple PDF files into one',
-            gradient: _gradient,
-            onTap: () => context.push('${AppRoutes.pdfToolkit}/merge'),
-          ),
-          const SizedBox(height: 12),
-          FeatureTile(
-            icon: Icons.compress_rounded,
-            title: 'Compress PDF',
-            subtitle: 'Reduce file size for image-heavy PDFs',
-            gradient: _gradient,
-            onTap: () => context.push('${AppRoutes.pdfToolkit}/compress'),
-          ),
+          for (final (i, tool) in tools.indexed) ...[
+            if (i > 0) const SizedBox(height: 12),
+            FeatureTile(
+              icon: tool.icon,
+              title: tool.title(l),
+              subtitle: tool.description(l),
+              gradient: tool.gradient,
+              // openTool = context.push(tool.route) + recents tracking.
+              onTap: () => openTool(context, ref, tool),
+            ),
+          ],
         ],
       ),
     );

@@ -14,11 +14,6 @@ extension UpscaleFactorExt on UpscaleFactor {
     UpscaleFactor.x2 => '2×',
     UpscaleFactor.x4 => '4×',
   };
-
-  String get description => switch (this) {
-    UpscaleFactor.x2 => 'Fast — great for most photos',
-    UpscaleFactor.x4 => 'Best quality — slower processing',
-  };
 }
 
 // ── Enhancement mode ────────────────────────────────────────────────────────
@@ -30,21 +25,61 @@ enum EnhanceMode {
   face, // Extra face detail recovery
 }
 
-extension EnhanceModeExt on EnhanceMode {
-  String get label => switch (this) {
-    EnhanceMode.auto => 'Auto',
-    EnhanceMode.photo => 'Photo',
-    EnhanceMode.illustration => 'Illustration',
-    EnhanceMode.face => 'Face Detail',
-  };
+// Labels for modes, factors, progress steps and errors are localized in the
+// screen (ai_upscaler_screen.dart); the data here stays language-neutral.
 
-  String get description => switch (this) {
-    EnhanceMode.auto => 'AI selects the best model automatically',
-    EnhanceMode.photo => 'Real-world photos & landscapes',
-    EnhanceMode.illustration => 'Artwork, illustrations & anime',
-    EnhanceMode.face => 'Portraits with face detail recovery',
-  };
+// ── Progress steps ─────────────────────────────────────────────────────────
+
+/// What the pipeline is doing right now. Sent instead of display text so
+/// the screen can show it in the app language (isolates have no l10n).
+enum UpscaleStage {
+  starting,
+  connecting,
+  onDevice,
+  cloudUnavailable,
+  uploading,
+  restoringFaces,
+  preparing,
+  loadingModel,
+  downloadingModel,
+  fallback,
+  decoding,
+
+  /// args: [fromResolution, toResolution] e.g. ['4032×3024', '1280×960']
+  resizingInput,
+  denoising,
+
+  /// args: [factor]
+  upscaling,
+
+  /// args: [doneTiles, totalTiles]
+  aiTiles,
+  sharpening,
+  colourGrading,
+  saving,
+  done,
 }
+
+class UpscaleStep {
+  const UpscaleStep(this.stage, [this.args = const []]);
+  final UpscaleStage stage;
+  final List<Object> args;
+}
+
+/// Why the result didn't come from the preferred pipeline.
+enum UpscaleFallback {
+  /// Cloud was enabled but unreachable: processed on this device.
+  cloudUnavailable,
+
+  /// The on-device AI model isn't downloaded yet and couldn't be fetched
+  /// (offline): standard (bicubic) upscaling was used.
+  modelUnavailable,
+
+  /// The AI model couldn't run on this device: standard upscaling used.
+  modelFailed,
+}
+
+enum UpscaleErrorKind { tooLarge, unreadable, network, generic }
 
 // ── Result ─────────────────────────────────────────────────────────────────
 
@@ -58,6 +93,7 @@ class UpscaleResult {
     required this.originalBytes,
     required this.outputBytes,
     required this.processingMs,
+    this.fallback,
   });
 
   final File outputFile;
@@ -68,6 +104,7 @@ class UpscaleResult {
   final int originalBytes;
   final int outputBytes;
   final int processingMs;
+  final UpscaleFallback? fallback;
 
   String get originalRes => '$originalWidth×$originalHeight';
   String get outputRes => '$outputWidth×$outputHeight';
@@ -83,9 +120,9 @@ class UpscalerState {
     this.status = UpscaleStatus.idle,
     this.sourceFile,
     this.result,
-    this.errorMessage = '',
+    this.error,
     this.progress = 0.0,
-    this.progressLabel = '',
+    this.step,
     this.factor = UpscaleFactor.x2,
     this.mode = EnhanceMode.auto,
     this.denoise = 0.3,
@@ -96,9 +133,9 @@ class UpscalerState {
   final UpscaleStatus status;
   final File? sourceFile;
   final UpscaleResult? result;
-  final String errorMessage;
+  final UpscaleErrorKind? error;
   final double progress; // 0.0–1.0 for progress bar
-  final String progressLabel;
+  final UpscaleStep? step;
   final UpscaleFactor factor;
   final EnhanceMode mode;
   final double denoise; // 0.0–1.0
@@ -116,9 +153,9 @@ class UpscalerState {
     UpscaleStatus? status,
     File? sourceFile,
     UpscaleResult? result,
-    String? errorMessage,
+    UpscaleErrorKind? error,
     double? progress,
-    String? progressLabel,
+    UpscaleStep? step,
     UpscaleFactor? factor,
     EnhanceMode? mode,
     double? denoise,
@@ -126,13 +163,14 @@ class UpscalerState {
     bool? useCloud,
     bool clearSource = false,
     bool clearResult = false,
+    bool clearStep = false,
   }) => UpscalerState(
     status: status ?? this.status,
     sourceFile: clearSource ? null : sourceFile ?? this.sourceFile,
     result: clearResult ? null : result ?? this.result,
-    errorMessage: errorMessage ?? this.errorMessage,
+    error: error ?? this.error,
     progress: progress ?? this.progress,
-    progressLabel: progressLabel ?? this.progressLabel,
+    step: clearStep ? null : step ?? this.step,
     factor: factor ?? this.factor,
     mode: mode ?? this.mode,
     denoise: denoise ?? this.denoise,

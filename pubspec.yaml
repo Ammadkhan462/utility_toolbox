@@ -1,7 +1,7 @@
 name: utility_toolbox
 description: A multi-tool utility app with QR, converter, PDF, text, OCR, and translation tools.
 publish_to: 'none'
-version: 1.1.0+8
+version: 1.2.0+9
 
 environment:
   sdk: ^3.8.0
@@ -38,12 +38,6 @@ dependencies:
   intl: ^0.20.2
   url_launcher: ^6.3.1
   google_fonts: ^6.2.1
-  # Kept in dependencies (not dev_dependencies) even though lib/ never
-  # imports it: it ships an Android plugin class, and with it as a dev
-  # dependency the release build's GeneratedPluginRegistrant still referenced
-  # FlutterNativeSplashPlugin while the plugin project was excluded, failing
-  # :app:compileReleaseJavaWithJavac (Flutter 3.47).
-  flutter_native_splash: ^2.4.1
   flutter_image_compress: ^2.3.0
   crypto: ^3.0.3
   path: ^1.9.0
@@ -64,32 +58,15 @@ dependencies:
   google_mobile_ads: ^9.1.0
   in_app_review: ^2.0.12
   google_mlkit_document_scanner: ^0.7.1
+  google_mlkit_subject_segmentation: ^0.0.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
-  flutter_launcher_icons: ^0.14.4
+  integration_test:
+    sdk: flutter
 
 flutter:
   uses-material-design: true
   generate: true
-  assets:
-    - assets/images/
-    - assets/models/
-
-flutter_launcher_icons:
-  android: true
-  ios: true
-  image_path: "assets/images/utilitybox_icon.png"
-  adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/images/utilitybox_icon.png"
-
-flutter_native_splash:
-  color: "#3B2FCC"
-  color_dark: "#0B0F1A"
-  image: assets/images/app_logo.png
-  android_12:
-    color: "#3B2FCC"
-    color_dark: "#0B0F1A"
-    image: assets/images/app_logo.png

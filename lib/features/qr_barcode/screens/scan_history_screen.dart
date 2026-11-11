@@ -7,6 +7,9 @@ import 'package:utility_toolbox/core/theme/app_colors.dart';
 import 'package:utility_toolbox/core/widgets/empty_state.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/qr_barcode/providers/qr_providers.dart';
+import 'package:utility_toolbox/features/qr_barcode/screens/qr_scanner_screen.dart'
+    show qrTypeLabel;
+import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 
 class ScanHistoryScreen extends ConsumerWidget {
   const ScanHistoryScreen({super.key});
@@ -14,27 +17,32 @@ class ScanHistoryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final history = ref.watch(scanHistoryProvider);
+    final l = AppLocalizations.of(context);
+    final dateFormat = DateFormat.yMMMd(
+      Localizations.localeOf(context).toLanguageTag(),
+    ).add_jm();
 
     return ToolScaffold(
-      title: 'Scan History',
+      title: l.qrHistoryTitle,
       accentColor: AppColors.toolAccent('qr_barcode'),
       actions: [
         if (history.isNotEmpty)
           PopupMenuButton<String>(
+            tooltip: l.qrHistoryMore,
             onSelected: (value) async {
               if (value == 'clear') {
                 await ref.read(scanHistoryProvider.notifier).clearAll();
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(value: 'clear', child: Text('Clear all')),
+              PopupMenuItem(value: 'clear', child: Text(l.commonClearAll)),
             ],
           ),
       ],
       body: history.isEmpty
-          ? const EmptyState(
+          ? EmptyState(
               icon: Icons.history,
-              message: 'Scanned codes will appear here.',
+              message: l.qrHistoryEmpty,
             )
           : ListView.separated(
               itemCount: history.length,
@@ -49,8 +57,8 @@ class ScanHistoryScreen extends ConsumerWidget {
                       .deleteItem(item.id),
                   background: Container(
                     color: Theme.of(context).colorScheme.error,
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.only(right: 16),
+                    alignment: AlignmentDirectional.centerEnd,
+                    padding: const EdgeInsetsDirectional.only(end: 16),
                     child: const Icon(Icons.delete, color: Colors.white),
                   ),
                   child: ListTile(
@@ -60,7 +68,7 @@ class ScanHistoryScreen extends ConsumerWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     subtitle: Text(
-                      '${item.type.toUpperCase()} · ${DateFormat.yMMMd().add_jm().format(item.scannedAt)}',
+                      '${qrTypeLabel(l, item.type)} · ${dateFormat.format(item.scannedAt)}',
                     ),
                     onTap: () async {
                       await showModalBottomSheet<void>(
@@ -84,10 +92,11 @@ class ScanHistoryScreen extends ConsumerWidget {
                                         Navigator.pop(context);
                                       }
                                     },
-                                    child: const Text('Copy'),
+                                    child: Text(l.commonCopy),
                                   ),
                                   const SizedBox(width: 8),
                                   IconButton(
+                                    tooltip: l.commonShare,
                                     onPressed: () => Share.share(item.content),
                                     icon: const Icon(Icons.share),
                                   ),

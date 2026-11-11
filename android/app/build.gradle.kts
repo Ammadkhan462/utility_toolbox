@@ -76,8 +76,24 @@ flutter {
     source = "../.."
 }
 
+// ML Kit text recognition: use the Google Play services ("unbundled") models
+// instead of the bundled ones the Flutter plugin pulls in. Same API, but the
+// models are downloaded once by Play services and shared across apps, which
+// takes ~4.5 MB of native code per ABI out of our download. The manifest's
+// com.google.mlkit.vision.DEPENDENCIES entry asks Play to fetch them at install.
+configurations.all {
+    exclude(group = "com.google.mlkit", module = "text-recognition")
+}
+
 dependencies {
     coreLibraryDesugaring(
         "com.android.tools:desugar_jdk_libs:2.1.4"
     )
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.1")
+    // The plugin only declares the extra scripts as compileOnly; the unbundled
+    // versions cost a few KB of classes each (models come from Play services).
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition-devanagari:16.0.1")
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition-chinese:16.0.1")
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition-japanese:16.0.1")
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition-korean:16.0.1")
 }

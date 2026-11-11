@@ -60,6 +60,18 @@ class SystemBridge {
   Future<bool> shareFile(String location, String mimeType) =>
       _invokeBool('shareFile', {'location': location, 'mimeType': mimeType});
 
+  /// Whether the phone has a flash LED the app can switch on.
+  Future<bool> hasTorch() => _invokeBool('hasTorch', const {});
+
+  /// Turns the flash LED on or off. Returns false when there is no flash or
+  /// another app is using the camera.
+  Future<bool> setTorch(bool on) => _invokeBool('setTorch', {'on': on});
+
+  /// Forces this app window's brightness (0..1); `null` gives control back
+  /// to the system setting. Used by the flashlight's screen-light mode.
+  Future<bool> setScreenBrightness(double? value) =>
+      _invokeBool('setScreenBrightness', {'value': value});
+
   Future<bool> _invokeBool(String method, Map<String, Object?> args) async {
     if (!_supported) return false;
     try {

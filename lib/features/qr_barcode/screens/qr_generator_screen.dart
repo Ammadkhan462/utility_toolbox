@@ -13,6 +13,7 @@ import 'package:utility_toolbox/core/widgets/empty_state.dart';
 import 'package:utility_toolbox/core/widgets/premium_button.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/qr_barcode/providers/qr_providers.dart';
+import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 
 class QrGeneratorScreen extends ConsumerStatefulWidget {
   const QrGeneratorScreen({super.key, this.initialText});
@@ -27,6 +28,9 @@ class QrGeneratorScreen extends ConsumerStatefulWidget {
 class _QrGeneratorScreenState extends ConsumerState<QrGeneratorScreen> {
   final _qrKey = GlobalKey();
   late final _controller = TextEditingController(text: widget.initialText);
+
+  /// Blocks double taps on Save/Share (each tap saved another copy).
+  bool _busy = false;
 
   @override
   void initState() {
@@ -50,35 +54,55 @@ class _QrGeneratorScreenState extends ConsumerState<QrGeneratorScreen> {
         _qrKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
     if (boundary == null) return null;
 
-    final image = await boundary.toImage(pixelRatio: 3);
-    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    return byteData?.buffer.asUint8List();
+    try {
+      final image = await boundary.toImage(pixelRatio: 3);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      image.dispose();
+      return byteData?.buffer.asUint8List();
+    } catch (e) {
+      debugPrint('QR capture failed: $e');
+      return null;
+    }
   }
 
   Future<void> _saveToGallery() async {
-    final bytes = await _captureQr();
-    if (bytes == null || !mounted) return;
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      final bytes = await _captureQr();
+      if (bytes == null || !mounted) return;
 
-    final ok = await FileUtils.saveImageToGallery(
-      bytes: bytes,
-      fileName: 'qr_${DateTime.now().millisecondsSinceEpoch}.png',
-      mimeType: 'image/png',
-      toolId: 'qr_generator',
-    );
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(ok ? 'Saved to gallery' : 'Could not save to your gallery')),
-    );
-    await ref.read(adsServiceProvider).showInterstitialIfAllowed();
+      final ok = await FileUtils.saveImageToGallery(
+        bytes: bytes,
+        fileName: 'qr_${DateTime.now().millisecondsSinceEpoch}.png',
+        mimeType: 'image/png',
+        toolId: 'qr_generator',
+      );
+      if (!mounted) return;
+      final l = AppLocalizations.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(ok ? l.commonSavedToGallery : l.commonSaveFailed)),
+      );
+      await ref.read(adsServiceProvider).showInterstitialIfAllowed();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   Future<void> _shareQr() async {
-    final bytes = await _captureQr();
-    if (bytes == null) return;
-    await Share.shareXFiles([
-      XFile.fromData(bytes, mimeType: 'image/png', name: 'qr_code.png'),
-    ]);
-    await ref.read(adsServiceProvider).showInterstitialIfAllowed();
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      final bytes = await _captureQr();
+      if (bytes == null) return;
+      await Share.shareXFiles([
+        XFile.fromData(bytes, mimeType: 'image/png', name: 'qr_code.png'),
+      ]);
+      if (!mounted) return;
+      await ref.read(adsServiceProvider).showInterstitialIfAllowed();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   @override
@@ -87,9 +111,10 @@ class _QrGeneratorScreenState extends ConsumerState<QrGeneratorScreen> {
     final hasText = text.trim().isNotEmpty;
     final accent = AppColors.toolAccent('qr_barcode');
     final gradient = AppColors.toolGradient('qr_barcode');
+    final l = AppLocalizations.of(context);
 
     return ToolScaffold(
-      title: 'Generate QR',
+      title: l.toolQrGeneratorTitle,
       accentColor: accent,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -102,8 +127,8 @@ class _QrGeneratorScreenState extends ConsumerState<QrGeneratorScreen> {
                   borderRadius: BorderRadius.circular(14),
                 ),
                 filled: true,
-                labelText: 'Text or URL',
-                hintText: 'Enter content to encode',
+                labelText: l.qrGenInputLabel,
+                hintText: l.qrGenInputHint,
                 prefixIcon: Icon(Icons.link_rounded, color: accent),
               ),
               onChanged: (value) =>
@@ -133,6 +158,7 @@ class _QrGeneratorScreenState extends ConsumerState<QrGeneratorScreen> {
                       data: text,
                       version: QrVersions.auto,
                       size: 220,
+                      semanticsLabel: l.qrGenPreviewLabel,
                     ),
                   ),
                 ),
@@ -141,16 +167,16 @@ class _QrGeneratorScreenState extends ConsumerState<QrGeneratorScreen> {
               EmptyState(
                 icon: Icons.qr_code_2_rounded,
                 gradient: gradient,
-                message: 'Enter text above to preview your QR code.',
+                message: l.qrGenEmpty,
               ),
             const SizedBox(height: 28),
             Row(
               children: [
                 Expanded(
                   child: PremiumButton(
-                    onPressed: hasText ? _saveToGallery : null,
+                    onPressed: hasText && !_busy ? _saveToGallery : null,
                     icon: Icons.download_rounded,
-                    label: 'Save to Gallery',
+                    label: l.qrGenSaveGallery,
                     gradient: gradient,
                     dense: true,
                   ),
@@ -158,9 +184,9 @@ class _QrGeneratorScreenState extends ConsumerState<QrGeneratorScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: PremiumOutlineButton(
-                    onPressed: hasText ? _shareQr : null,
+                    onPressed: hasText && !_busy ? _shareQr : null,
                     icon: Icons.share_rounded,
-                    label: 'Share',
+                    label: l.commonShare,
                     accent: accent,
                     dense: true,
                   ),

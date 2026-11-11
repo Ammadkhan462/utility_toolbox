@@ -6,6 +6,7 @@ import 'package:utility_toolbox/core/widgets/empty_state.dart';
 import 'package:utility_toolbox/core/widgets/feature_badge.dart';
 import 'package:utility_toolbox/core/widgets/premium_button.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
+import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 
 class QrHomeScreen extends StatelessWidget {
   const QrHomeScreen({super.key});
@@ -13,14 +14,16 @@ class QrHomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gradient = AppColors.toolGradient('qr_barcode');
+    final l = AppLocalizations.of(context);
 
     return DefaultTabController(
       length: 2,
       child: ToolScaffold(
-        title: 'QR & Barcode',
+        title: l.qrHomeTitle,
         accentColor: AppColors.toolAccent('qr_barcode'),
         actions: [
           IconButton(
+            tooltip: l.qrHistoryTitle,
             icon: const Icon(Icons.history_rounded),
             onPressed: () => context.push('${AppRoutes.qrBarcode}/history'),
           ),
@@ -42,10 +45,10 @@ class QrHomeScreen extends StatelessWidget {
                     ).colorScheme.outline.withValues(alpha: 0.5),
                   ),
                 ),
-                child: const TabBar(
+                child: TabBar(
                   tabs: [
-                    Tab(text: 'Scan'),
-                    Tab(text: 'Generate'),
+                    Tab(text: l.qrHomeTabScan),
+                    Tab(text: l.qrHomeTabCreate),
                   ],
                 ),
               ),
@@ -82,21 +85,21 @@ class _ScanTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = AppColors.toolAccent('qr_barcode');
+    final l = AppLocalizations.of(context);
 
     return EmptyState(
       icon: Icons.qr_code_scanner_rounded,
       gradient: gradient,
-      title: 'Scan a code',
-      message:
-          'Point your camera at a QR code or barcode to scan it instantly.',
+      title: l.qrHomeScanTitle,
+      message: l.qrHomeScanBody,
       badges: [
-        FeatureBadge(icon: Icons.bolt_rounded, label: 'Instant', accent: accent),
-        FeatureBadge(icon: Icons.history_rounded, label: 'Saved history', accent: accent),
+        FeatureBadge(icon: Icons.bolt_rounded, label: l.qrHomeBadgeInstant, accent: accent),
+        FeatureBadge(icon: Icons.history_rounded, label: l.qrHomeBadgeHistory, accent: accent),
       ],
       action: PremiumButton(
         onPressed: onStartScan,
         icon: Icons.camera_alt_rounded,
-        label: 'Start scanning',
+        label: l.qrHomeStartScan,
         gradient: gradient,
       ),
     );
@@ -112,21 +115,21 @@ class _GenerateTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = AppColors.toolAccent('qr_barcode');
+    final l = AppLocalizations.of(context);
 
     return EmptyState(
       icon: Icons.qr_code_2_rounded,
       gradient: gradient,
-      title: 'Create a code',
-      message:
-          'Create a QR code from text or a URL, then save or share it.',
+      title: l.qrHomeCreateTitle,
+      message: l.qrHomeCreateBody,
       badges: [
-        FeatureBadge(icon: Icons.share_rounded, label: 'Share anywhere', accent: accent),
-        FeatureBadge(icon: Icons.download_rounded, label: 'Save as image', accent: accent),
+        FeatureBadge(icon: Icons.share_rounded, label: l.qrHomeBadgeShare, accent: accent),
+        FeatureBadge(icon: Icons.download_rounded, label: l.qrHomeBadgeImage, accent: accent),
       ],
       action: PremiumButton(
         onPressed: onOpenGenerator,
         icon: Icons.edit_rounded,
-        label: 'Open generator',
+        label: l.qrHomeOpenGenerator,
         gradient: gradient,
       ),
     );

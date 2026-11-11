@@ -18,6 +18,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'package:image/image.dart' as img;
 import 'package:tflite_flutter/tflite_flutter.dart';
+import 'package:utility_toolbox/features/ai_upscaler/providers/upscaler_providers.dart';
 
 // Fixed model geometry.
 const int kTileIn = 50;
@@ -47,7 +48,13 @@ class RealEsrganArgs {
   final SendPort progressPort;
 }
 
-void _progress(SendPort port, double p, String label) => port.send([p, label]);
+/// [p, stage index, args]: decoded into an [UpscaleStep] by the service.
+void _progress(
+  SendPort port,
+  double p,
+  UpscaleStage stage, [
+  List<Object> args = const [],
+]) => port.send([p, stage.index, args]);
 
 /// Isolate entry point. Sends the output file path (String) on success,
 /// or an error message (String prefixed with 'AI_ERROR:') on failure so
@@ -55,11 +62,18 @@ void _progress(SendPort port, double p, String label) => port.send([p, label]);
 Future<void> runRealEsrgan(RealEsrganArgs args) async {
   final pp = args.progressPort;
   try {
-    _progress(pp, 0.15, 'Decoding image…');
-    img.Image? source = img.decodeImage(args.imageBytes);
+    _progress(pp, 0.15, UpscaleStage.decoding);
+    img.Image? source = img.decodeImage(args.imageBytes, frame: 0);
     if (source == null) {
       args.sendPort.send('AI_ERROR: Could not decode image');
       return;
+    }
+    // The PNG output carries no EXIF, so a portrait photo stored sideways
+    // (orientation 6/8) came out rotated. Bake it in — only when needed,
+    // since bakeOrientation copies the bitmap.
+    final ifd = source.exif.imageIfd;
+    if (ifd.hasOrientation && ifd.orientation != 1) {
+      source = img.bakeOrientation(source);
     }
 
     // The AI model always upscales 4x per tile. For a 2x request we
@@ -91,7 +105,8 @@ Future<void> runRealEsrgan(RealEsrganArgs args) async {
       _progress(
         pp,
         0.2,
-        'Resizing input (${source.width}×${source.height} → $newW×$newH)…',
+        UpscaleStage.resizingInput,
+        ['${source.width}×${source.height}', '$newW×$newH'],
       );
       source = img.copyResize(
         source,
@@ -109,11 +124,11 @@ Future<void> runRealEsrgan(RealEsrganArgs args) async {
     // up the output on noisy/low-light photos. Skipped entirely when the
     // slider is low, so it costs nothing by default.
     if (args.denoise > 0.15) {
-      _progress(pp, 0.22, 'Pre-cleaning noise…');
+      _progress(pp, 0.22, UpscaleStage.denoising);
       source = img.gaussianBlur(source, radius: args.denoise > 0.6 ? 2 : 1);
     }
 
-    _progress(pp, 0.28, 'Loading AI model…');
+    _progress(pp, 0.28, UpscaleStage.loadingModel);
 
     final srcW = source.width;
     final srcH = source.height;
@@ -201,7 +216,8 @@ Future<void> runRealEsrgan(RealEsrganArgs args) async {
             _progress(
               pp,
               0.3 + (doneTiles / totalTiles) * 0.6,
-              'AI upscaling… ($doneTiles/$totalTiles tiles)',
+              UpscaleStage.aiTiles,
+              [doneTiles, totalTiles],
             );
           }
         }
@@ -211,7 +227,7 @@ Future<void> runRealEsrgan(RealEsrganArgs args) async {
       gpuDelegate?.delete();
     }
 
-    _progress(pp, 0.94, 'Saving…');
+    _progress(pp, 0.94, UpscaleStage.saving);
     final result = img.Image.fromBytes(
       width: outW,
       height: outH,

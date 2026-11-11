@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -10,8 +12,19 @@ import 'package:ffmpeg_kit_flutter_new_audio/return_code.dart';
 import 'package:ffmpeg_kit_flutter_new_audio/ffprobe_kit.dart';
 import 'package:ffmpeg_kit_flutter_new_audio/statistics.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:utility_toolbox/core/utils/file_utils.dart';
 
 enum VideoConvertStatus { idle, picking, probing, converting, done, error }
+
+/// Why a conversion failed; the screen shows a localized message for it
+/// and [VideoConverterState.error] holds the technical detail.
+enum VideoErrorKind {
+  /// FFmpeg ran but failed: usually the format/codec isn't supported here.
+  unsupported,
+
+  /// Anything else (no space, unreadable file…).
+  generic,
+}
 
 /// How the video stream is (re-)encoded.
 ///
@@ -34,7 +47,6 @@ enum VideoEncoding {
 class VideoFormat {
   final String ext;
   final String label;
-  final String description;
   final VideoEncoding videoEncoding;
 
   /// Extra args after the video codec args, before the output path
@@ -44,10 +56,22 @@ class VideoFormat {
   const VideoFormat({
     required this.ext,
     required this.label,
-    required this.description,
     this.videoEncoding = VideoEncoding.none,
     required this.extraArgs,
   });
+
+  String get mimeType => switch (ext) {
+    'mp4' => 'video/mp4',
+    'mov' => 'video/quicktime',
+    'mkv' => 'video/x-matroska',
+    'avi' => 'video/x-msvideo',
+    'gif' => 'image/gif',
+    'mp3' => 'audio/mpeg',
+    'm4a' => 'audio/mp4',
+    'aac' => 'audio/aac',
+    'wav' => 'audio/wav',
+    _ => 'application/octet-stream',
+  };
 }
 
 // Default format as a standalone const so it can be used as a default parameter value.
@@ -55,7 +79,6 @@ class VideoFormat {
 const kDefaultVideoFormat = VideoFormat(
   ext: 'mp4',
   label: 'MP4',
-  description: 'Most compatible',
   videoEncoding: VideoEncoding.hardwareH264,
   // -sn/-dn: subtitle/data streams often can't be remuxed into the target
   // container and would fail the whole conversion.
@@ -67,52 +90,44 @@ const kVideoFormats = <VideoFormat>[
   VideoFormat(
     ext: 'mov',
     label: 'MOV',
-    description: 'Apple / QuickTime',
     videoEncoding: VideoEncoding.hardwareH264,
     extraArgs: ['-sn', '-dn', '-c:a', 'aac', '-movflags', '+faststart'],
   ),
   VideoFormat(
     ext: 'mkv',
     label: 'MKV',
-    description: 'Flexible container',
     videoEncoding: VideoEncoding.hardwareH264,
     extraArgs: ['-sn', '-dn', '-c:a', 'aac'],
   ),
   VideoFormat(
     ext: 'avi',
     label: 'AVI',
-    description: 'Legacy format',
     videoEncoding: VideoEncoding.mpeg4,
     extraArgs: ['-sn', '-dn', '-c:a', 'libmp3lame'],
   ),
   VideoFormat(
     ext: 'gif',
     label: 'GIF',
-    description: 'Animated (no audio)',
     extraArgs: ['-vf', 'fps=10,scale=480:-1:flags=lanczos', '-loop', '0'],
   ),
   VideoFormat(
     ext: 'mp3',
     label: 'MP3',
-    description: 'Audio only',
     extraArgs: ['-vn', '-c:a', 'libmp3lame', '-q:a', '2'],
   ),
   VideoFormat(
     ext: 'm4a',
     label: 'M4A',
-    description: 'Audio only (AAC)',
     extraArgs: ['-vn', '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart'],
   ),
   VideoFormat(
     ext: 'aac',
     label: 'AAC',
-    description: 'Audio only (raw)',
     extraArgs: ['-vn', '-c:a', 'aac', '-b:a', '192k'],
   ),
   VideoFormat(
     ext: 'wav',
     label: 'WAV',
-    description: 'Uncompressed audio',
     extraArgs: ['-vn', '-c:a', 'pcm_s16le'],
   ),
 ];
@@ -121,19 +136,27 @@ class VideoConverterState {
   final VideoConvertStatus status;
   final String? inputPath;
   final String? outputPath;
+  /// Technical detail (FFmpeg log tail / exception) for a failed run.
   final String? error;
+  final VideoErrorKind errorKind;
   final double progress; // 0.0–1.0
   final VideoFormat outputFormat;
-  final String? probeInfo; // raw ffprobe summary
+
+  /// From ffprobe: container name (e.g. "mov,mp4,m4a…") and duration in
+  /// seconds. Formatted by the screen.
+  final String? probeFormat;
+  final double? probeDurationSec;
 
   const VideoConverterState({
     this.status = VideoConvertStatus.idle,
     this.inputPath,
     this.outputPath,
     this.error,
+    this.errorKind = VideoErrorKind.generic,
     this.progress = 0,
     this.outputFormat = kDefaultVideoFormat, // ← const, not a list index
-    this.probeInfo,
+    this.probeFormat,
+    this.probeDurationSec,
   });
 
   VideoConverterState copyWith({
@@ -141,17 +164,21 @@ class VideoConverterState {
     String? inputPath,
     String? outputPath,
     String? error,
+    VideoErrorKind? errorKind,
     double? progress,
     VideoFormat? outputFormat,
-    String? probeInfo,
+    String? probeFormat,
+    double? probeDurationSec,
   }) => VideoConverterState(
     status: status ?? this.status,
     inputPath: inputPath ?? this.inputPath,
     outputPath: outputPath ?? this.outputPath,
     error: error ?? this.error,
+    errorKind: errorKind ?? this.errorKind,
     progress: progress ?? this.progress,
     outputFormat: outputFormat ?? this.outputFormat,
-    probeInfo: probeInfo ?? this.probeInfo,
+    probeFormat: probeFormat ?? this.probeFormat,
+    probeDurationSec: probeDurationSec ?? this.probeDurationSec,
   );
 
   String? get inputFilename =>
@@ -176,29 +203,45 @@ class VideoConverterNotifier extends StateNotifier<VideoConverterState> {
   void setFormat(VideoFormat fmt) => state = state.copyWith(outputFormat: fmt);
 
   Future<void> pickFile() async {
+    if (state.status == VideoConvertStatus.converting) return;
+    final previous = state.status;
     state = state.copyWith(status: VideoConvertStatus.picking);
 
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.video,
-      allowMultiple: false,
-    );
+    FilePickerResult? result;
+    try {
+      result = await FilePicker.platform.pickFiles(
+        type: FileType.video,
+        allowMultiple: false,
+      );
+    } on PlatformException catch (e) {
+      // Storage permission denied / picker already open: without this the
+      // screen stayed stuck in "picking" with every button disabled.
+      debugPrint('Video pick failed: $e');
+    }
     if (!mounted) return;
 
-    if (result == null || result.files.isEmpty) {
-      state = state.copyWith(status: VideoConvertStatus.idle);
+    // path is null when the provider couldn't hand over a local copy.
+    final path = result?.files.firstOrNull?.path;
+    if (path == null) {
+      state = state.copyWith(status: previous);
       return;
     }
 
-    await loadFile(result.files.first.path!);
+    await loadFile(path);
   }
 
   /// Loads and probes a video from the picker or the share sheet.
   Future<void> loadFile(String inputPath) async {
+    if (state.status == VideoConvertStatus.converting) return;
     _durationMs = 0;
     _sourceBitrate = null;
-    state = state.copyWith(
+    _discardOutput();
+    // Fresh state: copyWith can't clear fields, so the previous video's
+    // probe info / output path / error used to stick around.
+    state = VideoConverterState(
       status: VideoConvertStatus.probing,
       inputPath: inputPath,
+      outputFormat: state.outputFormat,
     );
 
     // Probe for info
@@ -206,15 +249,19 @@ class VideoConverterNotifier extends StateNotifier<VideoConverterState> {
       final session = await FFprobeKit.getMediaInformation(inputPath);
       if (!mounted) return;
       final info = session.getMediaInformation();
-      final format = info?.getFormat() ?? 'unknown';
-      final dur = info?.getDuration() ?? '?';
-      _durationMs = (double.tryParse(dur) ?? 0) * 1000;
+      final format = info?.getFormat();
+      final durSec = double.tryParse(info?.getDuration() ?? '');
+      _durationMs = (durSec ?? 0) * 1000;
       _sourceBitrate = int.tryParse(info?.getBitrate() ?? '');
+      // A newer file was loaded while this one was probing.
+      if (state.inputPath != inputPath) return;
       state = state.copyWith(
         status: VideoConvertStatus.idle,
-        probeInfo: 'Format: $format · Duration: ${_formatDuration(dur)}',
+        probeFormat: format,
+        probeDurationSec: durSec,
       );
     } catch (_) {
+      if (state.inputPath != inputPath) return;
       if (mounted) state = state.copyWith(status: VideoConvertStatus.idle);
     }
   }
@@ -241,7 +288,9 @@ class VideoConverterNotifier extends StateNotifier<VideoConverterState> {
 
   Future<void> convert() async {
     final inputPath = state.inputPath;
-    if (inputPath == null) return;
+    if (inputPath == null || state.status == VideoConvertStatus.converting) {
+      return; // no double-submit
+    }
     final fmt = state.outputFormat;
     _cancelRequested = false;
     state = state.copyWith(
@@ -253,7 +302,16 @@ class VideoConverterNotifier extends StateNotifier<VideoConverterState> {
     try {
       final outDir = await getTemporaryDirectory();
       final baseName = p.basenameWithoutExtension(inputPath);
-      outPath = p.join(outDir.path, '$baseName.${fmt.ext}');
+      // Never "<name>.<ext>" in the cache: a picked/shared input that is
+      // already there with the same extension IS that path, and _run()
+      // deletes the output path first, i.e. it deleted the input.
+      outPath = p.join(outDir.path, '${baseName}_converted.${fmt.ext}');
+      if (p.equals(outPath, inputPath)) {
+        outPath = p.join(
+          outDir.path,
+          '${baseName}_converted_${DateTime.now().millisecondsSinceEpoch}.${fmt.ext}',
+        );
+      }
 
       var session = await _run(
         inputPath,
@@ -270,20 +328,28 @@ class VideoConverterNotifier extends StateNotifier<VideoConverterState> {
           !ReturnCode.isSuccess(returnCode) &&
           !ReturnCode.isCancel(returnCode) &&
           fmt.videoEncoding == VideoEncoding.hardwareH264) {
-        if (!mounted) return;
+        if (!mounted) {
+          await _deleteQuietly(outPath);
+          return;
+        }
         state = state.copyWith(progress: 0);
         session = await _run(inputPath, outPath, fmt, useHardware: false);
         returnCode = await session.getReturnCode();
       }
 
-      if (!mounted) return;
+      if (!mounted) {
+        // Screen closed (dispose cancelled FFmpeg): drop the partial file.
+        await _deleteQuietly(outPath);
+        return;
+      }
 
       if (_cancelRequested || ReturnCode.isCancel(returnCode)) {
         await _deleteQuietly(outPath);
         if (!mounted) return;
         state = VideoConverterState(
           inputPath: state.inputPath,
-          probeInfo: state.probeInfo,
+          probeFormat: state.probeFormat,
+          probeDurationSec: state.probeDurationSec,
           outputFormat: state.outputFormat,
         );
       } else if (ReturnCode.isSuccess(returnCode)) {
@@ -293,6 +359,7 @@ class VideoConverterNotifier extends StateNotifier<VideoConverterState> {
           progress: 1.0,
         );
       } else {
+        await _deleteQuietly(outPath);
         final logs = await session.getAllLogsAsString() ?? '';
         if (!mounted) return;
         // The full FFmpeg log can be hundreds of KB; the tail holds the error.
@@ -301,8 +368,8 @@ class VideoConverterNotifier extends StateNotifier<VideoConverterState> {
             : logs;
         state = state.copyWith(
           status: VideoConvertStatus.error,
-          error:
-              'Conversion failed. This format may not be supported on your device.\n\n$tail',
+          errorKind: VideoErrorKind.unsupported,
+          error: tail.trim(),
         );
       }
     } catch (e) {
@@ -310,6 +377,7 @@ class VideoConverterNotifier extends StateNotifier<VideoConverterState> {
       if (!mounted) return;
       state = state.copyWith(
         status: VideoConvertStatus.error,
+        errorKind: VideoErrorKind.generic,
         error: e.toString(),
       );
     } finally {
@@ -383,11 +451,46 @@ class VideoConverterNotifier extends StateNotifier<VideoConverterState> {
   }
 
   Future<void> share() async {
-    if (state.outputPath == null) return;
-    await Share.shareXFiles([XFile(state.outputPath!)]);
+    final out = state.outputPath;
+    if (out == null) return;
+    await Share.shareXFiles([XFile(out)]);
   }
 
-  void reset() => state = const VideoConverterState();
+  /// Saves the output to Downloads and My Files (previously the result was
+  /// only shareable and never showed up in My Files). Returns true when
+  /// saved, null when it fell back to the share sheet, false on failure.
+  Future<bool?> saveToDownloads() async {
+    final out = state.outputPath;
+    if (out == null) return false;
+    try {
+      final fmt = state.outputFormat;
+      final outcome = await FileUtils.saveToDownloads(
+        sourcePath: out,
+        fileName: p.basenameWithoutExtension(out),
+        ext: fmt.ext,
+        mimeType: fmt.mimeType,
+        toolId: 'video_converter',
+      );
+      // sharedFallback: the share sheet was opened instead.
+      return outcome == SaveOutcome.downloaded ? true : null;
+    } catch (e) {
+      debugPrint('Saving converted file failed: $e');
+      return false;
+    }
+  }
+
+  /// Converted videos can be hundreds of MB: don't leave them in the cache
+  /// once they are replaced, cleared or the screen is closed.
+  void _discardOutput() {
+    final out = state.outputPath;
+    if (out != null) unawaited(_deleteQuietly(out));
+  }
+
+  void reset() {
+    if (state.status == VideoConvertStatus.converting) return;
+    _discardOutput();
+    state = const VideoConverterState();
+  }
 
   @override
   void dispose() {
@@ -395,14 +498,8 @@ class VideoConverterNotifier extends StateNotifier<VideoConverterState> {
     _cancelRequested = true;
     final id = _sessionId;
     if (id != null) unawaited(FFmpegKit.cancel(id));
+    _discardOutput();
     super.dispose();
-  }
-
-  String _formatDuration(String secStr) {
-    final secs = double.tryParse(secStr) ?? 0;
-    final m = (secs / 60).floor();
-    final s = (secs % 60).floor();
-    return '${m}m ${s}s';
   }
 }
 

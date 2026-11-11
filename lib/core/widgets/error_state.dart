@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 
 class ErrorState extends StatelessWidget {
   const ErrorState({
@@ -47,7 +48,7 @@ class ErrorState extends StatelessWidget {
               FilledButton.icon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Try again'),
+                label: Text(AppLocalizations.of(context).commonRetry),
               ),
             ],
           ],

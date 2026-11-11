@@ -2,51 +2,56 @@ import 'package:utility_toolbox/features/unit_converter/models/unit_category.dar
 
 final conversionCategories = <UnitCategory>[
   UnitCategory(
+    id: 'length',
     name: 'Length',
     units: [
-      ConversionUnit(name: 'Millimeter', symbol: 'mm', toBaseFactor: 0.001),
-      ConversionUnit(name: 'Centimeter', symbol: 'cm', toBaseFactor: 0.01),
-      ConversionUnit(name: 'Meter', symbol: 'm', toBaseFactor: 1),
-      ConversionUnit(name: 'Kilometer', symbol: 'km', toBaseFactor: 1000),
-      ConversionUnit(name: 'Inch', symbol: 'in', toBaseFactor: 0.0254),
-      ConversionUnit(name: 'Foot', symbol: 'ft', toBaseFactor: 0.3048),
-      ConversionUnit(name: 'Mile', symbol: 'mi', toBaseFactor: 1609.344),
+      ConversionUnit(id: 'millimeter', name: 'Millimeter', symbol: 'mm', toBaseFactor: 0.001),
+      ConversionUnit(id: 'centimeter', name: 'Centimeter', symbol: 'cm', toBaseFactor: 0.01),
+      ConversionUnit(id: 'meter', name: 'Meter', symbol: 'm', toBaseFactor: 1),
+      ConversionUnit(id: 'kilometer', name: 'Kilometer', symbol: 'km', toBaseFactor: 1000),
+      ConversionUnit(id: 'inch', name: 'Inch', symbol: 'in', toBaseFactor: 0.0254),
+      ConversionUnit(id: 'foot', name: 'Foot', symbol: 'ft', toBaseFactor: 0.3048),
+      ConversionUnit(id: 'mile', name: 'Mile', symbol: 'mi', toBaseFactor: 1609.344),
     ],
   ),
   UnitCategory(
+    id: 'weight',
     name: 'Weight',
     units: [
-      ConversionUnit(name: 'Gram', symbol: 'g', toBaseFactor: 1),
-      ConversionUnit(name: 'Kilogram', symbol: 'kg', toBaseFactor: 1000),
-      ConversionUnit(name: 'Ounce', symbol: 'oz', toBaseFactor: 28.3495),
-      ConversionUnit(name: 'Pound', symbol: 'lb', toBaseFactor: 453.592),
+      ConversionUnit(id: 'gram', name: 'Gram', symbol: 'g', toBaseFactor: 1),
+      ConversionUnit(id: 'kilogram', name: 'Kilogram', symbol: 'kg', toBaseFactor: 1000),
+      ConversionUnit(id: 'ounce', name: 'Ounce', symbol: 'oz', toBaseFactor: 28.349523125),
+      ConversionUnit(id: 'pound', name: 'Pound', symbol: 'lb', toBaseFactor: 453.59237),
     ],
   ),
   UnitCategory(
+    id: 'temperature',
     name: 'Temperature',
     isTemperature: true,
     units: [
-      ConversionUnit(name: 'Celsius', symbol: '°C', toBaseFactor: 0),
-      ConversionUnit(name: 'Fahrenheit', symbol: '°F', toBaseFactor: 0),
-      ConversionUnit(name: 'Kelvin', symbol: 'K', toBaseFactor: 0),
+      ConversionUnit(id: 'celsius', name: 'Celsius', symbol: '°C', toBaseFactor: 0),
+      ConversionUnit(id: 'fahrenheit', name: 'Fahrenheit', symbol: '°F', toBaseFactor: 0),
+      ConversionUnit(id: 'kelvin', name: 'Kelvin', symbol: 'K', toBaseFactor: 0),
     ],
   ),
   UnitCategory(
+    id: 'area',
     name: 'Area',
     units: [
-      ConversionUnit(name: 'Square meter', symbol: 'm²', toBaseFactor: 1),
-      ConversionUnit(name: 'Square foot', symbol: 'ft²', toBaseFactor: 0.092903),
-      ConversionUnit(name: 'Acre', symbol: 'ac', toBaseFactor: 4046.86),
-      ConversionUnit(name: 'Hectare', symbol: 'ha', toBaseFactor: 10000),
+      ConversionUnit(id: 'squareMeter', name: 'Square meter', symbol: 'm²', toBaseFactor: 1),
+      ConversionUnit(id: 'squareFoot', name: 'Square foot', symbol: 'ft²', toBaseFactor: 0.09290304),
+      ConversionUnit(id: 'acre', name: 'Acre', symbol: 'ac', toBaseFactor: 4046.8564224),
+      ConversionUnit(id: 'hectare', name: 'Hectare', symbol: 'ha', toBaseFactor: 10000),
     ],
   ),
   UnitCategory(
+    id: 'volume',
     name: 'Volume',
     units: [
-      ConversionUnit(name: 'Milliliter', symbol: 'mL', toBaseFactor: 1),
-      ConversionUnit(name: 'Liter', symbol: 'L', toBaseFactor: 1000),
-      ConversionUnit(name: 'Gallon (US)', symbol: 'gal', toBaseFactor: 3785.41),
-      ConversionUnit(name: 'Fluid ounce', symbol: 'fl oz', toBaseFactor: 29.5735),
+      ConversionUnit(id: 'milliliter', name: 'Milliliter', symbol: 'mL', toBaseFactor: 1),
+      ConversionUnit(id: 'liter', name: 'Liter', symbol: 'L', toBaseFactor: 1000),
+      ConversionUnit(id: 'gallonUs', name: 'Gallon (US)', symbol: 'gal', toBaseFactor: 3785.411784),
+      ConversionUnit(id: 'fluidOunce', name: 'Fluid ounce', symbol: 'fl oz', toBaseFactor: 29.5735295625),
     ],
   ),
 ];
@@ -80,8 +85,16 @@ double _convertTemperature(double value, String fromSymbol, String toSymbol) {
 
 String formatConvertedValue(double? value) {
   if (value == null || value.isNaN || value.isInfinite) return '';
-  if (value.abs() >= 1000000 || (value.abs() > 0 && value.abs() < 0.0001)) {
-    return value.toStringAsExponential(4);
+  final abs = value.abs();
+  if (abs >= 1e12 || (abs > 0 && abs < 1e-6)) {
+    // 1.5000e+12 → 1.5e+12
+    return value
+        .toStringAsExponential(4)
+        .replaceFirst(RegExp(r'\.?0+e'), 'e');
   }
-  return value.toStringAsFixed(4).replaceFirst(RegExp(r'\.?0+$'), '');
+  // More decimals for small values so e.g. 1 g → 0.002205 lb isn't cut to
+  // 0.0022; whole-number results like 1 km → 1000000 mm stay plain.
+  final s = value.toStringAsFixed(abs < 1 ? 6 : 4);
+  final trimmed = s.replaceFirst(RegExp(r'\.?0+$'), '');
+  return trimmed == '-0' ? '0' : trimmed;
 }

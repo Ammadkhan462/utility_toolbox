@@ -51,10 +51,12 @@ class FileUtils {
 
     if (Platform.isAndroid) {
       try {
-        final bytes = await File(sourcePath).readAsBytes();
+        // Native side stream-copies the file: no full read into Dart memory,
+        // so large videos and PDFs save without running out of memory.
+        final size = await File(sourcePath).length();
         final contentUri = await _downloadsChannel.invokeMethod<String>(
           'saveToDownloads',
-          {'fileName': fullFileName, 'bytes': bytes, 'mimeType': mimeType},
+          {'fileName': fullFileName, 'sourcePath': sourcePath, 'mimeType': mimeType},
         );
 
         if (contentUri == null) {
@@ -66,7 +68,7 @@ class FileUtils {
           location: contentUri,
           mimeType: mimeType,
           toolId: toolId,
-          sizeBytes: bytes.length,
+          sizeBytes: size,
         );
 
         // Notification is a "nice to have" — never let a failure here undo

@@ -63,6 +63,7 @@ Future<PdfJobResult> _imagesToPdfIsolate(List<String> imagePaths) async {
 Future<PdfJobResult> _mergePdfsIsolate(List<String> pdfPaths) async {
   final merged = sf.PdfDocument();
   var pageCount = 0;
+  sf.PdfSection? section;
 
   for (final path in pdfPaths) {
     final bytes = await File(path).readAsBytes();
@@ -70,7 +71,20 @@ Future<PdfJobResult> _mergePdfsIsolate(List<String> pdfPaths) async {
     pageCount += source.pages.count;
     for (var i = 0; i < source.pages.count; i++) {
       final template = source.pages[i].createTemplate();
-      merged.pages.add().graphics.drawPdfTemplate(template, const Offset(0, 0));
+      // New documents default to A4 with 40pt margins, which shifted and
+      // cropped every page that wasn't A4 portrait. Give each page size its
+      // own margin-free section. Orientation must be set before the size,
+      // otherwise Syncfusion swaps landscape sizes back to portrait.
+      if (section == null || section.pageSettings.size != template.size) {
+        section = merged.sections!.add();
+        section.pageSettings
+          ..orientation = template.size.width > template.size.height
+              ? sf.PdfPageOrientation.landscape
+              : sf.PdfPageOrientation.portrait
+          ..size = template.size
+          ..margins.all = 0;
+      }
+      section.pages.add().graphics.drawPdfTemplate(template, Offset.zero);
     }
     source.dispose();
   }

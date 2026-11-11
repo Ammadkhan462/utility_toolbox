@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/pdf_toolkit/services/pdf_extra_service.dart';
 import 'package:utility_toolbox/features/pdf_toolkit/widgets/pdf_tool_widgets.dart';
+import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 
 /// Lock PDF (add a password) and Unlock PDF (remove a password the user
 /// knows) share one screen; [lock] picks the mode.
@@ -24,7 +25,8 @@ class _PdfPasswordScreenState extends ConsumerState<PdfPasswordScreen> {
   bool _inspecting = false;
   bool _working = false;
   bool _obscure = true;
-  String? _error;
+  /// Built at render time so it follows the app language.
+  String Function(AppLocalizations l)? _error;
   File? _result;
   final _password = TextEditingController();
   final _confirm = TextEditingController();
@@ -45,8 +47,9 @@ class _PdfPasswordScreenState extends ConsumerState<PdfPasswordScreen> {
   }
 
   Future<void> _pick() async {
+    if (_working) return;
     final path = await pickPdfPath();
-    if (path != null) await _load(path);
+    if (path != null && mounted) await _load(path);
   }
 
   Future<void> _load(String path) async {
@@ -63,7 +66,7 @@ class _PdfPasswordScreenState extends ConsumerState<PdfPasswordScreen> {
       setState(() => _info = info);
     } catch (_) {
       if (!mounted) return;
-      setState(() => _error = 'This file doesn’t look like a valid PDF.');
+      setState(() => _error = (l) => l.pdfToolsInvalidPdf);
     } finally {
       if (mounted) setState(() => _inspecting = false);
     }
@@ -71,19 +74,19 @@ class _PdfPasswordScreenState extends ConsumerState<PdfPasswordScreen> {
 
   Future<void> _run() async {
     final path = _path;
-    if (path == null) return;
+    if (path == null || _working) return;
     final password = _password.text;
     if (password.isEmpty) {
-      setState(() => _error = 'Enter a password.');
+      setState(() => _error = (l) => l.pdfPasswordEnter);
       return;
     }
     if (widget.lock) {
       if (password.length < 4) {
-        setState(() => _error = 'Use at least 4 characters.');
+        setState(() => _error = (l) => l.pdfPasswordTooShort(4));
         return;
       }
       if (password != _confirm.text) {
-        setState(() => _error = 'The passwords don’t match.');
+        setState(() => _error = (l) => l.pdfPasswordMismatch);
         return;
       }
     }
@@ -100,10 +103,10 @@ class _PdfPasswordScreenState extends ConsumerState<PdfPasswordScreen> {
       setState(() => _result = file);
     } on PdfPasswordException {
       if (!mounted) return;
-      setState(() => _error = 'That password is not correct.');
+      setState(() => _error = (l) => l.pdfPasswordWrong);
     } catch (_) {
       if (!mounted) return;
-      setState(() => _error = widget.lock ? 'Couldn’t lock this PDF.' : 'Couldn’t unlock this PDF.');
+      setState(() => _error = widget.lock ? (l) => l.pdfPasswordLockFailed : (l) => l.pdfPasswordUnlockFailed);
     } finally {
       if (mounted) setState(() => _working = false);
     }
@@ -114,9 +117,10 @@ class _PdfPasswordScreenState extends ConsumerState<PdfPasswordScreen> {
     final info = _info;
     final lock = widget.lock;
     final ready = info != null && (lock ? !info.isEncrypted : info.isEncrypted);
+    final l = AppLocalizations.of(context);
 
     return ToolScaffold(
-      title: lock ? 'Lock PDF' : 'Unlock PDF',
+      title: lock ? l.toolProtectPdfTitle : l.toolUnlockPdfTitle,
       accentColor: _accent,
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -126,7 +130,7 @@ class _PdfPasswordScreenState extends ConsumerState<PdfPasswordScreen> {
               file: _result!,
               toolId: lock ? 'protect_pdf' : 'unlock_pdf',
               accent: _accent,
-              headline: lock ? 'Your PDF is locked' : 'Password removed',
+              headline: lock ? l.pdfPasswordLockedDone : l.pdfPasswordRemovedDone,
               onReset: () => setState(() {
                 _result = null;
                 _password.clear();
@@ -142,9 +146,9 @@ class _PdfPasswordScreenState extends ConsumerState<PdfPasswordScreen> {
               accent: _accent,
             ),
             if (info != null && lock && info.isEncrypted)
-              const InlineError(message: 'This PDF already has a password. Unlock it first.'),
+              InlineError(message: l.pdfPasswordAlreadyLocked),
             if (info != null && !lock && !info.isEncrypted)
-              const InlineError(message: 'This PDF has no password — nothing to unlock.'),
+              InlineError(message: l.pdfPasswordNotLocked),
             if (ready) ...[
               const SizedBox(height: 16),
               TextField(
@@ -152,9 +156,10 @@ class _PdfPasswordScreenState extends ConsumerState<PdfPasswordScreen> {
                 obscureText: _obscure,
                 autofillHints: const [AutofillHints.password],
                 decoration: InputDecoration(
-                  labelText: lock ? 'New password' : 'Current password',
+                  labelText: lock ? l.pdfPasswordNew : l.pdfPasswordCurrent,
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
+                    tooltip: _obscure ? l.pdfPasswordShow : l.pdfPasswordHide,
                     icon: Icon(_obscure ? Icons.visibility_rounded : Icons.visibility_off_rounded),
                     onPressed: () => setState(() => _obscure = !_obscure),
                   ),
@@ -165,14 +170,14 @@ class _PdfPasswordScreenState extends ConsumerState<PdfPasswordScreen> {
                 TextField(
                   controller: _confirm,
                   obscureText: _obscure,
-                  decoration: const InputDecoration(
-                    labelText: 'Repeat password',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l.pdfPasswordRepeat,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Keep this password safe — it can’t be recovered. Encrypted with AES-256.',
+                  l.pdfPasswordWarning,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
@@ -186,10 +191,10 @@ class _PdfPasswordScreenState extends ConsumerState<PdfPasswordScreen> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : Icon(lock ? Icons.lock_rounded : Icons.lock_open_rounded),
-                label: Text(lock ? 'Lock PDF' : 'Unlock PDF'),
+                label: Text(lock ? l.toolProtectPdfTitle : l.toolUnlockPdfTitle),
               ),
             ],
-            if (_error != null) InlineError(message: _error!),
+            if (_error != null) InlineError(message: _error!(l)),
           ],
         ],
       ),

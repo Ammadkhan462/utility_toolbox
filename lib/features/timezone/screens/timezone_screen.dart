@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:utility_toolbox/core/theme/app_colors.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
+import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 import '../providers/timezone_providers.dart';
 
 class TimezoneScreen extends ConsumerWidget {
@@ -14,11 +16,13 @@ class TimezoneScreen extends ConsumerWidget {
     ref.watch(clockTickProvider); // refresh every second
     final pinned    = ref.watch(pinnedCityDataProvider);
     final filtered  = ref.watch(filteredCitiesProvider);
-    final search    = ref.read(tzSearchProvider.notifier);
+    final search    = ref.watch(tzSearchProvider.notifier);
+    final query     = ref.watch(tzSearchProvider);
     final theme     = Theme.of(context);
+    final l         = AppLocalizations.of(context);
 
     return ToolScaffold(
-      title: 'World Clock',
+      title: l.toolTimezoneTitle,
       accentColor: _accent,
       body: Column(
         children: [
@@ -26,9 +30,9 @@ class TimezoneScreen extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
             child: TextField(
-              decoration: const InputDecoration(
-                hintText: 'Search city or country…',
-                prefixIcon: Icon(Icons.search_rounded),
+              decoration: InputDecoration(
+                hintText: l.clockSearchHint,
+                prefixIcon: const Icon(Icons.search_rounded),
               ),
               onChanged: (v) => search.state = v,
             ),
@@ -38,7 +42,7 @@ class TimezoneScreen extends ConsumerWidget {
             child: CustomScrollView(
               slivers: [
                 // ── Pinned clocks ─────────────────────────────────────────
-                if (pinned.isNotEmpty && ref.watch(tzSearchProvider).isEmpty) ...[
+                if (pinned.isNotEmpty && query.trim().isEmpty) ...[
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -46,22 +50,32 @@ class TimezoneScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
-                            'Pinned',
+                            l.clockPinned,
                             style: theme.textTheme.labelLarge?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),
                           ),
-                          const Spacer(),
-                          Icon(
-                            Icons.widgets_outlined,
-                            size: 14,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'On widget: ${_WidgetCapacityLabel.text(pinned.length)}',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Icon(
+                                  Icons.widgets_outlined,
+                                  size: 14,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    _WidgetCapacityLabel.text(l, pinned.length),
+                                    textAlign: TextAlign.end,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
@@ -73,9 +87,7 @@ class TimezoneScreen extends ConsumerWidget {
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                         child: Text(
-                          'Home-screen widget shows the first $kWidgetDefaultRows '
-                          'by default — drag its bottom edge taller to reveal '
-                          'up to $kWidgetMaxRows.',
+                          l.clockWidgetHint(kWidgetDefaultRows, kWidgetMaxRows),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                             fontStyle: FontStyle.italic,
@@ -93,7 +105,7 @@ class TimezoneScreen extends ConsumerWidget {
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                       child: Text(
-                        'All Cities',
+                        l.clockAllCities,
                         style: theme.textTheme.labelLarge?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -103,6 +115,19 @@ class TimezoneScreen extends ConsumerWidget {
                 ],
 
                 // ── All / filtered cities ────────────────────────────────
+                if (filtered.isEmpty)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Text(
+                        l.clockNoResults,
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ),
                 SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (_, i) => _CityRow(city: filtered[i], accent: _accent),
@@ -125,12 +150,12 @@ class TimezoneScreen extends ConsumerWidget {
 /// describing how many of them the home-screen widget will actually show,
 /// so this is visible in-app instead of being a surprise on the home screen.
 class _WidgetCapacityLabel {
-  static String text(int pinnedCount) {
+  static String text(AppLocalizations l, int pinnedCount) {
     if (pinnedCount <= kWidgetDefaultRows) {
-      return '$pinnedCount of $kWidgetDefaultRows';
+      return l.clockOnWidget(pinnedCount, kWidgetDefaultRows);
     }
     final shown = pinnedCount.clamp(0, kWidgetMaxRows);
-    return '$shown of up to $kWidgetMaxRows (resize to show more)';
+    return l.clockOnWidgetMore(shown, kWidgetMaxRows);
   }
 }
 
@@ -146,6 +171,7 @@ class _PinnedClock extends ConsumerWidget {
     final time  = city.currentTime;
     final theme = Theme.of(context);
     final actions = ref.read(timezoneActionsProvider);
+    final l = AppLocalizations.of(context);
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
@@ -176,7 +202,7 @@ class _PinnedClock extends ConsumerWidget {
                       ?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  '${city.country} · UTC${_offsetLabel(city.offsetHours)}',
+                  '${city.country} · ${_offsetLabel(city.currentOffsetHours)}',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -188,7 +214,7 @@ class _PinnedClock extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                _formatTime(time),
+                _formatTime(context, time),
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: accent,
@@ -196,7 +222,7 @@ class _PinnedClock extends ConsumerWidget {
                 ),
               ),
               Text(
-                _formatDate(time),
+                _formatDate(context, time),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -207,7 +233,7 @@ class _PinnedClock extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.push_pin_rounded, size: 18),
             color: accent,
-            tooltip: 'Unpin',
+            tooltip: l.clockUnpin,
             onPressed: () => actions.togglePinned(city.name),
           ),
         ],
@@ -229,13 +255,14 @@ class _CityRow extends ConsumerWidget {
     final theme   = Theme.of(context);
     final pinned  = ref.watch(pinnedCitiesProvider);
     final isPinned = pinned.contains(city.name);
+    final l        = AppLocalizations.of(context);
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: Text(city.flag, style: const TextStyle(fontSize: 22)),
       title: Text(city.name, style: theme.textTheme.bodyLarge),
       subtitle: Text(
-        '${city.country} · UTC${_offsetLabel(city.offsetHours)}',
+        '${city.country} · ${_offsetLabel(city.currentOffsetHours)}',
         style: theme.textTheme.bodySmall
             ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
       ),
@@ -247,14 +274,14 @@ class _CityRow extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                _formatTime(time),
+                _formatTime(context, time),
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: accent,
                 ),
               ),
               Text(
-                _formatDate(time),
+                _formatDate(context, time),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                   fontSize: 10,
@@ -268,6 +295,7 @@ class _CityRow extends ConsumerWidget {
               size: 18,
             ),
             color: isPinned ? accent : theme.colorScheme.onSurfaceVariant,
+            tooltip: isPinned ? l.clockUnpin : l.clockPin,
             onPressed: () =>
                 ref.read(timezoneActionsProvider).togglePinned(city.name),
           ),
@@ -279,24 +307,22 @@ class _CityRow extends ConsumerWidget {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-String _formatTime(DateTime dt) {
-  final h = dt.hour.toString().padLeft(2, '0');
-  final m = dt.minute.toString().padLeft(2, '0');
-  final s = dt.second.toString().padLeft(2, '0');
-  return '$h:$m:$s';
-}
+/// 24-hour HH:mm:ss in the app locale's digits.
+String _formatTime(BuildContext context, DateTime dt) =>
+    DateFormat('HH:mm:ss', Localizations.localeOf(context).toLanguageTag())
+        .format(dt);
 
-String _formatDate(DateTime dt) {
-  const months = ['Jan','Feb','Mar','Apr','May','Jun',
-                  'Jul','Aug','Sep','Oct','Nov','Dec'];
-  const days   = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  return '${days[dt.weekday - 1]}, ${dt.day} ${months[dt.month - 1]}';
-}
+/// "Wed, 11 Nov" in the app's language (dt's fields are the city's local
+/// wall-clock time, see [TzCity.currentTime]).
+String _formatDate(BuildContext context, DateTime dt) =>
+    DateFormat.MMMEd(Localizations.localeOf(context).toLanguageTag()).format(dt);
 
+/// "UTC+05:30", isolated as left-to-right so the sign stays in front of
+/// the digits inside Arabic/Urdu text.
 String _offsetLabel(double h) {
   final sign = h >= 0 ? '+' : '-';
   final abs  = h.abs();
   final hh   = abs.truncate().toString().padLeft(2, '0');
   final mm   = ((abs - abs.truncate()) * 60).round().toString().padLeft(2, '0');
-  return '$sign$hh:$mm';
+  return '\u2066UTC$sign$hh:$mm\u2069';
 }

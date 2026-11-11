@@ -37,7 +37,12 @@ class ClipboardNotifier extends StateNotifier<List<ClipItem>> {
 
   /// Read from system clipboard and save.
   Future<ClipItem?> addFromClipboard() async {
-    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    ClipboardData? data;
+    try {
+      data = await Clipboard.getData(Clipboard.kTextPlain);
+    } catch (_) {
+      return null; // treated like an empty clipboard by the caller
+    }
     final text = data?.text?.trim();
     if (text == null || text.isEmpty) return null;
     return add(text);
@@ -80,6 +85,9 @@ class ClipboardNotifier extends StateNotifier<List<ClipItem>> {
   }
 
   Future<void> delete(ClipItem item) async {
+    // Drop it from state synchronously: a swiped-away Dismissible must leave
+    // the tree in the same frame, before the Hive write completes.
+    state = state.where((c) => c.id != item.id).toList();
     await _box.delete(item.id);
     _load();
   }

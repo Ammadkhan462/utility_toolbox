@@ -6,6 +6,18 @@ import 'package:utility_toolbox/core/routing/seed_input.dart';
 import 'package:utility_toolbox/core/services/storage_service.dart';
 import 'package:utility_toolbox/core/tools/tool_input.dart';
 import 'package:utility_toolbox/core/utils/result.dart';
+import 'package:utility_toolbox/features/pdf_edit/sign_pdf_screen.dart';
+import 'package:utility_toolbox/features/pdf_edit/organize_pdf_screen.dart';
+import 'package:utility_toolbox/features/pdf_edit/watermark_pdf_screen.dart';
+import 'package:utility_toolbox/features/pdf_edit/pdf_to_text_screen.dart';
+import 'package:utility_toolbox/features/bg_remover/bg_remover_screen.dart';
+import 'package:utility_toolbox/features/currency_converter/currency_converter_screen.dart';
+import 'package:utility_toolbox/features/percentage_calculator/percentage_calculator_screen.dart';
+import 'package:utility_toolbox/features/bmi_calculator/bmi_calculator_screen.dart';
+import 'package:utility_toolbox/features/direct_chat/direct_chat_screen.dart';
+import 'package:utility_toolbox/features/flashlight/flashlight_screen.dart';
+import 'package:utility_toolbox/features/bubble_level/bubble_level_screen.dart';
+import 'package:utility_toolbox/features/stopwatch/stopwatch_screen.dart';
 import 'package:utility_toolbox/features/age_calculator/age_calculator_screen.dart';
 import 'package:utility_toolbox/features/ai_upscaler/providers/ai_upscaler_notifier.dart';
 import 'package:utility_toolbox/features/ai_upscaler/screens/ai_upscaler_screen.dart';
@@ -17,6 +29,7 @@ import 'package:utility_toolbox/features/hash_generator/screens/hash_generator_s
 import 'package:utility_toolbox/features/home/home_shell.dart';
 import 'package:utility_toolbox/features/image_compressor/providers/image_compressor_providers.dart';
 import 'package:utility_toolbox/features/image_compressor/screens/image_compressor_screen.dart';
+import 'package:utility_toolbox/features/image_enhancer/providers/image_enhancer_providers.dart';
 import 'package:utility_toolbox/features/image_enhancer/screens/image_enhancer_screen.dart';
 import 'package:utility_toolbox/features/image_resizer/image_resizer_screen.dart';
 import 'package:utility_toolbox/features/ip_ping/screens/ip_ping_screen.dart';
@@ -147,6 +160,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (_, s) =>
                 PdfPasswordScreen(lock: false, initialPath: ToolInput.of(s.extra)?.firstPath),
           ),
+          GoRoute(
+            path: 'sign',
+            builder: (_, s) => SignPdfScreen(initialPath: ToolInput.of(s.extra)?.firstPath),
+          ),
+          GoRoute(
+            path: 'organize',
+            builder: (_, s) => OrganizePdfScreen(initialPath: ToolInput.of(s.extra)?.firstPath),
+          ),
+          GoRoute(
+            path: 'watermark',
+            builder: (_, s) => WatermarkPdfScreen(initialPath: ToolInput.of(s.extra)?.firstPath),
+          ),
+          GoRoute(
+            path: 'to-text',
+            builder: (_, s) => PdfToTextScreen(initialPath: ToolInput.of(s.extra)?.firstPath),
+          ),
         ],
       ),
       _route(AppRoutes.wordToPdf, (i) => WordToPdfScreen.withInput(i?.firstPath)),
@@ -164,7 +193,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ),
       ),
       _route(AppRoutes.imageResizer, (i) => ImageResizerScreen(initialPaths: i?.paths ?? const [])),
-      _route(AppRoutes.imageEnhancer, (_) => const ImageEnhancerScreen()),
+      _route(
+        AppRoutes.imageEnhancer,
+        (i) => SeedInput(
+          input: i,
+          seed: (ref, input) {
+            final file = input.firstFile;
+            if (file == null) return;
+            ref.read(enhancerSettingsProvider.notifier).state = const EnhancementSettings();
+            ref.read(enhancerResultProvider.notifier).state = const Idle();
+            ref.read(sourceImageProvider.notifier).state = file;
+          },
+          child: const ImageEnhancerScreen(),
+        ),
+      ),
       _route(
         AppRoutes.aiUpscaler,
         (i) => SeedInput(
@@ -176,11 +218,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           child: const AiUpscalerScreen(),
         ),
       ),
+      _route(AppRoutes.bgRemover, (i) => BgRemoverScreen(initialPath: i?.firstPath)),
 
       // ── Text & translate ───────────────────────────────────────────────
       _route(AppRoutes.translation, (i) => TranslationScreen(initialText: i?.text)),
       _route(AppRoutes.textUtilities, (i) => TextUtilitiesScreen(initialText: i?.text)),
       _route(AppRoutes.smartClipboard, (_) => const SmartClipboardScreen()),
+      _route(AppRoutes.directChat, (i) => DirectChatScreen(initialText: i?.text)),
 
       // ── Calculate & convert ────────────────────────────────────────────
       _route(AppRoutes.calculator, (_) => const CalculatorScreen()),
@@ -189,6 +233,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       _route(AppRoutes.loanCalculator, (_) => const LoanCalculatorScreen()),
       _route(AppRoutes.timezone, (_) => const TimezoneScreen()),
       _route(AppRoutes.colorPicker, (_) => const ColorPickerScreen()),
+      _route(AppRoutes.currencyConverter, (_) => const CurrencyConverterScreen()),
+      _route(AppRoutes.percentageCalculator, (_) => const PercentageCalculatorScreen()),
+      _route(AppRoutes.bmiCalculator, (_) => const BmiCalculatorScreen()),
 
       // ── Internet ───────────────────────────────────────────────────────
       _route(AppRoutes.wifiSpeedTest, (_) => const WifiSpeedTestScreen()),
@@ -197,6 +244,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // ── Device & location ──────────────────────────────────────────────
       _route(AppRoutes.compass, (_) => const CompassScreen()),
       _route(AppRoutes.locationSaver, (_) => const LocationSaverScreen()),
+      _route(AppRoutes.flashlight, (_) => const FlashlightScreen()),
+      _route(AppRoutes.bubbleLevel, (_) => const BubbleLevelScreen()),
+      _route(AppRoutes.stopwatchTimer, (_) => const StopwatchScreen()),
 
       // ── Security ───────────────────────────────────────────────────────
       _route(AppRoutes.passwordGenerator, (_) => const PasswordGeneratorScreen()),

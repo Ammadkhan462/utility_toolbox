@@ -4,6 +4,9 @@
 ///   expr    := term (('+' | '-') term)*
 ///   term    := factor (('×' | '*' | '÷' | '/') factor)*
 ///   factor  := unary '%'*            (postfix percent = ÷100)
+///
+/// Like phone calculators, a bare percentage added to or subtracted from a
+/// value is a percentage *of* that value: 200+10% = 220, 200−10% = 180.
 ///   unary   := '-' unary | primary
 ///   primary := number | '(' expr ')'
 ///
@@ -41,7 +44,11 @@ class CalcEngine {
       return value.toStringAsExponential(6).replaceFirst(RegExp(r'\.?0+e'), 'e');
     }
     if (value == value.roundToDouble()) return value.toInt().toString();
-    var s = value.toStringAsFixed(10);
+    // A double carries ~15 significant digits; showing more decimals than
+    // that prints binary noise (123456789.123 → 123456789.1230000019).
+    final intDigits = abs < 1 ? 1 : abs.truncate().toString().length;
+    var s = value.toStringAsFixed((15 - intDigits).clamp(0, 10));
+    if (!s.contains('.')) return s;
     s = s.replaceFirst(RegExp(r'0+$'), '');
     return s.endsWith('.') ? s.substring(0, s.length - 1) : s;
   }
@@ -57,7 +64,18 @@ class CalcEngine {
         while (i < s.length && RegExp(r'[0-9.]').hasMatch(s[i])) {
           i++;
         }
-        final number = s.substring(start, i);
+        // Exponent, e.g. a previous large/small result "1.5e+20".
+        if (i < s.length && s[i] == 'e') {
+          var j = i + 1;
+          if (j < s.length && '+-−'.contains(s[j])) j++;
+          if (j < s.length && RegExp(r'[0-9]').hasMatch(s[j])) {
+            i = j;
+            while (i < s.length && RegExp(r'[0-9]').hasMatch(s[i])) {
+              i++;
+            }
+          }
+        }
+        final number = s.substring(start, i).replaceAll('−', '-');
         if ('.'.allMatches(number).length > 1) {
           throw const FormatException('Bad number');
         }
@@ -89,19 +107,26 @@ class _Parser {
   bool get atEnd => pos >= tokens.length;
   String? get peek => atEnd ? null : tokens[pos];
 
+  /// True when the factor just parsed ended with a postfix '%'.
+  bool _lastFactorPercent = false;
+
   double parseExpr() {
-    var value = parseTerm();
+    var (value, _) = parseTerm();
     while (peek == '+' || peek == '-') {
       final op = tokens[pos++];
-      final rhs = parseTerm();
+      var (rhs, percentOnly) = parseTerm();
+      if (percentOnly) rhs = value * rhs; // 200+10% → 200 + 20
       value = op == '+' ? value + rhs : value - rhs;
     }
     return value;
   }
 
-  double parseTerm() {
+  /// Returns the term's value and whether it was a lone percentage ("10%").
+  (double, bool) parseTerm() {
     var value = parseFactor();
+    var percentOnly = _lastFactorPercent;
     while (peek == '×' || peek == '*' || peek == '÷' || peek == '/') {
+      percentOnly = false;
       final op = tokens[pos++];
       final rhs = parseFactor();
       if (op == '÷' || op == '/') {
@@ -111,15 +136,18 @@ class _Parser {
         value *= rhs;
       }
     }
-    return value;
+    return (value, percentOnly);
   }
 
   double parseFactor() {
     var value = parseUnary();
+    var percent = false;
     while (peek == '%') {
       pos++;
       value /= 100;
+      percent = true;
     }
+    _lastFactorPercent = percent;
     return value;
   }
 

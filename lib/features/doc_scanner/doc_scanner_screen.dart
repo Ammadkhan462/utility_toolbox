@@ -12,6 +12,7 @@ import 'package:utility_toolbox/core/tools/tool_providers.dart';
 import 'package:utility_toolbox/core/tools/tool_registry.dart';
 import 'package:utility_toolbox/core/utils/file_utils.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
+import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 
 /// Document Scanner: Google's ML Kit scanner UI (auto edge detection,
 /// perspective fix, filters, multi-page, import from gallery) → a clean PDF
@@ -29,10 +30,16 @@ class _DocScannerScreenState extends ConsumerState<DocScannerScreen> {
 
   DocumentScanner? _scanner;
   bool _scanning = false;
-  String? _error;
+  bool _saving = false;
+  /// Built at render time so it follows the app language.
+  String Function(AppLocalizations l)? _error;
   File? _pdf;
   int _pageCount = 0;
   List<String> _pages = const [];
+
+  /// One name per scan, so the PDF and its JPG pages match and the names
+  /// don't shift between saves.
+  String _baseName = '';
 
   @override
   void initState() {
@@ -49,7 +56,7 @@ class _DocScannerScreenState extends ConsumerState<DocScannerScreen> {
 
   Future<void> _scan() async {
     if (!Platform.isAndroid) {
-      setState(() => _error = 'The document scanner is available on Android.');
+      setState(() => _error = (l) => l.docScanAndroidOnly);
       return;
     }
     setState(() {
@@ -71,6 +78,7 @@ class _DocScannerScreenState extends ConsumerState<DocScannerScreen> {
       if (!mounted) return;
       final pdfPath = result.pdf?.uri;
       setState(() {
+        _baseName = 'scan_${DateTime.now().millisecondsSinceEpoch}';
         _pdf = pdfPath == null ? null : File(_toPath(pdfPath));
         _pageCount = result.pdf?.pageCount ?? result.images?.length ?? 0;
         _pages = [for (final i in result.images ?? const <String>[]) _toPath(i)];
@@ -80,15 +88,13 @@ class _DocScannerScreenState extends ConsumerState<DocScannerScreen> {
       // Cancelling the scanner UI is not an error.
       final cancelled = '${e.code} ${e.message}'.toLowerCase().contains('cancel');
       if (!cancelled) {
-        setState(
-          () => _error =
-              'The scanner couldn’t start. It needs Google Play services — '
-              'make sure they are up to date. (${e.message ?? e.code})',
-        );
+        final details = e.message ?? e.code;
+        setState(() => _error = (l) => l.docScanNeedsPlayServices(details));
       }
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = 'The scanner couldn’t start: $e');
+      debugPrint('Document scanner failed: $e');
+      setState(() => _error = (l) => l.docScanStartFailed);
     } finally {
       if (mounted) setState(() => _scanning = false);
     }
@@ -97,43 +103,61 @@ class _DocScannerScreenState extends ConsumerState<DocScannerScreen> {
   String _toPath(String uriOrPath) =>
       uriOrPath.startsWith('file://') ? Uri.parse(uriOrPath).toFilePath() : uriOrPath;
 
-  String get _baseName => 'scan_${DateTime.now().millisecondsSinceEpoch}';
-
   Future<void> _savePdf() async {
     final pdf = _pdf;
-    if (pdf == null) return;
+    if (pdf == null || _saving) return;
     final messenger = ScaffoldMessenger.of(context);
-    final outcome = await FileUtils.saveToDownloads(
-      sourcePath: pdf.path,
-      fileName: _baseName,
-      ext: 'pdf',
-      toolId: 'doc_scanner',
-    );
+    final l = AppLocalizations.of(context);
+    // Read before the await: ref can't be used once the screen is gone.
+    final ads = ref.read(adsServiceProvider);
+    setState(() => _saving = true);
+    final SaveOutcome outcome;
+    try {
+      outcome = await FileUtils.saveToDownloads(
+        sourcePath: pdf.path,
+        fileName: _baseName,
+        ext: 'pdf',
+        toolId: 'doc_scanner',
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
     messenger.showSnackBar(
       SnackBar(
         content: Text(
           outcome == SaveOutcome.downloaded
-              ? 'PDF saved to Downloads — find it in My Files'
-              : 'Opened the share sheet instead',
+              ? l.docScanPdfSaved
+              : l.pdfToolsSharedInstead,
         ),
       ),
     );
-    await ref.read(adsServiceProvider).showInterstitialIfAllowed();
+    await ads.showInterstitialIfAllowed();
   }
 
   Future<void> _saveImages() async {
+    if (_saving) return;
     final messenger = ScaffoldMessenger.of(context);
+    final l = AppLocalizations.of(context);
+    // Snapshot: a new scan replaces _pages and _baseName.
+    final pages = _pages;
+    final baseName = _baseName;
+    setState(() => _saving = true);
     var saved = 0;
-    for (final (i, page) in _pages.indexed) {
-      final ok = await FileUtils.saveImageToGallery(
-        bytes: await File(page).readAsBytes(),
-        fileName: '${_baseName}_${i + 1}.jpg',
-        toolId: 'doc_scanner',
-      );
-      if (ok) saved++;
+    for (final (i, page) in pages.indexed) {
+      try {
+        final ok = await FileUtils.saveImageToGallery(
+          bytes: await File(page).readAsBytes(),
+          fileName: '${baseName}_${i + 1}.jpg',
+          toolId: 'doc_scanner',
+        );
+        if (ok) saved++;
+      } catch (e) {
+        debugPrint('Saving scanned page failed: $e');
+      }
     }
+    if (mounted) setState(() => _saving = false);
     messenger.showSnackBar(
-      SnackBar(content: Text('Saved $saved page${saved == 1 ? '' : 's'} to your gallery')),
+      SnackBar(content: Text(l.docScanPagesSaved(saved))),
     );
   }
 
@@ -150,10 +174,11 @@ class _DocScannerScreenState extends ConsumerState<DocScannerScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context);
     final hasResult = _pdf != null || _pages.isNotEmpty;
 
     return ToolScaffold(
-      title: 'Document Scanner',
+      title: l.toolDocScannerTitle,
       accentColor: _accent,
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -167,13 +192,13 @@ class _DocScannerScreenState extends ConsumerState<DocScannerScreen> {
                     const Icon(Icons.document_scanner_rounded, size: 56, color: _accent),
                     const SizedBox(height: 12),
                     Text(
-                      'Scan paper into a clean PDF',
+                      l.docScanHeadline,
+                      textAlign: TextAlign.center,
                       style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Edges are found automatically. Add as many pages as you like, '
-                      'crop, rotate and apply filters before saving.',
+                      l.docScanIntro,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
@@ -184,7 +209,7 @@ class _DocScannerScreenState extends ConsumerState<DocScannerScreen> {
                       style: FilledButton.styleFrom(backgroundColor: _accent),
                       onPressed: _scanning ? null : _scan,
                       icon: const Icon(Icons.camera_alt_rounded),
-                      label: Text(_scanning ? 'Scanning…' : 'Start scanning'),
+                      label: Text(_scanning ? l.docScanScanning : l.docScanStart),
                     ),
                   ],
                 ),
@@ -192,19 +217,19 @@ class _DocScannerScreenState extends ConsumerState<DocScannerScreen> {
             ),
           if (_error != null) ...[
             const SizedBox(height: 12),
-            Text(_error!, style: TextStyle(color: theme.colorScheme.error)),
+            Text(_error!(l), style: TextStyle(color: theme.colorScheme.error)),
           ],
           if (hasResult) ...[
             Card(
               child: ListTile(
                 leading: const Icon(Icons.picture_as_pdf_rounded, color: _accent, size: 36),
                 title: Text(
-                  _pdf == null ? 'Scanned pages' : p.basename(_pdf!.path),
+                  _pdf == null ? l.docScanScannedPages : p.basename(_pdf!.path),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
-                subtitle: Text('$_pageCount page${_pageCount == 1 ? '' : 's'}'),
+                subtitle: Text(l.docScanPageCount(_pageCount)),
               ),
             ),
             if (_pages.isNotEmpty) ...[
@@ -217,7 +242,12 @@ class _DocScannerScreenState extends ConsumerState<DocScannerScreen> {
                   separatorBuilder: (_, __) => const SizedBox(width: 8),
                   itemBuilder: (_, i) => ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: Image.file(File(_pages[i]), height: 150, cacheHeight: 300),
+                    child: Image.file(
+                      File(_pages[i]),
+                      height: 150,
+                      cacheHeight: 300,
+                      semanticLabel: l.pdfToolsPageN(i + 1),
+                    ),
                   ),
                 ),
               ),
@@ -226,15 +256,15 @@ class _DocScannerScreenState extends ConsumerState<DocScannerScreen> {
             if (_pdf != null) ...[
               FilledButton.icon(
                 style: FilledButton.styleFrom(backgroundColor: _accent),
-                onPressed: _savePdf,
+                onPressed: _saving ? null : _savePdf,
                 icon: const Icon(Icons.download_rounded),
-                label: const Text('Save PDF'),
+                label: Text(l.docScanSavePdf),
               ),
               const SizedBox(height: 8),
               OutlinedButton.icon(
                 onPressed: () => Share.shareXFiles([XFile(_pdf!.path)]),
                 icon: const Icon(Icons.share_rounded),
-                label: const Text('Share PDF'),
+                label: Text(l.docScanSharePdf),
               ),
               const SizedBox(height: 8),
             ],
@@ -244,24 +274,24 @@ class _DocScannerScreenState extends ConsumerState<DocScannerScreen> {
                   child: OutlinedButton.icon(
                     onPressed: _pages.isEmpty ? null : _extractText,
                     icon: const Icon(Icons.text_snippet_rounded),
-                    label: const Text('Copy text'),
+                    label: Text(l.docScanCopyText, maxLines: 1, overflow: TextOverflow.ellipsis),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: _pages.isEmpty ? null : _saveImages,
+                    onPressed: _pages.isEmpty || _saving ? null : _saveImages,
                     icon: const Icon(Icons.image_rounded),
-                    label: const Text('Save as JPG'),
+                    label: Text(l.docScanSaveJpg, maxLines: 1, overflow: TextOverflow.ellipsis),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 8),
             TextButton.icon(
-              onPressed: _scanning ? null : _scan,
+              onPressed: _scanning || _saving ? null : _scan,
               icon: const Icon(Icons.add_a_photo_rounded),
-              label: const Text('Scan another document'),
+              label: Text(l.docScanAnother),
             ),
           ],
         ],

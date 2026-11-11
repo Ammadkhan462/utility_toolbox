@@ -7,6 +7,7 @@ import 'package:utility_toolbox/core/widgets/premium_button.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/smart_clipboard/models/clip_item.dart';
 import 'package:utility_toolbox/features/smart_clipboard/providers/clipboard_providers.dart';
+import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 
 const _accent = Color(0xFF7C3AED); // Purple — uniquely identifies this tool
 const _accentGlow = Color(0xFFA78BFA);
@@ -20,7 +21,11 @@ class SmartClipboardScreen extends ConsumerStatefulWidget {
 }
 
 class _SmartClipboardScreenState extends ConsumerState<SmartClipboardScreen> {
-  final _searchCtrl = TextEditingController();
+  // The search provider outlives this screen, so start the box with the
+  // query that's still filtering the list (instead of an empty box that
+  // hides why clips are missing).
+  late final _searchCtrl =
+      TextEditingController(text: ref.read(clipSearchProvider));
 
   @override
   void dispose() {
@@ -32,14 +37,15 @@ class _SmartClipboardScreenState extends ConsumerState<SmartClipboardScreen> {
     final notifier = ref.read(clipboardNotifierProvider.notifier);
     final item = await notifier.addFromClipboard();
     if (!mounted) return;
+    final l = AppLocalizations.of(context);
     if (item == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Clipboard is empty or contains no text')),
+        SnackBar(content: Text(l.clipEmptyClipboard)),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Saved: ${_truncate(item.content, 40)}'),
+          content: Text(l.clipSaved(_truncate(item.content, 40))),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -47,6 +53,7 @@ class _SmartClipboardScreenState extends ConsumerState<SmartClipboardScreen> {
   }
 
   void _showAddManual() {
+    final l = AppLocalizations.of(context);
     final ctrl = TextEditingController();
     showModalBottomSheet(
       context: context,
@@ -67,7 +74,7 @@ class _SmartClipboardScreenState extends ConsumerState<SmartClipboardScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Add text manually',
+              l.clipAddManualTitle,
               style: Theme.of(
                 ctx,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
@@ -78,9 +85,9 @@ class _SmartClipboardScreenState extends ConsumerState<SmartClipboardScreen> {
               autofocus: true,
               maxLines: 5,
               minLines: 2,
-              decoration: const InputDecoration(
-                hintText: 'Type or paste text here…',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                hintText: l.clipAddHint,
+                border: const OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 14),
@@ -94,7 +101,7 @@ class _SmartClipboardScreenState extends ConsumerState<SmartClipboardScreen> {
                 Navigator.pop(ctx);
               },
               style: FilledButton.styleFrom(backgroundColor: _accent),
-              child: const Text('Save'),
+              child: Text(l.commonSave),
             ),
           ],
         ),
@@ -109,27 +116,26 @@ class _SmartClipboardScreenState extends ConsumerState<SmartClipboardScreen> {
     final all = ref.watch(clipboardNotifierProvider);
     final theme = Theme.of(context);
     final notifier = ref.read(clipboardNotifierProvider.notifier);
+    final l = AppLocalizations.of(context);
 
     return ToolScaffold(
-      title: 'Smart Clipboard',
+      title: l.toolSmartClipboardTitle,
       accentColor: _accent,
       actions: [
         IconButton(
           icon: const Icon(Icons.delete_sweep_rounded),
-          tooltip: 'Clear unpinned',
+          tooltip: l.clipClearUnpinned,
           onPressed: all.isEmpty
               ? null
               : () => showDialog(
                   context: context,
                   builder: (_) => AlertDialog(
-                    title: const Text('Clear history'),
-                    content: const Text(
-                      'Remove all unpinned items? Pinned items are kept.',
-                    ),
+                    title: Text(l.clipClearHistoryTitle),
+                    content: Text(l.clipClearHistoryBody),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context),
-                        child: const Text('Cancel'),
+                        child: Text(l.commonCancel),
                       ),
                       FilledButton(
                         onPressed: () {
@@ -139,7 +145,7 @@ class _SmartClipboardScreenState extends ConsumerState<SmartClipboardScreen> {
                         style: FilledButton.styleFrom(
                           backgroundColor: Colors.red,
                         ),
-                        child: const Text('Clear'),
+                        child: Text(l.commonClear),
                       ),
                     ],
                   ),
@@ -157,12 +163,13 @@ class _SmartClipboardScreenState extends ConsumerState<SmartClipboardScreen> {
                   child: TextField(
                     controller: _searchCtrl,
                     decoration: InputDecoration(
-                      hintText: 'Search clips…',
+                      hintText: l.clipSearchHint,
                       prefixIcon: const Icon(Icons.search_rounded, size: 20),
                       isDense: true,
                       suffixIcon: _searchCtrl.text.isNotEmpty
                           ? IconButton(
                               icon: const Icon(Icons.clear_rounded, size: 18),
+                              tooltip: l.commonClear,
                               onPressed: () {
                                 _searchCtrl.clear();
                                 ref.read(clipSearchProvider.notifier).state =
@@ -184,7 +191,7 @@ class _SmartClipboardScreenState extends ConsumerState<SmartClipboardScreen> {
                 FilledButton.icon(
                   onPressed: _pasteFromClipboard,
                   icon: const Icon(Icons.content_paste_rounded, size: 18),
-                  label: const Text('Paste'),
+                  label: Text(l.commonPaste),
                   style: FilledButton.styleFrom(
                     backgroundColor: _accent,
                     padding: const EdgeInsets.symmetric(
@@ -209,9 +216,9 @@ class _SmartClipboardScreenState extends ConsumerState<SmartClipboardScreen> {
               children: ClipFilter.values.map((f) {
                 final selected = f == filter;
                 return Padding(
-                  padding: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsetsDirectional.only(end: 8),
                   child: FilterChip(
-                    label: Text(_filterLabel(f)),
+                    label: Text(_filterLabel(l, f)),
                     selected: selected,
                     visualDensity: VisualDensity.compact,
                     selectedColor: _accent.withValues(alpha: 0.15),
@@ -240,17 +247,21 @@ class _SmartClipboardScreenState extends ConsumerState<SmartClipboardScreen> {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
             child: Row(
               children: [
-                Text(
-                  '${all.length} saved · ${all.where((c) => c.pinned).length} pinned',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                Expanded(
+                  child: Text(
+                    '${l.clipSavedCount(all.length)} · '
+                    '${l.clipPinnedCount(all.where((c) => c.pinned).length)}',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
-                const Spacer(),
                 TextButton.icon(
                   onPressed: _showAddManual,
                   icon: const Icon(Icons.add_rounded, size: 16),
-                  label: const Text('Add text'),
+                  label: Text(l.clipAddText),
                   style: TextButton.styleFrom(
                     foregroundColor: _accent,
                     padding: const EdgeInsets.symmetric(
@@ -295,13 +306,14 @@ class _ClipCard extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
     final type = item.clipType;
     final typeColor = _typeColor(type);
+    final l = AppLocalizations.of(context);
 
     return Dismissible(
       key: ValueKey(item.id),
       direction: DismissDirection.endToStart,
       background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
+        alignment: AlignmentDirectional.centerEnd,
+        padding: const EdgeInsetsDirectional.only(end: 20),
         decoration: BoxDecoration(
           color: Colors.red.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(18),
@@ -326,7 +338,7 @@ class _ClipCard extends ConsumerWidget {
           children: [
             // ── Header ──────────────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.fromLTRB(14, 10, 6, 0),
+              padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 6, 0),
               child: Row(
                 children: [
                   // Type badge
@@ -345,7 +357,7 @@ class _ClipCard extends ConsumerWidget {
                         Icon(_typeIcon(type), size: 12, color: typeColor),
                         const SizedBox(width: 4),
                         Text(
-                          _typeLabel(type),
+                          _typeLabel(l, type),
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: typeColor,
                             fontWeight: FontWeight.w700,
@@ -368,7 +380,7 @@ class _ClipCard extends ConsumerWidget {
                     ),
                   const Spacer(),
                   Text(
-                    _relativeTime(item.savedAt),
+                    _relativeTime(l, item.savedAt),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                       fontSize: 11,
@@ -376,20 +388,26 @@ class _ClipCard extends ConsumerWidget {
                   ),
                   const SizedBox(width: 4),
                   // Pin toggle
-                  GestureDetector(
-                    onTap: () => notifier.togglePin(item),
-                    child: Padding(
-                      padding: const EdgeInsets.all(6),
-                      child: Icon(
-                        item.pinned
-                            ? Icons.push_pin_rounded
-                            : Icons.push_pin_outlined,
-                        size: 18,
-                        color: item.pinned
-                            ? _accent
-                            : theme.colorScheme.onSurfaceVariant.withValues(
-                                alpha: 0.5,
-                              ),
+                  Tooltip(
+                    message: item.pinned ? l.clipUnpin : l.clipPin,
+                    child: Semantics(
+                      button: true,
+                      child: GestureDetector(
+                        onTap: () => notifier.togglePin(item),
+                        child: Padding(
+                          padding: const EdgeInsets.all(6),
+                          child: Icon(
+                            item.pinned
+                                ? Icons.push_pin_rounded
+                                : Icons.push_pin_outlined,
+                            size: 18,
+                            color: item.pinned
+                                ? _accent
+                                : theme.colorScheme.onSurfaceVariant.withValues(
+                                    alpha: 0.5,
+                                  ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -399,7 +417,7 @@ class _ClipCard extends ConsumerWidget {
 
             // ── Content ──────────────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.fromLTRB(14, 6, 14, 10),
+              padding: const EdgeInsetsDirectional.fromSTEB(14, 6, 14, 10),
               child: Text(
                 item.content,
                 maxLines: 3,
@@ -425,41 +443,51 @@ class _ClipCard extends ConsumerWidget {
                 children: [
                   _ActionBtn(
                     icon: Icons.copy_rounded,
-                    label: 'Copy',
+                    label: l.commonCopy,
                     onTap: () async {
                       await notifier.copyToClipboard(item);
                       if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Copied to clipboard'),
-                            duration: Duration(seconds: 1),
-                          ),
-                        );
+                        ScaffoldMessenger.of(context)
+                          ..hideCurrentSnackBar()
+                          ..showSnackBar(
+                            SnackBar(
+                              content: Text(l.commonCopied),
+                              duration: const Duration(seconds: 1),
+                            ),
+                          );
                       }
                     },
                   ),
                   _ActionBtn(
                     icon: Icons.share_rounded,
-                    label: 'Share',
+                    label: l.commonShare,
                     onTap: () => Share.share(item.content),
                   ),
                   if (type == ClipType.url)
                     _ActionBtn(
                       icon: Icons.open_in_browser_rounded,
-                      label: 'Open',
-                      onTap: () => launchUrl(
-                        Uri.parse(item.content),
-                        mode: LaunchMode.externalApplication,
-                      ),
+                      label: l.commonOpen,
+                      onTap: () async {
+                        final uri = Uri.tryParse(item.content.trim());
+                        if (uri == null) return;
+                        try {
+                          await launchUrl(
+                            uri,
+                            mode: LaunchMode.externalApplication,
+                          );
+                        } catch (_) {
+                          // No app can open it — nothing to do.
+                        }
+                      },
                     ),
                   _ActionBtn(
                     icon: Icons.label_outline_rounded,
-                    label: 'Label',
+                    label: l.clipLabel,
                     onTap: () => _showLabelDialog(context, item, notifier),
                   ),
                   _ActionBtn(
                     icon: Icons.delete_outline_rounded,
-                    label: 'Delete',
+                    label: l.commonDelete,
                     color: Colors.red,
                     onTap: () => notifier.delete(item),
                   ),
@@ -478,26 +506,27 @@ class _ClipCard extends ConsumerWidget {
     ClipboardNotifier notifier,
   ) {
     final ctrl = TextEditingController(text: item.label);
+    final l = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Add label'),
+        title: Text(l.clipAddLabelTitle),
         content: TextField(
           controller: ctrl,
           autofocus: true,
-          decoration: const InputDecoration(hintText: 'e.g. Work email'),
+          decoration: InputDecoration(hintText: l.clipLabelHint),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l.commonCancel),
           ),
           FilledButton(
             onPressed: () {
               notifier.updateLabel(item, ctrl.text.trim());
               Navigator.pop(context);
             },
-            child: const Text('Save'),
+            child: Text(l.commonSave),
           ),
         ],
       ),
@@ -534,11 +563,16 @@ class _ActionBtn extends StatelessWidget {
             children: [
               Icon(icon, size: 18, color: iconColor),
               const SizedBox(height: 3),
-              Text(
-                label,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: iconColor,
-                  fontSize: 9,
+              // Scales down instead of overflowing for long translations.
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: iconColor,
+                    fontSize: 9,
+                  ),
                 ),
               ),
             ],
@@ -558,16 +592,16 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return EmptyState(
       icon: Icons.content_paste_rounded,
       gradient: const LinearGradient(colors: [_accent, _accentGlow]),
-      title: 'No clips yet',
-      message:
-          'Copy any text on your phone, then tap Paste to save it here permanently.',
+      title: l.clipEmptyTitle,
+      message: l.clipEmptyMessage,
       action: PremiumButton(
         onPressed: onPaste,
         icon: Icons.content_paste_rounded,
-        label: 'Paste from clipboard',
+        label: l.clipPasteFromClipboard,
         gradient: const LinearGradient(colors: [_accent, _accentGlow]),
         expanded: false,
       ),
@@ -593,29 +627,31 @@ IconData _typeIcon(ClipType t) => switch (t) {
   ClipType.text => Icons.text_fields_rounded,
 };
 
-String _typeLabel(ClipType t) => switch (t) {
-  ClipType.url => 'URL',
-  ClipType.email => 'Email',
-  ClipType.phone => 'Phone',
-  ClipType.code => 'Code',
-  ClipType.text => 'Text',
+String _typeLabel(AppLocalizations l, ClipType t) => switch (t) {
+  ClipType.url => l.clipTypeLink,
+  ClipType.email => l.clipTypeEmail,
+  ClipType.phone => l.clipTypePhone,
+  ClipType.code => l.clipTypeCode,
+  ClipType.text => l.clipTypeText,
 };
 
-String _filterLabel(ClipFilter f) => switch (f) {
-  ClipFilter.all => 'All',
-  ClipFilter.pinned => '📌 Pinned',
-  ClipFilter.urls => '🔗 URLs',
-  ClipFilter.text => '📝 Text',
-  ClipFilter.code => '💻 Code',
+String _filterLabel(AppLocalizations l, ClipFilter f) => switch (f) {
+  ClipFilter.all => l.clipFilterAll,
+  ClipFilter.pinned => '📌 ${l.clipFilterPinned}',
+  ClipFilter.urls => '🔗 ${l.clipFilterLinks}',
+  ClipFilter.text => '📝 ${l.clipFilterText}',
+  ClipFilter.code => '💻 ${l.clipFilterCode}',
 };
 
-String _truncate(String s, int max) =>
-    s.length <= max ? s : '${s.substring(0, max)}…';
+// Truncates by grapheme so an emoji is never split into broken halves.
+String _truncate(String s, int max) => s.characters.length <= max
+    ? s
+    : '${s.characters.take(max)}…';
 
-String _relativeTime(DateTime dt) {
+String _relativeTime(AppLocalizations l, DateTime dt) {
   final diff = DateTime.now().difference(dt);
-  if (diff.inSeconds < 60) return 'just now';
-  if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-  if (diff.inHours < 24) return '${diff.inHours}h ago';
-  return '${diff.inDays}d ago';
+  if (diff.inSeconds < 60) return l.clipJustNow;
+  if (diff.inMinutes < 60) return l.clipMinutesAgo(diff.inMinutes);
+  if (diff.inHours < 24) return l.clipHoursAgo(diff.inHours);
+  return l.clipDaysAgo(diff.inDays);
 }

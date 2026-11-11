@@ -28,10 +28,10 @@ All-in-one offline utility app for Android (Flutter), published on Google Play a
 
 ## Build a release
 
-Release builds **must** receive the live AdMob unit IDs, otherwise ads are disabled (see `lib/core/constants/ad_unit_ids.dart`):
+Run the release script. It passes the live AdMob unit IDs (without them ads are disabled, see `lib/core/constants/ad_unit_ids.dart`), obfuscates Dart code and copies the bundle and debug symbols into `release/`:
 
 ```bash
-flutter build appbundle --release --dart-define=ADMOB_BANNER_ID=ca-app-pub-7294611786504566/XXXXXXXXXX --dart-define=ADMOB_INTERSTITIAL_ID=ca-app-pub-7294611786504566/XXXXXXXXXX
+powershell -File tool/build_release.ps1
 ```
 
 If the cloud upscaler backend has an `API_TOKEN`, also pass `--dart-define=UPSCALER_API_TOKEN=<token>`.

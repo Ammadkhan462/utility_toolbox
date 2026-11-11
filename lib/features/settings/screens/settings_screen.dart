@@ -35,13 +35,25 @@ final _privacyOptionsRequiredProvider = FutureProvider.autoDispose<bool>((ref) {
   return ref.read(adsServiceProvider).privacyOptionsRequired();
 });
 
+// Loaded once instead of on every rebuild of the settings list (which made
+// the version line flicker back to "…" on each theme/language change).
+final _packageInfoProvider = FutureProvider<PackageInfo>(
+  (ref) => PackageInfo.fromPlatform(),
+);
+
+bool _privacyFormOpen = false;
+
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   Future<void> _launchUrl(String url) async {
     final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (_) {
+      // No browser / activity not found.
     }
   }
 
@@ -171,16 +183,27 @@ class SettingsScreen extends ConsumerWidget {
               title: l.privacyChoicesTitle,
               subtitle: l.privacyChoicesSubtitle,
               gradient: AppColors.toolGradient('hash_generator'),
-              onTap: () => ref.read(adsServiceProvider).showPrivacyOptions(),
+              onTap: () async {
+                // Double tap would stack two UMP forms.
+                if (_privacyFormOpen) return;
+                _privacyFormOpen = true;
+                try {
+                  await ref.read(adsServiceProvider).showPrivacyOptions();
+                } catch (_) {
+                  // UMP form failed to load (offline): nothing to show.
+                } finally {
+                  _privacyFormOpen = false;
+                }
+              },
             ),
           ],
           const SizedBox(height: 32),
 
-          FutureBuilder<PackageInfo>(
-            future: PackageInfo.fromPlatform(),
-            builder: (context, snapshot) {
-              final version = snapshot.data?.version ?? '…';
-              final build = snapshot.data?.buildNumber ?? '';
+          Builder(
+            builder: (context) {
+              final info = ref.watch(_packageInfoProvider).valueOrNull;
+              final version = info?.version ?? '…';
+              final build = info?.buildNumber ?? '';
               return Center(
                 child: Text(
                   l.versionLabel(build.isEmpty ? version : '$version ($build)'),
@@ -196,6 +219,9 @@ class SettingsScreen extends ConsumerWidget {
 
   Future<void> _pickLanguage(BuildContext context, WidgetRef ref, Locale? current) async {
     final l = AppLocalizations.of(context);
+    // Grab these before the await: the sheet can outlive this element.
+    final storage = ref.read(storageServiceProvider);
+    final localeNotifier = ref.read(localeProvider.notifier);
     final selected = await showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,
@@ -218,10 +244,11 @@ class SettingsScreen extends ConsumerWidget {
         ),
       ),
     );
-    if (selected == null) return;
+    if (selected == null || selected == (current?.languageCode ?? '')) return;
     final code = selected.isEmpty ? null : selected;
-    await ref.read(storageServiceProvider).setLocaleCode(code);
-    ref.read(localeProvider.notifier).state = code == null ? null : Locale(code);
+    // Switch the UI right away, then persist.
+    localeNotifier.state = code == null ? null : Locale(code);
+    await storage.setLocaleCode(code);
   }
 }
 

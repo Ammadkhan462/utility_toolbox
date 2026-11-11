@@ -22,39 +22,46 @@ class _HomeShellState extends State<HomeShell> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     return IncomingIntentHandler(
-      child: Scaffold(
-        body: AppBackground(
-          orbs: false,
-          child: SafeArea(
-            bottom: false,
-            child: IndexedStack(
-              index: _index,
-              children: const [ToolsTab(), FilesTab()],
+      // Back on the My Files tab returns to Tools instead of closing the app.
+      child: PopScope(
+        canPop: _index == 0,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop && _index != 0) setState(() => _index = 0);
+        },
+        child: Scaffold(
+          body: AppBackground(
+            orbs: false,
+            child: SafeArea(
+              bottom: false,
+              child: IndexedStack(
+                index: _index,
+                children: const [ToolsTab(), FilesTab()],
+              ),
             ),
           ),
-        ),
-        bottomNavigationBar: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Center(child: BannerAdWidget(placement: 'home')),
-            NavigationBar(
-              selectedIndex: _index,
-              onDestinationSelected: (i) => setState(() => _index = i),
-              height: 64,
-              destinations: [
-                NavigationDestination(
-                  icon: const Icon(Icons.apps_outlined),
-                  selectedIcon: const Icon(Icons.apps_rounded),
-                  label: l.navTools,
-                ),
-                NavigationDestination(
-                  icon: const Icon(Icons.folder_outlined),
-                  selectedIcon: const Icon(Icons.folder_rounded),
-                  label: l.navFiles,
-                ),
-              ],
-            ),
-          ],
+          bottomNavigationBar: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Center(child: BannerAdWidget(placement: 'home')),
+              NavigationBar(
+                selectedIndex: _index,
+                onDestinationSelected: (i) => setState(() => _index = i),
+                height: 64,
+                destinations: [
+                  NavigationDestination(
+                    icon: const Icon(Icons.apps_outlined),
+                    selectedIcon: const Icon(Icons.apps_rounded),
+                    label: l.navTools,
+                  ),
+                  NavigationDestination(
+                    icon: const Icon(Icons.folder_outlined),
+                    selectedIcon: const Icon(Icons.folder_rounded),
+                    label: l.navFiles,
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

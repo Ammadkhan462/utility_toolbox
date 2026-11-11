@@ -31,7 +31,9 @@ class ClipItem {
 
   /// Auto-detect type from raw text.
   static String detectType(String text) {
-    if (RegExp(r'^https?://', caseSensitive: false).hasMatch(text)) {
+    // A single link only — "https://x.com is great" is text, and a URL
+    // containing spaces can't be opened anyway.
+    if (RegExp(r'^https?://\S+$', caseSensitive: false).hasMatch(text.trim())) {
       return 'url';
     }
     if (RegExp(

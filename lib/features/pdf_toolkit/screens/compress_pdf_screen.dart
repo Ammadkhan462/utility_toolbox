@@ -15,6 +15,7 @@ import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/pdf_toolkit/models/pdf_job_result.dart';
 import 'package:utility_toolbox/features/pdf_toolkit/providers/pdf_providers.dart';
 import 'package:utility_toolbox/features/pdf_toolkit/services/pdf_service.dart';
+import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 
 class CompressPdfScreen extends ConsumerWidget {
   const CompressPdfScreen({super.key});
@@ -24,10 +25,11 @@ class CompressPdfScreen extends ConsumerWidget {
     final pdf = ref.watch(selectedSinglePdfProvider);
     final level = ref.watch(pdfCompressionLevelProvider);
     final jobState = ref.watch(pdfJobStateProvider);
-    final originalSize = pdf != null ? pdf.lengthSync() : 0;
+    final originalSize = _sizeOf(pdf);
+    final l = AppLocalizations.of(context);
 
     return ToolScaffold(
-      title: 'Compress PDF',
+      title: l.toolCompressPdfTitle,
       accentColor: AppColors.toolAccent('pdf_toolkit'),
       body: _buildBody(context, ref, pdf, level, jobState, originalSize),
       bottomBar: jobState is! Success<PdfJobResult>
@@ -36,8 +38,8 @@ class CompressPdfScreen extends ConsumerWidget {
               child: FilledButton(
                 onPressed: pdf == null || jobState is Loading<PdfJobResult>
                     ? null
-                    : () => _compress(ref, pdf.path),
-                child: const Text('Compress'),
+                    : () => _compress(context, ref, pdf.path),
+                child: Text(l.pdfCompressButton),
               ),
             )
           : null,
@@ -52,8 +54,9 @@ class CompressPdfScreen extends ConsumerWidget {
     Result<PdfJobResult> jobState,
     int originalSize,
   ) {
+    final l = AppLocalizations.of(context);
     return switch (jobState) {
-      Loading() => const LoadingIndicator(message: 'Compressing PDF…'),
+      Loading() => LoadingIndicator(message: l.pdfCompressWorking),
       ErrorResult(message: final msg) => ErrorState(
         message: msg,
         onRetry: () =>
@@ -70,37 +73,36 @@ class CompressPdfScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             PremiumOutlineButton(
-              onPressed: () => _pickPdf(ref),
+              onPressed: () => _pickPdf(context, ref),
               icon: Icons.picture_as_pdf_outlined,
-              label: 'Pick a PDF',
+              label: l.pdfToolsChoosePdf,
               accent: AppColors.toolAccent('pdf_toolkit'),
               dense: true,
             ),
             const SizedBox(height: 16),
             if (pdf != null)
               Text(
-                'Selected: ${pdf.path.split(Platform.pathSeparator).last}\n'
-                'Original size: ${FileUtils.formatFileSize(originalSize)}',
+                '${l.pdfToolsSelectedFile(pdf.path.split(Platform.pathSeparator).last)}\n'
+                '${l.pdfCompressOriginalSize(FileUtils.formatFileSize(originalSize))}',
               )
             else
-              const Text(
-                'Choose a PDF file. Compression works best on image-heavy documents.',
-              ),
+              Text(l.pdfCompressIntro),
             const SizedBox(height: 16),
             SegmentedButton<PdfCompressionLevel>(
-              segments: const [
-                ButtonSegment(
-                  value: PdfCompressionLevel.low,
-                  label: Text('Low'),
-                ),
-                ButtonSegment(
-                  value: PdfCompressionLevel.medium,
-                  label: Text('Medium'),
-                ),
-                ButtonSegment(
-                  value: PdfCompressionLevel.high,
-                  label: Text('High'),
-                ),
+              segments: [
+                for (final (value, label) in [
+                  (PdfCompressionLevel.low, l.pdfCompressLow),
+                  (PdfCompressionLevel.medium, l.pdfCompressMedium),
+                  (PdfCompressionLevel.high, l.pdfCompressHigh),
+                ])
+                  ButtonSegment(
+                    value: value,
+                    label: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
               ],
               selected: {level},
               onSelectionChanged: (values) {
@@ -114,34 +116,55 @@ class CompressPdfScreen extends ConsumerWidget {
     };
   }
 
-  Future<void> _pickPdf(WidgetRef ref) async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf'],
-    );
-    if (result?.files.single.path == null) return;
-    ref.read(selectedSinglePdfProvider.notifier).state = File(
-      result!.files.single.path!,
-    );
+  /// Never throws: a shared/cached file can disappear while the screen is
+  /// open, and a sync IO error here would break the whole build.
+  static int _sizeOf(File? file) {
+    if (file == null) return 0;
+    try {
+      return file.lengthSync();
+    } catch (_) {
+      return 0;
+    }
   }
 
-  Future<void> _compress(WidgetRef ref, String path) async {
+  Future<void> _pickPdf(BuildContext context, WidgetRef ref) async {
+    final String? path;
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
+      );
+      final files = result?.files;
+      path = files == null || files.isEmpty ? null : files.first.path;
+    } catch (e) {
+      debugPrint('PDF picker failed: $e');
+      return;
+    }
+    if (path == null || !context.mounted) return;
+    ref.read(selectedSinglePdfProvider.notifier).state = File(path);
+  }
+
+  Future<void> _compress(BuildContext context, WidgetRef ref, String path) async {
+    final l = AppLocalizations.of(context);
     ref.read(pdfJobStateProvider.notifier).state = const Loading();
     try {
       final level = ref.read(pdfCompressionLevelProvider);
       final result = await ref
           .read(pdfServiceProvider)
           .compressPdf(path, level);
+      // The user may have left while compressing; ref is unusable then.
+      if (!context.mounted) return;
       ref.read(pdfJobStateProvider.notifier).state = Success(result);
     } catch (_) {
-      ref.read(pdfJobStateProvider.notifier).state = const ErrorResult(
-        'Could not compress this PDF.',
+      if (!context.mounted) return;
+      ref.read(pdfJobStateProvider.notifier).state = ErrorResult(
+        l.pdfCompressFailed,
       );
     }
   }
 }
 
-class _CompressResultView extends ConsumerWidget {
+class _CompressResultView extends StatefulWidget {
   const _CompressResultView({
     required this.result,
     required this.originalSize,
@@ -153,14 +176,26 @@ class _CompressResultView extends ConsumerWidget {
   final WidgetRef ref;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  State<_CompressResultView> createState() => _CompressResultViewState();
+}
+
+class _CompressResultViewState extends State<_CompressResultView> {
+  bool _saving = false;
+
+  WidgetRef get ref => widget.ref;
+
+  @override
+  Widget build(BuildContext context) {
+    final result = widget.result;
+    final originalSize = widget.originalSize;
+    final l = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Before: ${FileUtils.formatFileSize(originalSize)}'),
-          Text('After: ${FileUtils.formatFileSize(result.fileSizeBytes)}'),
+          Text(l.pdfCompressBefore(FileUtils.formatFileSize(originalSize))),
+          Text(l.pdfCompressAfter(FileUtils.formatFileSize(result.fileSizeBytes))),
           const SizedBox(height: 16),
           Row(
             children: [
@@ -168,7 +203,7 @@ class _CompressResultView extends ConsumerWidget {
                 child: PremiumOutlineButton(
                   onPressed: () => Share.shareXFiles([XFile(result.filePath)]),
                   icon: Icons.share_rounded,
-                  label: 'Share',
+                  label: l.commonShare,
                   accent: AppColors.toolAccent('pdf_toolkit'),
                   dense: true,
                 ),
@@ -176,9 +211,9 @@ class _CompressResultView extends ConsumerWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: PremiumButton(
-                  onPressed: () => _download(context, result),
+                  onPressed: _saving ? null : () => _download(context, result),
                   icon: Icons.download_rounded,
-                  label: 'Download',
+                  label: l.pdfToolsDownload,
                   accent: AppColors.toolAccent('pdf_toolkit'),
                   dense: true,
                 ),
@@ -188,12 +223,11 @@ class _CompressResultView extends ConsumerWidget {
           const SizedBox(height: 8),
           PremiumOutlineButton(
             onPressed: () async {
-              await this.ref
-                  .read(adsServiceProvider)
-                  .showInterstitialIfAllowed();
-              this.ref.read(pdfJobStateProvider.notifier).state = const Idle();
+              await ref.read(adsServiceProvider).showInterstitialIfAllowed();
+              if (!mounted) return;
+              ref.read(pdfJobStateProvider.notifier).state = const Idle();
             },
-            label: 'Done',
+            label: l.commonDone,
             accent: AppColors.toolAccent('pdf_toolkit'),
           ),
         ],
@@ -203,6 +237,8 @@ class _CompressResultView extends ConsumerWidget {
 
   Future<void> _download(BuildContext context, PdfJobResult result) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l = AppLocalizations.of(context);
+    setState(() => _saving = true);
     try {
       final outcome = await FileUtils.saveToDownloads(
         sourcePath: result.filePath,
@@ -215,15 +251,19 @@ class _CompressResultView extends ConsumerWidget {
         SnackBar(
           content: Text(
             outcome == SaveOutcome.downloaded
-                ? 'Saved to Downloads — check your notification to open it.'
-                : 'Opened share sheet — choose where to save the file.',
+                ? l.pdfToolsSavedNotification
+                : l.pdfToolsShareToSave,
           ),
         ),
       );
+      if (!mounted) return;
       ref.read(pdfJobStateProvider.notifier).state = const Idle();
       ref.read(selectedSinglePdfProvider.notifier).state = null;
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Download failed: $e')));
+      debugPrint('Saving compressed PDF failed: $e');
+      messenger.showSnackBar(SnackBar(content: Text(l.commonSaveFailed)));
+    } finally {
+      if (mounted) setState(() => _saving = false);
     }
   }
 }

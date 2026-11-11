@@ -27,7 +27,7 @@ class FilesTab extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 8, 8),
+          padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 8, 8),
           child: Row(
             children: [
               Expanded(
@@ -84,6 +84,19 @@ class FilesTab extends ConsumerWidget {
   }
 }
 
+/// Last time a row launched an open/share chooser; a quick double tap would
+/// otherwise fire two intents and stack two chooser sheets.
+DateTime _lastLaunch = DateTime.fromMillisecondsSinceEpoch(0);
+
+bool _debounced() {
+  final now = DateTime.now();
+  if (now.difference(_lastLaunch) < const Duration(milliseconds: 800)) {
+    return true;
+  }
+  _lastLaunch = now;
+  return false;
+}
+
 class _FileRow extends ConsumerWidget {
   const _FileRow({required this.record});
 
@@ -111,7 +124,7 @@ class _FileRow extends ConsumerWidget {
         : (Icons.insert_drive_file_rounded, const [Color(0xFF3D9BFF), Color(0xFF00CFFF)]);
 
     return ListTile(
-      contentPadding: const EdgeInsets.fromLTRB(20, 4, 4, 4),
+      contentPadding: const EdgeInsetsDirectional.fromSTEB(20, 4, 4, 4),
       leading: ToolIcon(icon: icon, colors: colors, size: 44),
       title: Text(
         record.name,
@@ -120,11 +133,11 @@ class _FileRow extends ConsumerWidget {
         style: const TextStyle(fontWeight: FontWeight.w600),
       ),
       subtitle: Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis),
-      onTap: () => _open(context),
+      onTap: () => _open(context, ref),
       trailing: PopupMenuButton<String>(
         onSelected: (action) => switch (action) {
-          'open' => _open(context),
-          'share' => _share(context),
+          'open' => _open(context, ref),
+          'share' => _share(context, ref),
           _ => ref.read(outputsProvider.notifier).remove(record.id),
         },
         itemBuilder: (_) => [
@@ -136,29 +149,59 @@ class _FileRow extends ConsumerWidget {
     );
   }
 
-  Future<void> _open(BuildContext context) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final failed = AppLocalizations.of(context).fileOpenFailed;
-    final ok = await SystemBridge.instance.openFile(
-      record.location,
-      record.mimeType,
+  /// A plain file path that no longer exists (deleted from a file manager or
+  /// cleared storage). content:// URIs can only be checked natively.
+  Future<bool> _isMissing() async =>
+      !record.isContentUri && !await File(record.location).exists();
+
+  /// "Couldn't open… moved or deleted", with a one-tap way to drop the stale
+  /// entry instead of leaving a dead row in the list forever.
+  void _showFailed(
+    ScaffoldMessengerState messenger,
+    AppLocalizations l,
+    WidgetRef ref,
+  ) {
+    final notifier = ref.read(outputsProvider.notifier);
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(l.fileOpenFailed),
+        action: SnackBarAction(
+          label: l.fileRemoveFromList,
+          onPressed: () => notifier.remove(record.id),
+        ),
+      ),
     );
-    if (!ok) messenger.showSnackBar(SnackBar(content: Text(failed)));
   }
 
-  Future<void> _share(BuildContext context) async {
+  Future<void> _open(BuildContext context, WidgetRef ref) async {
+    if (_debounced()) return;
     final messenger = ScaffoldMessenger.of(context);
-    final failed = AppLocalizations.of(context).fileOpenFailed;
+    final l = AppLocalizations.of(context);
+    final ok = !await _isMissing() &&
+        await SystemBridge.instance.openFile(record.location, record.mimeType);
+    if (!ok && context.mounted) _showFailed(messenger, l, ref);
+  }
+
+  Future<void> _share(BuildContext context, WidgetRef ref) async {
+    if (_debounced()) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final l = AppLocalizations.of(context);
+    if (await _isMissing()) {
+      if (context.mounted) _showFailed(messenger, l, ref);
+      return;
+    }
     var ok = await SystemBridge.instance.shareFile(
       record.location,
       record.mimeType,
     );
     // Non-Android (or no native share): plain file paths still work.
-    if (!ok && !record.isContentUri && File(record.location).existsSync()) {
-      await Share.shareXFiles([XFile(record.location)]);
-      ok = true;
+    if (!ok && !record.isContentUri) {
+      try {
+        await Share.shareXFiles([XFile(record.location)]);
+        ok = true;
+      } catch (_) {}
     }
-    if (!ok) messenger.showSnackBar(SnackBar(content: Text(failed)));
+    if (!ok && context.mounted) _showFailed(messenger, l, ref);
   }
 }
 

@@ -5,6 +5,7 @@ import 'package:utility_toolbox/core/theme/app_colors.dart';
 import 'package:utility_toolbox/core/utils/file_utils.dart';
 import 'package:utility_toolbox/core/widgets/premium_button.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
+import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 import '../providers/word_to_pdf_providers.dart';
 
 class WordToPdfScreen extends ConsumerWidget {
@@ -16,6 +17,7 @@ class WordToPdfScreen extends ConsumerWidget {
       : _AutoConvert(path: path, child: const WordToPdfScreen());
 
   static final _accent = AppColors.toolAccent('word_to_pdf');
+  static const _warning = Color(0xFFF59E0B);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -27,12 +29,14 @@ class WordToPdfScreen extends ConsumerWidget {
         state.status == WordToPdfStatus.picking;
     final isDone = state.status == WordToPdfStatus.done;
     final isError = state.status == WordToPdfStatus.error;
+    final l = AppLocalizations.of(context);
+    void pick() => notifier.pickAndConvert(emptyText: l.wordPdfNoText);
 
     return ToolScaffold(
-      title: 'Word to PDF',
+      title: l.toolWordToPdfTitle,
       accentColor: _accent,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+        padding: const EdgeInsetsDirectional.fromSTEB(20, 24, 20, 32),
         child: Column(
           children: [
             // ── Info banner ────────────────────────────────────────────
@@ -49,8 +53,7 @@ class WordToPdfScreen extends ConsumerWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Converts .docx files to PDF. Text formatting is preserved; '
-                      'complex layouts (tables, images) may vary.',
+                      l.wordPdfInfo,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -63,7 +66,7 @@ class WordToPdfScreen extends ConsumerWidget {
 
             // ── Drop zone / file picked ────────────────────────────────
             GestureDetector(
-              onTap: isConverting ? null : notifier.pickAndConvert,
+              onTap: isConverting ? null : pick,
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 250),
                 width: double.infinity,
@@ -81,6 +84,7 @@ class WordToPdfScreen extends ConsumerWidget {
                     style: BorderStyle.solid,
                   ),
                 ),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -101,13 +105,15 @@ class WordToPdfScreen extends ConsumerWidget {
                     if (isConverting)
                       Text(
                         state.status == WordToPdfStatus.picking
-                            ? 'Opening file picker…'
-                            : 'Converting… ${(state.progress * 100).toStringAsFixed(0)}%',
+                            ? l.wordPdfOpeningPicker
+                            : l.wordPdfConverting((state.progress * 100).round()),
+                        textAlign: TextAlign.center,
                         style: theme.textTheme.bodyMedium,
                       )
                     else if (isDone) ...[
                       Text(
-                        '✓ Conversion complete!',
+                        l.wordPdfDone,
+                        textAlign: TextAlign.center,
                         style: theme.textTheme.titleMedium?.copyWith(
                           color: AppColors.success,
                           fontWeight: FontWeight.bold,
@@ -116,13 +122,16 @@ class WordToPdfScreen extends ConsumerWidget {
                       const SizedBox(height: 4),
                       Text(
                         state.outputFilename ?? '',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ] else ...[
                       Text(
-                        'Tap to pick a .docx file',
+                        l.wordPdfTapToPick,
+                        textAlign: TextAlign.center,
                         style: theme.textTheme.titleMedium?.copyWith(
                           color: _accent,
                           fontWeight: FontWeight.w600,
@@ -130,7 +139,8 @@ class WordToPdfScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Supports .docx format',
+                        l.wordPdfSupports,
+                        textAlign: TextAlign.center,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -155,10 +165,28 @@ class WordToPdfScreen extends ConsumerWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        state.error ?? 'Conversion failed.',
+                        state.error ?? l.wordPdfFailed,
                         style: const TextStyle(color: AppColors.error),
                       ),
                     ),
+                  ],
+                ),
+              ),
+            ],
+
+            if (isDone && state.fontsMissing) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: _warning.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.wifi_off_rounded, color: _warning),
+                    const SizedBox(width: 10),
+                    Expanded(child: Text(l.wordPdfFontsOffline)),
                   ],
                 ),
               ),
@@ -179,7 +207,7 @@ class WordToPdfScreen extends ConsumerWidget {
                     child: PremiumOutlineButton(
                       onPressed: notifier.share,
                       icon: Icons.share_rounded,
-                      label: 'Share',
+                      label: l.commonShare,
                       accent: _accent,
                       dense: true,
                     ),
@@ -189,7 +217,7 @@ class WordToPdfScreen extends ConsumerWidget {
                     child: PremiumButton(
                       onPressed: () => _download(context, notifier),
                       icon: Icons.download_rounded,
-                      label: 'Download',
+                      label: l.pdfToolsDownload,
                       accent: _accent,
                       dense: true,
                     ),
@@ -200,14 +228,14 @@ class WordToPdfScreen extends ConsumerWidget {
               PremiumOutlineButton(
                 onPressed: notifier.reset,
                 icon: Icons.refresh_rounded,
-                label: 'Convert Another',
+                label: l.wordPdfConvertAnother,
                 accent: _accent,
               ),
             ] else if (!isConverting)
               PremiumButton(
-                onPressed: notifier.pickAndConvert,
+                onPressed: pick,
                 icon: Icons.upload_file_rounded,
-                label: 'Pick .docx File',
+                label: l.wordPdfPick,
                 gradient: AppColors.toolGradient('word_to_pdf'),
               ),
 
@@ -217,24 +245,24 @@ class WordToPdfScreen extends ConsumerWidget {
             _StepCard(
               step: 1,
               icon: Icons.upload_file_rounded,
-              title: 'Pick your Word file',
-              desc: 'Select a .docx file from your device storage.',
+              title: l.wordPdfStep1Title,
+              desc: l.wordPdfStep1Desc,
               accent: _accent,
             ),
             const SizedBox(height: 10),
             _StepCard(
               step: 2,
               icon: Icons.picture_as_pdf_rounded,
-              title: 'Auto-convert',
-              desc: 'Text is extracted and laid out as A4 PDF pages.',
+              title: l.wordPdfStep2Title,
+              desc: l.wordPdfStep2Desc,
               accent: _accent,
             ),
             const SizedBox(height: 10),
             _StepCard(
               step: 3,
               icon: Icons.share_rounded,
-              title: 'Share or save',
-              desc: 'Share the PDF to any app, email, or cloud storage.',
+              title: l.wordPdfStep3Title,
+              desc: l.wordPdfStep3Desc,
               accent: _accent,
             ),
           ],
@@ -248,19 +276,22 @@ class WordToPdfScreen extends ConsumerWidget {
 
 Future<void> _download(BuildContext context, WordToPdfNotifier notifier) async {
   final messenger = ScaffoldMessenger.of(context);
+  final l = AppLocalizations.of(context);
   try {
     final outcome = await notifier.download();
+    if (outcome == null) return; // a save is already running
     messenger.showSnackBar(
       SnackBar(
         content: Text(
           outcome == SaveOutcome.downloaded
-              ? 'PDF saved to Downloads — tap the notification to open it.'
-              : 'Opened share sheet — choose where to save the file.',
+              ? l.pdfToolsSavedNotification
+              : l.pdfToolsShareToSave,
         ),
       ),
     );
   } catch (e) {
-    messenger.showSnackBar(SnackBar(content: Text('Download failed: $e')));
+    debugPrint('Saving Word PDF failed: $e');
+    messenger.showSnackBar(SnackBar(content: Text(l.commonSaveFailed)));
   }
 }
 
@@ -296,6 +327,7 @@ class _FileSizeRowState extends State<_FileSizeRow> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context);
     return Row(
       children: [
         Icon(Icons.picture_as_pdf_rounded, size: 16, color: widget.accent),
@@ -303,8 +335,8 @@ class _FileSizeRowState extends State<_FileSizeRow> {
         Expanded(
           child: Text(
             _bytes != null
-                ? 'PDF ready · ${FileUtils.formatFileSize(_bytes!)}'
-                : 'PDF ready',
+                ? '${l.wordPdfReady} · ${FileUtils.formatFileSize(_bytes!)}'
+                : l.wordPdfReady,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -404,7 +436,10 @@ class _AutoConvertState extends ConsumerState<_AutoConvert> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) ref.read(wordToPdfProvider.notifier).convertFile(widget.path);
+      if (!mounted) return;
+      ref
+          .read(wordToPdfProvider.notifier)
+          .convertFile(widget.path, emptyText: AppLocalizations.of(context).wordPdfNoText);
     });
   }
 

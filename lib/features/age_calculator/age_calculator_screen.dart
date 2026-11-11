@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/age_calculator/date_math.dart';
+import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 
 /// Age (from a birth date) and the difference between any two dates.
 class AgeCalculatorScreen extends StatefulWidget {
@@ -25,16 +26,20 @@ class _AgeCalculatorScreenState extends State<AgeCalculatorScreen> {
     lastDate: DateTime(2200),
   );
 
+  NumberFormat _numbers(BuildContext context) =>
+      NumberFormat.decimalPattern(Localizations.localeOf(context).toLanguageTag());
+
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return DefaultTabController(
       length: 2,
       child: ToolScaffold(
-        title: 'Age & Date',
+        title: l.toolAgeCalculatorTitle,
         accentColor: _accent,
         body: Column(
           children: [
-            const TabBar(tabs: [Tab(text: 'Age'), Tab(text: 'Between dates')]),
+            TabBar(tabs: [Tab(text: l.ageTabAge), Tab(text: l.ageTabBetween)]),
             Expanded(
               child: TabBarView(children: [_ageTab(context), _diffTab(context)]),
             ),
@@ -50,34 +55,35 @@ class _AgeCalculatorScreenState extends State<AgeCalculatorScreen> {
     final span = dateSpan(_birth, now);
     final days = totalDays(_birth, now);
     final toBirthday = daysUntilBirthday(_birth, now);
+    final l = AppLocalizations.of(context);
+    final n = _numbers(context);
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         _DateField(
-          label: 'Date of birth',
+          label: l.ageDateOfBirth,
           date: _birth,
           onTap: () async {
             final d = await _pickDate(_birth);
-            if (d != null) setState(() => _birth = d);
+            if (d != null && mounted) setState(() => _birth = d);
           },
         ),
         const SizedBox(height: 16),
         if (future)
-          const _Hint('That date is in the future.')
+          _Hint(l.ageFutureDate)
         else ...[
           _BigResult(
-            value: '${span.years}',
-            unit: span.years == 1 ? 'year' : 'years',
-            detail: '${span.months} month${span.months == 1 ? '' : 's'}, '
-                '${span.days} day${span.days == 1 ? '' : 's'}',
+            value: n.format(span.years),
+            unit: l.ageYearsUnit(span.years),
+            detail: l.ageList2(l.ageMonths(span.months), l.ageDays(span.days)),
           ),
           const SizedBox(height: 12),
           _StatGrid(
             stats: [
-              ('Next birthday', toBirthday == 0 ? 'Today 🎉' : 'in $toBirthday days'),
-              ('Total months', NumberFormat.decimalPattern().format(span.years * 12 + span.months)),
-              ('Total weeks', NumberFormat.decimalPattern().format(days ~/ 7)),
-              ('Total days', NumberFormat.decimalPattern().format(days)),
+              (l.ageNextBirthday, toBirthday == 0 ? l.ageBirthdayToday : l.ageInDays(toBirthday)),
+              (l.ageTotalMonths, n.format(span.years * 12 + span.months)),
+              (l.ageTotalWeeks, n.format(days ~/ 7)),
+              (l.ageTotalDays, n.format(days)),
             ],
           ),
         ],
@@ -88,39 +94,45 @@ class _AgeCalculatorScreenState extends State<AgeCalculatorScreen> {
   Widget _diffTab(BuildContext context) {
     final span = dateSpan(_from, _to);
     final days = totalDays(_from, _to);
+    final l = AppLocalizations.of(context);
+    final n = _numbers(context);
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         _DateField(
-          label: 'From',
+          label: l.ageFrom,
           date: _from,
           onTap: () async {
             final d = await _pickDate(_from);
-            if (d != null) setState(() => _from = d);
+            if (d != null && mounted) setState(() => _from = d);
           },
         ),
         const SizedBox(height: 12),
         _DateField(
-          label: 'To',
+          label: l.ageTo,
           date: _to,
           onTap: () async {
             final d = await _pickDate(_to);
-            if (d != null) setState(() => _to = d);
+            if (d != null && mounted) setState(() => _to = d);
           },
         ),
         const SizedBox(height: 16),
         _BigResult(
-          value: NumberFormat.decimalPattern().format(days),
-          unit: days == 1 ? 'day' : 'days',
-          detail: '${span.years} y, ${span.months} m, ${span.days} d',
+          value: n.format(days),
+          unit: l.ageDaysUnit(days),
+          detail: l.ageList3(
+            l.ageYears(span.years),
+            l.ageMonths(span.months),
+            l.ageDays(span.days),
+          ),
         ),
         const SizedBox(height: 12),
         _StatGrid(
           stats: [
-            ('Weeks', '${days ~/ 7} w ${days % 7} d'),
-            ('Weekdays (Mon–Fri)', NumberFormat.decimalPattern().format(weekdaysBetween(_from, _to))),
-            ('Hours', NumberFormat.decimalPattern().format(days * 24)),
-            ('Including end date', NumberFormat.decimalPattern().format(days + 1)),
+            (l.ageWeeksLabel, l.ageList2(l.ageWeeks(days ~/ 7), l.ageDays(days % 7))),
+            (l.ageWeekdays, n.format(weekdaysBetween(_from, _to))),
+            (l.ageHours, n.format(days * 24)),
+            (l.ageIncludingEnd, n.format(days + 1)),
           ],
         ),
       ],
@@ -183,7 +195,7 @@ class _BigResult extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 4),
-            Text(detail, style: theme.textTheme.titleMedium),
+            Text(detail, textAlign: TextAlign.center, style: theme.textTheme.titleMedium),
           ],
         ),
       ),
@@ -203,7 +215,8 @@ class _StatGrid extends StatelessWidget {
       crossAxisCount: 2,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      childAspectRatio: 2.4,
+      // Room for a two-line label (longer German/Russian strings).
+      childAspectRatio: 2.0,
       mainAxisSpacing: 8,
       crossAxisSpacing: 8,
       children: [
@@ -218,18 +231,21 @@ class _StatGrid extends StatelessWidget {
                 children: [
                   Text(
                     label,
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    value,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(
+                      value,
+                      maxLines: 1,
+                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                    ),
                   ),
                 ],
               ),

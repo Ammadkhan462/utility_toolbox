@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as p;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:utility_toolbox/core/utils/file_utils.dart';
@@ -10,6 +12,7 @@ import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/ai_upscaler/providers/ai_upscaler_notifier.dart';
 import 'package:utility_toolbox/features/ai_upscaler/providers/upscaler_providers.dart';
 import 'package:utility_toolbox/features/ai_upscaler/services/ai_upscaler_service.dart';
+import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 
 const _accent     = Color(0xFF7C3AED);
 const _accentGlow = Color(0xFFA855F7);
@@ -29,10 +32,12 @@ class _AiUpscalerScreenState extends ConsumerState<AiUpscalerScreen>
   @override
   void initState() {
     super.initState();
+    // Only pulses while a job runs (see build): a forever-repeating
+    // controller keeps scheduling frames and drains the battery.
     _pulseCtrl = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
+    );
     _pulseAnim = CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut);
   }
 
@@ -43,11 +48,18 @@ class _AiUpscalerScreenState extends ConsumerState<AiUpscalerScreen>
   }
 
   Future<void> _pick(ImageSource src) async {
-    final picked = await ImagePicker().pickImage(
-      source: src,
-      imageQuality: 100, // no pre-compression — let AI work on original
-    );
-    if (picked == null) return;
+    XFile? picked;
+    try {
+      picked = await ImagePicker().pickImage(
+        source: src,
+        imageQuality: 100, // no pre-compression — let AI work on original
+      );
+    } on PlatformException catch (e) {
+      // Camera/photos permission denied, no camera app, etc.
+      debugPrint('Image pick failed: $e');
+      return;
+    }
+    if (picked == null || !mounted) return;
     ref.read(aiUpscalerProvider.notifier).setSource(File(picked.path));
   }
 
@@ -58,14 +70,35 @@ class _AiUpscalerScreenState extends ConsumerState<AiUpscalerScreen>
     final theme    = Theme.of(context);
     final isDark   = theme.brightness == Brightness.dark;
 
+    final l = AppLocalizations.of(context);
+
+    if (state.isProcessing) {
+      if (!_pulseCtrl.isAnimating) _pulseCtrl.repeat(reverse: true);
+    } else if (_pulseCtrl.isAnimating) {
+      _pulseCtrl.stop();
+    }
+
+    // Offline on first use: the AI model couldn't be downloaded, so the
+    // result came from standard upscaling. Say so clearly, once per result.
+    ref.listen<UpscalerState>(aiUpscalerProvider, (prev, next) {
+      final fallback = next.result?.fallback;
+      if (next.status == UpscaleStatus.done &&
+          prev?.status != UpscaleStatus.done &&
+          fallback == UpscaleFallback.modelUnavailable) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l.upscalerFallbackModelUnavailable)),
+        );
+      }
+    });
+
     return ToolScaffold(
-      title: 'AI Image Upscaler',
+      title: l.toolAiUpscalerTitle,
       accentColor: _accent,
       actions: [
         if (state.sourceFile != null)
           TextButton(
             onPressed: notifier.reset,
-            child: const Text('New Image', style: TextStyle(color: _accent)),
+            child: Text(l.upscalerNewImage, style: const TextStyle(color: _accent)),
           ),
       ],
       body: state.sourceFile == null
@@ -93,9 +126,10 @@ class _PickerPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context);
 
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(28),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -125,7 +159,8 @@ class _PickerPage extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              'AI Image Upscaler',
+              l.toolAiUpscalerTitle,
+              textAlign: TextAlign.center,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w800,
                 letterSpacing: -0.5,
@@ -133,7 +168,7 @@ class _PickerPage extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              'Enlarge your photos up to 4× using on-device AI.\nWorks offline by default — optional cloud mode for faces.',
+              l.upscalerIntro,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
@@ -146,11 +181,11 @@ class _PickerPage extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               alignment: WrapAlignment.center,
-              children: const [
-                FeatureBadge(icon: Icons.memory_rounded,  label: 'On-device AI', accent: _accent),
-                FeatureBadge(icon: Icons.wifi_off_rounded, label: 'Offline by default', accent: _accent),
-                FeatureBadge(icon: Icons.hd_rounded,       label: 'Up to 4× bigger', accent: _accent),
-                FeatureBadge(icon: Icons.speed_rounded,    label: 'NNAPI accelerated', accent: _accent),
+              children: [
+                FeatureBadge(icon: Icons.memory_rounded,  label: l.upscalerBadgeOnDevice, accent: _accent),
+                FeatureBadge(icon: Icons.wifi_off_rounded, label: l.upscalerBadgeOffline, accent: _accent),
+                FeatureBadge(icon: Icons.hd_rounded,       label: l.upscalerBadgeUpTo4x, accent: _accent),
+                FeatureBadge(icon: Icons.speed_rounded,    label: l.upscalerBadgeGpu, accent: _accent),
               ],
             ),
             const SizedBox(height: 36),
@@ -159,7 +194,7 @@ class _PickerPage extends StatelessWidget {
             PremiumButton(
               onPressed: () => onPick(ImageSource.gallery),
               icon: Icons.photo_library_rounded,
-              label: 'Choose from Gallery',
+              label: l.commonChoosePhoto,
               gradient: const LinearGradient(
                 colors: [_accent, _accentGlow],
               ),
@@ -168,12 +203,12 @@ class _PickerPage extends StatelessWidget {
             PremiumOutlineButton(
               onPressed: () => onPick(ImageSource.camera),
               icon: Icons.camera_alt_rounded,
-              label: 'Take a Photo',
+              label: l.commonCamera,
               accent: _accent,
             ),
             const SizedBox(height: 28),
             Text(
-              'Best results: low-res photos, old scanned images,\nthumbnails, compressed JPEGs.',
+              l.upscalerBestResults,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
@@ -220,14 +255,18 @@ class _WorkspacePage extends StatelessWidget {
           // ── Processing overlay / result card ─────────────────────
           if (state.status == UpscaleStatus.loadingModel ||
               state.status == UpscaleStatus.processing)
-            _ProcessingCard(state: state, pulseAnim: pulseAnim),
+            _ProcessingCard(
+              state: state,
+              pulseAnim: pulseAnim,
+              onCancel: notifier.cancel,
+            ),
 
           if (state.status == UpscaleStatus.done && state.result != null)
             _ResultCard(result: state.result!, notifier: notifier),
 
           if (state.status == UpscaleStatus.error)
             _ErrorCard(
-              message: state.errorMessage,
+              error: state.error,
               onRetry: notifier.upscale,
             ),
 
@@ -251,7 +290,7 @@ class _WorkspacePage extends StatelessWidget {
             PremiumOutlineButton(
               onPressed: () => onPick(ImageSource.gallery),
               icon: Icons.swap_horiz_rounded,
-              label: 'Change Image',
+              label: AppLocalizations.of(context).upscalerChangeImage,
               accent: _accent,
               dense: true,
             ),
@@ -280,6 +319,11 @@ class _BeforeAfterPreviewState extends State<_BeforeAfterPreview> {
     final hasDone = widget.state.result != null &&
         widget.state.status == UpscaleStatus.done;
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context);
+    // Decode at preview size, not the full 12–50 MP source / 4× output.
+    final cacheW = (MediaQuery.sizeOf(context).width *
+            MediaQuery.devicePixelRatioOf(context))
+        .round();
 
     return Column(
       children: [
@@ -296,12 +340,12 @@ class _BeforeAfterPreviewState extends State<_BeforeAfterPreview> {
             child: Row(
               children: [
                 _PreviewTab(
-                  label: 'Original',
+                  label: l.upscalerTabOriginal,
                   selected: !_showAfter,
                   onTap: () => setState(() => _showAfter = false),
                 ),
                 _PreviewTab(
-                  label: 'AI Upscaled ✨',
+                  label: '${l.upscalerTabUpscaled} ✨',
                   selected: _showAfter,
                   onTap: () => setState(() => _showAfter = true),
                 ),
@@ -323,6 +367,7 @@ class _BeforeAfterPreviewState extends State<_BeforeAfterPreview> {
                         width: double.infinity,
                         height: 240,
                         fit: BoxFit.cover,
+                        cacheWidth: cacheW,
                       )
                     : Image.file(
                         widget.state.sourceFile!,
@@ -330,12 +375,19 @@ class _BeforeAfterPreviewState extends State<_BeforeAfterPreview> {
                         width: double.infinity,
                         height: 240,
                         fit: BoxFit.cover,
+                        cacheWidth: cacheW,
+                        errorBuilder: (_, _, _) => const SizedBox(
+                          height: 240,
+                          child: Center(
+                            child: Icon(Icons.broken_image_outlined, size: 48),
+                          ),
+                        ),
                       ),
               ),
               // Label badge
-              Positioned(
+              PositionedDirectional(
                 bottom: 10,
-                left: 10,
+                start: 10,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 10, vertical: 4),
@@ -344,7 +396,9 @@ class _BeforeAfterPreviewState extends State<_BeforeAfterPreview> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    hasDone && _showAfter ? 'AI Upscaled' : 'Original',
+                    hasDone && _showAfter
+                        ? l.upscalerTabUpscaled
+                        : l.upscalerTabOriginal,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 12,
@@ -387,6 +441,8 @@ class _PreviewTab extends StatelessWidget {
           child: Text(
             label,
             textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: selected
                   ? Colors.white
@@ -404,13 +460,20 @@ class _PreviewTab extends StatelessWidget {
 // ── Processing card ────────────────────────────────────────────────────────
 
 class _ProcessingCard extends StatelessWidget {
-  const _ProcessingCard({required this.state, required this.pulseAnim});
+  const _ProcessingCard({
+    required this.state,
+    required this.pulseAnim,
+    required this.onCancel,
+  });
   final UpscalerState     state;
   final Animation<double> pulseAnim;
+  final VoidCallback      onCancel;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context);
+    final step = state.step;
 
     return AnimatedBuilder(
       animation: pulseAnim,
@@ -447,9 +510,9 @@ class _ProcessingCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          state.progressLabel.isEmpty
-                              ? 'Initialising…'
-                              : state.progressLabel,
+                          step == null
+                              ? l.upscalerStageStarting
+                              : _stepLabel(l, step),
                           style: theme.textTheme.titleSmall?.copyWith(
                             color: _accent,
                             fontWeight: FontWeight.w700,
@@ -457,7 +520,7 @@ class _ProcessingCard extends StatelessWidget {
                         ),
                         if (state.status == UpscaleStatus.loadingModel)
                           Text(
-                            'Loading Real-ESRGAN model (first time only)',
+                            l.upscalerLoadingModelHint,
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),
@@ -483,7 +546,7 @@ class _ProcessingCard extends StatelessWidget {
               if (state.progress > 0) ...[
                 const SizedBox(height: 6),
                 Align(
-                  alignment: Alignment.centerRight,
+                  alignment: AlignmentDirectional.centerEnd,
                   child: Text(
                     '${(state.progress * 100).round()}%',
                     style: theme.textTheme.labelSmall?.copyWith(
@@ -496,12 +559,19 @@ class _ProcessingCard extends StatelessWidget {
               const SizedBox(height: 10),
               Text(
                 state.factor == UpscaleFactor.x4
-                    ? '4× upscale may take 15–60s depending on image size.'
-                    : '2× upscale typically takes 5–20s.',
+                    ? l.upscalerTime4x
+                    : l.upscalerTime2x,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
+              ),
+              // cancel() existed but nothing called it: a 60 s job could
+              // only be stopped by leaving (and it kept running then).
+              TextButton(
+                onPressed: onCancel,
+                style: TextButton.styleFrom(foregroundColor: _accent),
+                child: Text(AppLocalizations.of(context).commonCancel),
               ),
             ],
           ),
@@ -520,20 +590,39 @@ class _ResultCard extends StatelessWidget {
 
   Future<void> _saveToGallery(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
-    final ok = await FileUtils.saveImageToGallery(
-      bytes: await result.outputFile.readAsBytes(),
-      fileName: 'upscaled_${DateTime.now().millisecondsSinceEpoch}.jpg',
-      toolId: 'ai_upscaler',
-    );
+    final l = AppLocalizations.of(context);
+    // On-device output is PNG, cloud output JPEG: saving the PNG as
+    // "….jpg" / image/jpeg broke it in My Files and other apps.
+    final isPng =
+        p.extension(result.outputFile.path).toLowerCase() == '.png';
+    var ok = false;
+    try {
+      ok = await FileUtils.saveImageToGallery(
+        bytes: await result.outputFile.readAsBytes(),
+        fileName:
+            'upscaled_${DateTime.now().millisecondsSinceEpoch}.${isPng ? 'png' : 'jpg'}',
+        mimeType: isPng ? 'image/png' : 'image/jpeg',
+        toolId: 'ai_upscaler',
+      );
+    } catch (e) {
+      debugPrint('Saving upscaled image failed: $e');
+    }
     messenger.showSnackBar(SnackBar(
-      content: Text(ok ? 'Saved to gallery' : 'Could not save to your gallery'),
+      content: Text(ok ? l.commonSavedToGallery : l.commonSaveFailed),
     ));
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context);
     final secs  = (result.processingMs / 1000).toStringAsFixed(1);
+    final fallbackNote = switch (result.fallback) {
+      UpscaleFallback.modelUnavailable => l.upscalerFallbackModelUnavailable,
+      UpscaleFallback.modelFailed => l.upscalerFallbackModelFailed,
+      UpscaleFallback.cloudUnavailable => l.upscalerFallbackCloud,
+      null => null,
+    };
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -551,33 +640,64 @@ class _ResultCard extends StatelessWidget {
               const Icon(Icons.auto_awesome_rounded,
                   color: Color(0xFF22C55E), size: 22),
               const SizedBox(width: 10),
-              Text(
-                'Upscaled in ${secs}s ✨',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: const Color(0xFF22C55E),
-                  fontWeight: FontWeight.w700,
+              Expanded(
+                child: Text(
+                  '${l.upscalerDoneIn(secs)} ✨',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: const Color(0xFF22C55E),
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ],
           ),
+          if (fallbackNote != null) ...[
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.wifi_off_rounded,
+                      color: Color(0xFFB45309), size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      fallbackNote,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 14),
           // Stats row
           Row(
             children: [
               _StatCol(
-                label: 'Resolution',
+                label: l.upscalerStatResolution,
                 before: result.originalRes,
                 after:  result.outputRes,
               ),
               _StatCol(
-                label: 'File size',
+                label: l.upscalerStatFileSize,
                 before: _fmtBytes(result.originalBytes),
                 after:  _fmtBytes(result.outputBytes),
               ),
               _StatCol(
-                label: 'Upscale',
+                label: l.upscalerStatScale,
                 before: '1×',
-                after:  '${result.outputWidth ~/ (result.originalWidth == 0 ? 1 : result.originalWidth)}×',
+                after: result.originalWidth == 0
+                    ? '–'
+                    : '${(result.outputWidth / result.originalWidth).toStringAsFixed(1)}×',
               ),
             ],
           ),
@@ -589,10 +709,10 @@ class _ResultCard extends StatelessWidget {
                 child: FilledButton.icon(
                   onPressed: () => Share.shareXFiles(
                     [XFile(result.outputFile.path)],
-                    subject: 'AI Upscaled Image',
+                    subject: l.upscalerShareSubject,
                   ),
                   icon:  const Icon(Icons.share_rounded),
-                  label: const Text('Share'),
+                  label: Text(l.commonShare),
                   style: FilledButton.styleFrom(
                     backgroundColor: _accent,
                     shape: RoundedRectangleBorder(
@@ -605,7 +725,7 @@ class _ResultCard extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: () => _saveToGallery(context),
                   icon:  const Icon(Icons.download_rounded),
-                  label: const Text('Download'),
+                  label: Text(l.commonSave),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: _accent,
                     side: const BorderSide(color: _accent),
@@ -639,6 +759,7 @@ class _StatCol extends StatelessWidget {
         children: [
           Text(
             label,
+            textAlign: TextAlign.center,
             style: theme.textTheme.labelSmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -674,6 +795,7 @@ class _SettingsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context);
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -686,14 +808,14 @@ class _SettingsCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('AI Settings',
+          Text(l.upscalerSettings,
               style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w700,
               )),
           const SizedBox(height: 16),
 
           // ── Upscale factor ──────────────────────────────────────
-          Text('Upscale factor',
+          Text(l.upscalerFactorLabel,
               style: theme.textTheme.labelLarge),
           const SizedBox(height: 8),
           Row(
@@ -704,9 +826,10 @@ class _SettingsCard extends StatelessWidget {
                   onTap: () => notifier.setFactor(f),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
-                    margin: EdgeInsets.only(
-                        right: f == UpscaleFactor.x2 ? 8 : 0),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    margin: EdgeInsetsDirectional.only(
+                        end: f == UpscaleFactor.x2 ? 8 : 0),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 6, vertical: 14),
                     decoration: BoxDecoration(
                       color: sel
                           ? _accent.withValues(alpha: 0.12)
@@ -731,7 +854,9 @@ class _SettingsCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          f.description,
+                          f == UpscaleFactor.x4
+                              ? l.upscalerFactor4xDesc
+                              : l.upscalerFactor2xDesc,
                           textAlign: TextAlign.center,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
@@ -748,7 +873,7 @@ class _SettingsCard extends StatelessWidget {
           const SizedBox(height: 16),
 
           // ── Enhancement mode ────────────────────────────────────
-          Text('Optimise for',
+          Text(l.upscalerOptimiseFor,
               style: theme.textTheme.labelLarge),
           const SizedBox(height: 8),
           Wrap(
@@ -757,7 +882,12 @@ class _SettingsCard extends StatelessWidget {
             children: EnhanceMode.values.map((m) {
               final sel = m == state.mode;
               return ChoiceChip(
-                label: Text(m.label),
+                label: Text(switch (m) {
+                  EnhanceMode.auto => l.upscalerModeAuto,
+                  EnhanceMode.photo => l.upscalerModePhoto,
+                  EnhanceMode.illustration => l.upscalerModeIllustration,
+                  EnhanceMode.face => l.upscalerModeFace,
+                }),
                 selected: sel,
                 selectedColor: _accent.withValues(alpha: 0.14),
                 checkmarkColor: _accent,
@@ -781,9 +911,9 @@ class _SettingsCard extends StatelessWidget {
 
           // ── Denoise slider ───────────────────────────────────────
           _Slider(
-            label: 'Pre-denoise',
+            label: l.upscalerDenoise,
             icon: Icons.blur_circular_rounded,
-            tooltip: 'Reduces JPEG noise before upscaling',
+            tooltip: l.upscalerDenoiseTip,
             value: state.denoise,
             onChanged: notifier.setDenoise,
           ),
@@ -791,9 +921,9 @@ class _SettingsCard extends StatelessWidget {
 
           // ── Sharpen slider ───────────────────────────────────────
           _Slider(
-            label: 'Post-sharpen',
+            label: l.upscalerSharpen,
             icon: Icons.adjust_rounded,
-            tooltip: 'Adds crispness after upscaling',
+            tooltip: l.upscalerSharpenTip,
             value: state.sharpen,
             onChanged: notifier.setSharpen,
           ),
@@ -808,13 +938,11 @@ class _SettingsCard extends StatelessWidget {
               activeThumbColor: _accent,
               value: state.useCloud,
               title: Text(
-                'Cloud face enhancement',
+                l.upscalerCloudTitle,
                 style: theme.textTheme.labelLarge,
               ),
               subtitle: Text(
-                state.useCloud
-                    ? 'Your photo is uploaded to our server for processing.'
-                    : 'Off — photos stay on this device.',
+                state.useCloud ? l.upscalerCloudOn : l.upscalerCloudOff,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -834,30 +962,23 @@ class _SettingsCard extends StatelessWidget {
       await notifier.setUseCloud(false);
       return;
     }
+    final l = AppLocalizations.of(context);
     final accepted = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Send photos to the cloud?'),
-        content: const Text(
-          'Cloud mode uploads the photo you selected to our upscaling server '
-          'over an encrypted connection so it can be processed with a larger '
-          'AI model (GFPGAN + Real-ESRGAN).\n\n'
-          '• Only the image you choose to upscale is sent.\n'
-          '• The image is processed in memory and is not kept after the '
-          'result is returned.\n'
-          '• No account or personal details are sent with it.\n\n'
-          'You can turn this off at any time. On-device mode works fully '
-          'offline.',
+        title: Text(l.upscalerCloudDialogTitle),
+        content: SingleChildScrollView(
+          child: Text(l.upscalerCloudDialogBody),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Keep on-device'),
+            child: Text(l.upscalerCloudKeepLocal),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: _accent),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Enable cloud'),
+            child: Text(l.upscalerCloudEnable),
           ),
         ],
       ),
@@ -894,7 +1015,11 @@ class _Slider extends StatelessWidget {
         const SizedBox(width: 8),
         SizedBox(
           width: 88,
-          child: Text(label, style: theme.textTheme.bodySmall),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(label, style: theme.textTheme.bodySmall),
+          ),
         ),
         Expanded(
           child: SliderTheme(
@@ -913,10 +1038,10 @@ class _Slider extends StatelessWidget {
           ),
         ),
         SizedBox(
-          width: 32,
+          width: 36,
           child: Text(
             '${(value * 100).round()}%',
-            textAlign: TextAlign.right,
+            textAlign: TextAlign.end,
             style: theme.textTheme.labelSmall?.copyWith(
               fontFamily: 'monospace',
               color: _accent,
@@ -938,6 +1063,7 @@ class _UpscaleButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDone = state.status == UpscaleStatus.done;
+    final l = AppLocalizations.of(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -962,22 +1088,23 @@ class _UpscaleButton extends StatelessWidget {
               : notifier.upscale,
           borderRadius: BorderRadius.circular(18),
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 18),
+            padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Icon(Icons.auto_awesome_rounded,
                     color: Colors.white, size: 22),
                 const SizedBox(width: 10),
-                Text(
-                  isDone
-                      ? 'Upscale Again with New Settings'
-                      : 'Upscale with AI  ✨',
+                Flexible(
+                  child: Text(
+                  isDone ? l.upscalerUpscaleAgain : '${l.upscalerUpscale}  ✨',
+                  textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.2,
+                  ),
                   ),
                 ),
               ],
@@ -992,13 +1119,20 @@ class _UpscaleButton extends StatelessWidget {
 // ── Error card ─────────────────────────────────────────────────────────────
 
 class _ErrorCard extends StatelessWidget {
-  const _ErrorCard({required this.message, required this.onRetry});
-  final String     message;
+  const _ErrorCard({required this.error, required this.onRetry});
+  final UpscaleErrorKind? error;
   final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context);
+    final message = switch (error) {
+      UpscaleErrorKind.tooLarge => l.upscalerErrorTooLarge,
+      UpscaleErrorKind.unreadable => l.upscalerErrorUnreadable,
+      UpscaleErrorKind.network => l.upscalerErrorNetwork,
+      UpscaleErrorKind.generic || null => l.commonErrorGeneric,
+    };
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -1018,7 +1152,7 @@ class _ErrorCard extends StatelessWidget {
                   color: Color(0xFFEF4444), size: 20),
               const SizedBox(width: 8),
               Text(
-                'Upscale failed',
+                l.upscalerFailed,
                 style: theme.textTheme.titleSmall?.copyWith(
                   color: const Color(0xFFEF4444),
                   fontWeight: FontWeight.w700,
@@ -1035,7 +1169,7 @@ class _ErrorCard extends StatelessWidget {
           TextButton.icon(
             onPressed: onRetry,
             icon: const Icon(Icons.refresh_rounded, size: 18),
-            label: const Text('Retry'),
+            label: Text(l.commonRetry),
             style: TextButton.styleFrom(
                 foregroundColor: const Color(0xFFEF4444)),
           ),
@@ -1046,6 +1180,32 @@ class _ErrorCard extends StatelessWidget {
 }
 
 // ── Small helpers ──────────────────────────────────────────────────────────
+
+/// Localized text for a pipeline progress step.
+String _stepLabel(AppLocalizations l, UpscaleStep step) {
+  String arg(int i) => i < step.args.length ? '${step.args[i]}' : '';
+  return switch (step.stage) {
+    UpscaleStage.starting => l.upscalerStageStarting,
+    UpscaleStage.connecting => l.upscalerStageConnecting,
+    UpscaleStage.onDevice => l.upscalerStageOnDevice,
+    UpscaleStage.cloudUnavailable => l.upscalerStageCloudUnavailable,
+    UpscaleStage.uploading => l.upscalerStageUploading,
+    UpscaleStage.restoringFaces => l.upscalerStageRestoringFaces,
+    UpscaleStage.preparing => l.upscalerStagePreparing,
+    UpscaleStage.loadingModel => l.upscalerStageLoadingModel,
+    UpscaleStage.downloadingModel => l.upscalerStageDownloadingModel,
+    UpscaleStage.fallback => l.upscalerStageFallback,
+    UpscaleStage.decoding => l.upscalerStageDecoding,
+    UpscaleStage.resizingInput => l.upscalerStageResizing(arg(0), arg(1)),
+    UpscaleStage.denoising => l.upscalerStageDenoising,
+    UpscaleStage.upscaling => l.upscalerStageUpscaling(arg(0)),
+    UpscaleStage.aiTiles => l.upscalerStageAiTiles(arg(0), arg(1)),
+    UpscaleStage.sharpening => l.upscalerStageSharpening,
+    UpscaleStage.colourGrading => l.upscalerStageColour,
+    UpscaleStage.saving => l.upscalerStageSaving,
+    UpscaleStage.done => l.upscalerStageDone,
+  };
+}
 
 String _fmtBytes(int b) {
   if (b < 1024) return '${b}B';

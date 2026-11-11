@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart' show NumberFormat;
 import 'package:utility_toolbox/core/theme/app_colors.dart';
 import 'package:utility_toolbox/core/widgets/premium_button.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/password_generator/providers/password_providers.dart';
+import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 
 class PasswordGeneratorScreen extends ConsumerWidget {
   const PasswordGeneratorScreen({super.key});
@@ -16,7 +18,7 @@ class PasswordGeneratorScreen extends ConsumerWidget {
     final length   = ref.watch(passwordLengthProvider);
 
     return ToolScaffold(
-      title: 'Password Generator',
+      title: AppLocalizations.of(context).toolPasswordGeneratorTitle,
       accentColor: const Color(0xFF6366F1),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -51,6 +53,7 @@ class _PasswordDisplay extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final color = _strengthColor(strength);
+    final l = AppLocalizations.of(context);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -73,14 +76,16 @@ class _PasswordDisplay extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Your password',
+            l.passwordYours,
             style: theme.textTheme.labelMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 10),
           SelectableText(
-            password.isEmpty ? 'Select at least one character type' : password,
+            password.isEmpty ? l.passwordSelectType : password,
+            // Passwords are Latin characters; keep them LTR in Arabic/Urdu.
+            textDirection: password.isEmpty ? null : TextDirection.ltr,
             style: theme.textTheme.titleMedium?.copyWith(
               fontFamily: 'monospace',
               letterSpacing: 1.5,
@@ -106,46 +111,49 @@ class _StrengthBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme  = Theme.of(context);
+    final l      = AppLocalizations.of(context);
     final color  = _strengthColor(strength);
-    final label  = _strengthLabel(strength);
+    final label  = _strengthLabel(l, strength);
     final filled = strength.index + 1; // 1-4
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Strength', style: theme.textTheme.labelLarge),
-            Text(
-              label,
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: color,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: List.generate(4, (i) {
-            final active = i < filled;
-            return Expanded(
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                height: 6,
-                margin: EdgeInsets.only(right: i < 3 ? 6 : 0),
-                decoration: BoxDecoration(
-                  color: active
-                      ? color
-                      : theme.colorScheme.outline.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(3),
+    return MergeSemantics(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(l.passwordStrength, style: theme.textTheme.labelLarge),
+              Text(
+                label,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
-            );
-          }),
-        ),
-      ],
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: List.generate(4, (i) {
+              final active = i < filled;
+              return Expanded(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  height: 6,
+                  margin: EdgeInsetsDirectional.only(end: i < 3 ? 6 : 0),
+                  decoration: BoxDecoration(
+                    color: active
+                        ? color
+                        : theme.colorScheme.outline.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              );
+            }),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -161,6 +169,9 @@ class _LengthSlider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context);
+    final n = NumberFormat.decimalPattern(l.localeName);
+    final count = length.round();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,7 +179,7 @@ class _LengthSlider extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Length', style: theme.textTheme.labelLarge),
+            Text(l.passwordLength, style: theme.textTheme.labelLarge),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
@@ -176,7 +187,7 @@ class _LengthSlider extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                '${length.round()} chars',
+                l.passwordChars(count),
                 style: theme.textTheme.labelMedium?.copyWith(
                   color: AppColors.brand,
                   fontWeight: FontWeight.w700,
@@ -190,6 +201,8 @@ class _LengthSlider extends StatelessWidget {
           min: 6,
           max: 64,
           divisions: 58,
+          label: n.format(count),
+          semanticFormatterCallback: (v) => l.passwordChars(v.round()),
           onChanged: (v) {
             ref.read(passwordLengthProvider.notifier).state = v;
             regeneratePassword(ref);
@@ -198,8 +211,8 @@ class _LengthSlider extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('6', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-            Text('64', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+            Text(n.format(6), style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+            Text(n.format(64), style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
           ],
         ),
       ],
@@ -216,11 +229,12 @@ class _OptionsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Include',
+          l.passwordInclude,
           style: Theme.of(context).textTheme.labelLarge,
         ),
         const SizedBox(height: 10),
@@ -230,25 +244,30 @@ class _OptionsGrid extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           crossAxisSpacing: 10,
           mainAxisSpacing: 10,
-          childAspectRatio: 3.2,
+          // Two lines (name + sample) so long names (German, Russian) fit.
+          childAspectRatio: 2.6,
           children: [
             _OptionChip(
-              label: 'Uppercase  A–Z',
+              label: l.passwordUppercase,
+              sample: 'A–Z',
               provider: includeUpperProvider,
               ref: ref,
             ),
             _OptionChip(
-              label: 'Lowercase  a–z',
+              label: l.passwordLowercase,
+              sample: 'a–z',
               provider: includeLowerProvider,
               ref: ref,
             ),
             _OptionChip(
-              label: 'Numbers  0–9',
+              label: l.passwordNumbers,
+              sample: '0–9',
               provider: includeNumbersProvider,
               ref: ref,
             ),
             _OptionChip(
-              label: 'Symbols  !@#\$',
+              label: l.passwordSymbols,
+              sample: '!@#\$',
               provider: includeSymbolsProvider,
               ref: ref,
             ),
@@ -262,11 +281,13 @@ class _OptionsGrid extends StatelessWidget {
 class _OptionChip extends ConsumerWidget {
   const _OptionChip({
     required this.label,
+    required this.sample,
     required this.provider,
     required this.ref,
   });
 
   final String label;
+  final String sample;
   final StateProvider<bool> provider;
   final WidgetRef ref;
 
@@ -275,30 +296,55 @@ class _OptionChip extends ConsumerWidget {
     final enabled = watchRef.watch(provider);
     final theme   = Theme.of(context);
 
-    return GestureDetector(
-      onTap: () {
-        watchRef.read(provider.notifier).state = !enabled;
-        regeneratePassword(watchRef);
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        decoration: BoxDecoration(
-          color: enabled
-              ? AppColors.brand.withValues(alpha: 0.12)
-              : theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
+    final color =
+        enabled ? AppColors.brand : theme.colorScheme.onSurfaceVariant;
+    return Semantics(
+      button: true,
+      toggled: enabled,
+      label: label,
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: () {
+          watchRef.read(provider.notifier).state = !enabled;
+          regeneratePassword(watchRef);
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          decoration: BoxDecoration(
             color: enabled
-                ? AppColors.brand.withValues(alpha: 0.5)
-                : theme.colorScheme.outline.withValues(alpha: 0.4),
+                ? AppColors.brand.withValues(alpha: 0.12)
+                : theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: enabled
+                  ? AppColors.brand.withValues(alpha: 0.5)
+                  : theme.colorScheme.outline.withValues(alpha: 0.4),
+            ),
           ),
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          label,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: enabled ? AppColors.brand : theme.colorScheme.onSurfaceVariant,
-            fontWeight: enabled ? FontWeight.w600 : FontWeight.w400,
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: color,
+                  fontWeight: enabled ? FontWeight.w600 : FontWeight.w400,
+                ),
+              ),
+              Text(
+                sample,
+                textDirection: TextDirection.ltr,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: color,
+                  fontFamily: 'monospace',
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -316,6 +362,7 @@ class _ActionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Row(
       children: [
         Expanded(
@@ -325,14 +372,14 @@ class _ActionRow extends StatelessWidget {
                 : () {
                     Clipboard.setData(ClipboardData(text: password));
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Password copied!'),
-                        duration: Duration(seconds: 2),
+                      SnackBar(
+                        content: Text(l.passwordCopied),
+                        duration: const Duration(seconds: 2),
                       ),
                     );
                   },
             icon: Icons.copy_rounded,
-            label: 'Copy',
+            label: l.commonCopy,
             accent: AppColors.brand,
           ),
         ),
@@ -342,7 +389,7 @@ class _ActionRow extends StatelessWidget {
           child: PremiumButton(
             onPressed: () => regeneratePassword(ref),
             icon: Icons.refresh_rounded,
-            label: 'Generate New',
+            label: l.passwordGenerate,
             accent: AppColors.brand,
           ),
         ),
@@ -360,9 +407,9 @@ Color _strengthColor(PasswordStrength s) => switch (s) {
       PasswordStrength.strong => const Color(0xFF22C55E),
     };
 
-String _strengthLabel(PasswordStrength s) => switch (s) {
-      PasswordStrength.weak   => 'Weak',
-      PasswordStrength.fair   => 'Fair',
-      PasswordStrength.good   => 'Good',
-      PasswordStrength.strong => 'Strong',
+String _strengthLabel(AppLocalizations l, PasswordStrength s) => switch (s) {
+      PasswordStrength.weak   => l.passwordWeak,
+      PasswordStrength.fair   => l.passwordFair,
+      PasswordStrength.good   => l.passwordGood,
+      PasswordStrength.strong => l.passwordStrong,
     };

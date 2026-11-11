@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108">
+<defs>
+ <linearGradient id="bgC" x1="0" y1="0" x2="1" y2="1">
+  <stop offset="0" stop-color="#6E5BFF"/><stop offset="1" stop-color="#2B1FB0"/>
+ </linearGradient>
+ <linearGradient id="gC" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#38E8FF"/><stop offset="1" stop-color="#7C6FFF"/></linearGradient>
+</defs>
+<rect width="108" height="108" fill="url(#bgC)"/>
+<!-- 2x2 tiles in a toolbox-ish frame -->
+<path d="M44 33v-3a5 5 0 0 1 5-5h10a5 5 0 0 1 5 5v3" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+<rect x="27" y="32" width="25.5" height="24" rx="6" fill="#fff"/>
+<rect x="55.5" y="32" width="25.5" height="24" rx="6" fill="#FF7A50"/>
+<rect x="27" y="59" width="25.5" height="24" rx="6" fill="#12C2E9"/>
+<rect x="55.5" y="59" width="25.5" height="24" rx="6" fill="#fff"/>
+<rect x="33" y="37.5" width="13" height="13" rx="2.5" fill="none" stroke="#3B2FCC" stroke-width="2.6"/><rect x="37.3" y="41.8" width="4.4" height="4.4" fill="#3B2FCC"/>
+<path d="M62.5 37h7.5l4 4v10h-11.5z" fill="#fff"/>
+<path d="M33 66.5h13M33 71h13M33 75.5h8" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
+<path d="M68.25 63.5l2.2 5.3 5.3 2.2-5.3 2.2-2.2 5.3-2.2-5.3-5.3-2.2 5.3-2.2z" fill="#3B2FCC"/>
+</svg>

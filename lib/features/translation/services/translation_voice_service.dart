@@ -6,6 +6,18 @@ import 'package:path_provider/path_provider.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
+/// Error codes the translation providers store instead of English text; the
+/// screen maps them to localized messages. Speech-engine errors are passed
+/// through as the engine's own `error_*` codes.
+abstract final class TranslateErrorCode {
+  static const micBlocked = 'mic_blocked';
+  static const micNeeded = 'mic_needed';
+  static const speechUnavailable = 'speech_unavailable';
+  static const downloadFailed = 'download_failed';
+  static const translateFailed = 'translate_failed';
+  static const audioFailed = 'audio_failed';
+}
+
 /// Wraps on-device speech-to-text (voice input) and text-to-speech
 /// (spoken playback + saved audio file) for the Translation tool.
 ///
@@ -45,10 +57,7 @@ class TranslationVoiceService {
     try {
       final locales = await _speech.locales();
       for (final l in locales) {
-        final id = l.localeId.toLowerCase().replaceAll('_', '-');
-        if (id.startsWith(cleanCode) || id.contains(cleanCode)) {
-          return l.localeId;
-        }
+        if (_sameLanguage(l.localeId, cleanCode)) return l.localeId;
       }
     } catch (_) {}
 
@@ -90,7 +99,7 @@ class TranslationVoiceService {
   }) async {
     final ok = await initSpeech();
     if (!ok) {
-      onError?.call('Speech recognition is not available on this device.');
+      onError?.call(TranslateErrorCode.speechUnavailable);
       return;
     }
 
@@ -123,6 +132,9 @@ class TranslationVoiceService {
   Future<void> speak(String text, String isoCode) async {
     await _setTtsLanguage(isoCode);
     await _tts.stop();
+    // Without this, speak() returns as soon as speech *starts*, so the
+    // caller's "speaking" state (Play ↔ Stop button) reset instantly.
+    await _tts.awaitSpeakCompletion(true);
     await _tts.speak(text);
   }
 
@@ -144,18 +156,15 @@ class TranslationVoiceService {
 
     try {
       await _tts.awaitSynthCompletion(true);
-      await _tts.synthesizeToFile(text, wavName);
+      // Pass a full path: with a bare file name, flutter_tts on Android
+      // writes into the shared Music collection (MediaStore), never into
+      // the app's temp/documents dirs — so the file was never found and
+      // "Generate audio file" always failed.
+      final file = File('${(await getTemporaryDirectory()).path}/$wavName');
+      await _tts.synthesizeToFile(text, file.path, true);
 
-      final candidateDirs = <Directory>[
-        await getTemporaryDirectory(),
-        await getApplicationDocumentsDirectory(),
-      ];
-
-      for (final dir in candidateDirs) {
-        final file = File('${dir.path}/$wavName');
-        if (await file.exists() && await file.length() > 0) {
-          return file.path;
-        }
+      if (await file.exists() && await file.length() > 0) {
+        return file.path;
       }
       return null;
     } catch (_) {
@@ -168,8 +177,8 @@ class TranslationVoiceService {
     try {
       final dynamic languages = await _tts.getLanguages;
       if (languages is List) {
-        final match = languages.cast<String>().firstWhere(
-          (l) => l.toLowerCase().replaceAll('_', '-').startsWith(cleanCode),
+        final match = languages.map((l) => l.toString()).firstWhere(
+          (l) => _sameLanguage(l, cleanCode),
           orElse: () => '',
         );
         if (match.isNotEmpty) {
@@ -194,6 +203,16 @@ class TranslationVoiceService {
     try {
       await _tts.setLanguage(fallback);
     } catch (_) {}
+  }
+
+  /// Whether device locale [localeId] ("fil-PH", "iw_IL", "en-US") is in
+  /// language [code]. Compares the language subtag exactly — a prefix or
+  /// substring test matched Finnish "fi" to Filipino "fil-PH" — and maps
+  /// Android's legacy codes (iw = he, in = id, nb = no, fil = tl).
+  static bool _sameLanguage(String localeId, String code) {
+    const legacy = {'iw': 'he', 'in': 'id', 'ji': 'yi', 'nb': 'no', 'fil': 'tl'};
+    final lang = localeId.toLowerCase().split(RegExp(r'[-_]')).first;
+    return (legacy[lang] ?? lang) == code;
   }
 
   void dispose() {

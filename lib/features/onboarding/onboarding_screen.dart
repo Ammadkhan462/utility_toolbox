@@ -78,8 +78,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     super.dispose();
   }
 
+  bool _finishing = false;
+
   Future<void> _finish() async {
-    await ref.read(storageServiceProvider).setHasSeenOnboarding(true);
+    // Skip + Get started (or a double tap) must only navigate once.
+    if (_finishing) return;
+    _finishing = true;
+    try {
+      await ref.read(storageServiceProvider).setHasSeenOnboarding(true);
+    } catch (_) {
+      // A failed prefs write shouldn't trap the user on this screen; worst
+      // case they see onboarding once more next launch.
+    }
     if (mounted) context.go(AppRoutes.home);
   }
 
@@ -118,165 +128,174 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           : SystemUiOverlayStyle.dark.copyWith(
               statusBarColor: Colors.transparent,
             ),
-      child: Scaffold(
-        body: Container(
-          width: size.width,
-          height: size.height,
-          // Same brand gradient as the splash screen — deep indigo→navy at
-          // night, vivid indigo→teal by day — so the two screens feel like
-          // one continuous, theme-correct sequence.
-          decoration: BoxDecoration(
-            gradient: AppColors.brandGradient(dark: isDark),
-          ),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              // ── Ambient glow orbs — tint animates with the active slide ──
-              AnimatedPositioned(
-                duration: const Duration(milliseconds: 500),
-                curve: Curves.easeOut,
-                top: -70,
-                left: _page.isEven ? -70 : size.width - 170,
-                child: _GlowOrb(
-                  size: 240,
-                  color: Colors.white.withValues(alpha: isDark ? 0.14 : 0.20),
+      // System back steps to the previous slide instead of closing the app.
+      child: PopScope(
+        canPop: _page == 0,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) _back();
+        },
+        child: Scaffold(
+          body: Container(
+            width: size.width,
+            height: size.height,
+            // Same brand gradient as the splash screen — deep indigo→navy at
+            // night, vivid indigo→teal by day — so the two screens feel like
+            // one continuous, theme-correct sequence.
+            decoration: BoxDecoration(
+              gradient: AppColors.brandGradient(dark: isDark),
+            ),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // ── Ambient glow orbs — tint animates with the active slide ──
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeOut,
+                  top: -70,
+                  left: _page.isEven ? -70 : size.width - 170,
+                  child: _GlowOrb(
+                    size: 240,
+                    color: Colors.white.withValues(alpha: isDark ? 0.14 : 0.20),
+                  ),
                 ),
-              ),
-              AnimatedPositioned(
-                duration: const Duration(milliseconds: 500),
-                curve: Curves.easeOut,
-                bottom: -60,
-                right: _page.isEven ? -60 : size.width - 160,
-                child: _GlowOrb(
-                  size: 220,
-                  color: Colors.white.withValues(alpha: isDark ? 0.10 : 0.16),
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeOut,
+                  bottom: -60,
+                  right: _page.isEven ? -60 : size.width - 160,
+                  child: _GlowOrb(
+                    size: 220,
+                    color: Colors.white.withValues(alpha: isDark ? 0.10 : 0.16),
+                  ),
                 ),
-              ),
 
-              SafeArea(
-                child: Column(
-                  children: [
-                    // ── Top bar: progress + skip ─────────────────────────
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 8, 20, 0),
-                      child: Row(
-                        children: [
-                          Text(
-                            '${_page + 1} / ${pages.length}',
-                            style: TextStyle(
-                              color: Colors.white.withValues(
-                                alpha: isDark ? 0.45 : 0.75,
+                SafeArea(
+                  child: Column(
+                    children: [
+                      // ── Top bar: progress + skip ─────────────────────────
+                      Padding(
+                        padding: const EdgeInsetsDirectional.fromSTEB(24, 8, 20, 0),
+                        child: Row(
+                          children: [
+                            Text(
+                              '${_page + 1} / ${pages.length}',
+                              style: TextStyle(
+                                color: Colors.white.withValues(
+                                  alpha: isDark ? 0.45 : 0.75,
+                                ),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.3,
                               ),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.3,
                             ),
-                          ),
-                          const Spacer(),
-                          AnimatedOpacity(
-                            opacity: data.isLast ? 0.0 : 1.0,
-                            duration: const Duration(milliseconds: 250),
-                            child: IgnorePointer(
-                              ignoring: data.isLast,
-                              child: TextButton(
-                                onPressed: _finish,
-                                style: TextButton.styleFrom(
-                                  foregroundColor: Colors.white.withValues(
-                                    alpha: isDark ? 0.7 : 0.9,
+                            const Spacer(),
+                            AnimatedOpacity(
+                              opacity: data.isLast ? 0.0 : 1.0,
+                              duration: const Duration(milliseconds: 250),
+                              child: IgnorePointer(
+                                ignoring: data.isLast,
+                                child: TextButton(
+                                  onPressed: _finish,
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.white.withValues(
+                                      alpha: isDark ? 0.7 : 0.9,
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 8,
+                                    ),
                                   ),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 14,
-                                    vertical: 8,
+                                  child: Text(
+                                    l.onboardingSkip,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                 ),
-                                child: Text(
-                                  l.onboardingSkip,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // ── Slides ────────────────────────────────────────────
+                      Expanded(
+                        child: PageView.builder(
+                          controller: _pageController,
+                          itemCount: pages.length,
+                          onPageChanged: (i) => setState(() => _page = i),
+                          itemBuilder: (context, i) =>
+                              _SlideContent(data: pages[i], isDark: isDark),
+                        ),
+                      ),
+
+                      // ── Page indicator ───────────────────────────────────
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(pages.length, (i) {
+                          final active = i == _page;
+                          return AnimatedContainer(
+                            duration: const Duration(milliseconds: 280),
+                            curve: Curves.easeOut,
+                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            width: active ? 26 : 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(4),
+                              gradient: active
+                                  ? LinearGradient(colors: data.colors)
+                                  : null,
+                              color: active
+                                  ? null
+                                  : Colors.white.withValues(
+                                      alpha: isDark ? 0.25 : 0.35,
+                                    ),
+                            ),
+                          );
+                        }),
+                      ),
+
+                      const SizedBox(height: 28),
+
+                      // ── Bottom controls: back + CTA ──────────────────────
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+                        child: Row(
+                          children: [
+                            AnimatedOpacity(
+                              duration: const Duration(milliseconds: 220),
+                              opacity: _page == 0 ? 0.0 : 1.0,
+                              child: IgnorePointer(
+                                ignoring: _page == 0,
+                                child: _GlassCircleButton(
+                                  icon: Icons.arrow_back_rounded,
+                                  isDark: isDark,
+                                  onTap: _back,
                                 ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // ── Slides ────────────────────────────────────────────
-                    Expanded(
-                      child: PageView.builder(
-                        controller: _pageController,
-                        itemCount: pages.length,
-                        onPageChanged: (i) => setState(() => _page = i),
-                        itemBuilder: (context, i) =>
-                            _SlideContent(data: pages[i], isDark: isDark),
-                      ),
-                    ),
-
-                    // ── Page indicator ───────────────────────────────────
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(pages.length, (i) {
-                        final active = i == _page;
-                        return AnimatedContainer(
-                          duration: const Duration(milliseconds: 280),
-                          curve: Curves.easeOut,
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          width: active ? 26 : 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(4),
-                            gradient: active
-                                ? LinearGradient(colors: data.colors)
-                                : null,
-                            color: active
-                                ? null
-                                : Colors.white.withValues(
-                                    alpha: isDark ? 0.25 : 0.35,
-                                  ),
-                          ),
-                        );
-                      }),
-                    ),
-
-                    const SizedBox(height: 28),
-
-                    // ── Bottom controls: back + CTA ──────────────────────
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
-                      child: Row(
-                        children: [
-                          AnimatedOpacity(
-                            duration: const Duration(milliseconds: 220),
-                            opacity: _page == 0 ? 0.0 : 1.0,
-                            child: IgnorePointer(
-                              ignoring: _page == 0,
-                              child: _GlassCircleButton(
-                                icon: Icons.arrow_back_rounded,
-                                isDark: isDark,
-                                onTap: _back,
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: _GradientCtaButton(
+                                label: data.isLast
+                                    ? l.onboardingStart
+                                    : l.onboardingNext,
+                                icon: data.isLast
+                                    ? Icons.check_rounded
+                                    : Icons.arrow_forward_rounded,
+                                colors: data.colors,
+                                onTap: _next,
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: _GradientCtaButton(
-                              label: data.isLast ? l.onboardingStart : l.onboardingNext,
-                              icon: data.isLast
-                                  ? Icons.check_rounded
-                                  : Icons.arrow_forward_rounded,
-                              colors: data.colors,
-                              onTap: _next,
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -453,15 +472,18 @@ class _IconCluster extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Soft blurred glow behind the whole cluster
-          ImageFiltered(
-            imageFilter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-            child: Container(
-              width: 150,
-              height: 150,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: colors[0].withValues(alpha: 0.45),
+          // Soft glow behind the whole cluster. A radial gradient looks the
+          // same as a blurred disc but costs nothing on low-end GPUs.
+          Container(
+            width: 220,
+            height: 220,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  colors[0].withValues(alpha: 0.45),
+                  colors[0].withValues(alpha: 0),
+                ],
               ),
             ),
           ),
@@ -584,12 +606,17 @@ class _GlowOrb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ImageFiltered(
-      imageFilter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+    // Radial gradient instead of ImageFiltered blur: the orbs move on every
+    // page change, and re-blurring them each frame janks low-end phones.
+    return Container(
+      width: size * 1.4,
+      height: size * 1.4,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [color, color.withValues(alpha: 0)],
+          stops: const [0.35, 1.0],
+        ),
       ),
     );
   }

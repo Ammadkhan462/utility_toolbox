@@ -1,0 +1,470 @@
+{
+  "en-US": {
+    "title": "Toolbox: PDF Scanner & QR",
+    "short": "Scan to PDF, sign & edit PDFs, QR scanner, translator. 45 tools, fast & private.",
+    "full": "Scan documents to PDF, read any QR code, sign and edit PDFs, remove photo backgrounds, copy text from photos and translate offline — 45 tools in one small, fast app.\n\nUtility Toolbox works where you already are: share a photo or PDF to it from any app, select text anywhere and tap Translate, or long-press the icon to jump straight to the scanner.\n\n📄 SCAN & PDF\n• Document Scanner – automatic edge detection, multi-page, clean PDF in seconds\n• Image to PDF – turn photos into one PDF\n• Sign PDF – draw your signature once and place it on any page\n• Organize PDF – reorder, rotate and delete pages\n• Watermark & Page Numbers – stamp text or number every page\n• Merge PDF, Compress PDF, Split PDF (extract or remove pages)\n• PDF to JPG and PDF to Text – save pages as images or copy their text\n• Lock PDF with a password, Unlock PDF you have the password for\n• Word to PDF – convert .docx files\n\n🔳 QR & BARCODE\n• Scan QR codes and barcodes from the camera or from a photo\n• Create QR codes for links, text and contacts\n• WiFi QR – share your WiFi without typing the password\n• Quick Settings tile for one-tap scanning\n\n🖼️ PHOTOS\n• Remove Background – cut out the subject and save a transparent PNG, or put it on a white background for passport and ID photos\n• Compress photos to a smaller file size\n• Resize to exact pixels and convert JPG, PNG and WEBP\n• Photo editor with filters, crop and adjustments\n• AI Upscaler – enlarge photos up to 4×\n\n🔤 TEXT & TRANSLATE\n• Image to Text (OCR) – copy text from any photo, now also in Hindi, Chinese, Japanese and Korean\n• Offline translator with voice input and speech\n• Translate from any app's text-selection menu\n• Word counter, case converter, Base64\n• Clipboard manager\n\n🧮 CALCULATE & CONVERT\n• Currency Converter – 150+ currencies, works offline with the last saved rates\n• Percentage & Discount – sale prices, tip split and GST/VAT\n• Calculator, Age & Date calculator, Loan & EMI calculator, BMI calculator\n• Unit converter, World clock with home-screen widget, Color picker\n\n🔦 EVERYDAY TOOLS\n• Flashlight with SOS, strobe and screen light\n• Bubble Level – check that a shelf or frame is straight\n• Stopwatch with laps and countdown Timer\n• Direct Chat – open a WhatsApp chat with any number without saving it to your contacts\n• Compass, Save location\n\n📶 MORE\n• Internet speed test, IP & ping\n• Password generator, Hash generator\n• Video to MP3, GIF and MP4\n\nWHY UTILITY TOOLBOX\n✔ Fast: opens straight to your tools, with search, favorites and recent tools\n✔ Offline: scanning, PDF tools, OCR and translation run on your phone\n✔ Private: your files are never uploaded unless you turn on a cloud option yourself\n✔ My Files: find, open and share everything you created\n✔ Every tool in your language: 12 languages, light and dark theme\n\nFree with ads. Remove ads with a one-time purchase — no subscription.\n\nPrivacy policy: https://github.com/Ammadkhan462/utility_toolbox/blob/master/PRIVACY_POLICY.md",
+    "captions": [
+      [
+        "Scan documents to PDF",
+        "Auto edges, multi-page, clean PDF"
+      ],
+      [
+        "Sign & edit PDFs",
+        "Sign, organize pages, add watermarks"
+      ],
+      [
+        "Scan any QR code",
+        "From the camera or a photo"
+      ],
+      [
+        "Remove photo background",
+        "Transparent PNG or white for ID photos"
+      ],
+      [
+        "Translate from any app",
+        "Select text anywhere, tap Translate"
+      ],
+      [
+        "Everyday tools",
+        "Flashlight, currency, percentage & more"
+      ],
+      [
+        "Resize & convert photos",
+        "Exact pixels, JPG, PNG and WEBP"
+      ],
+      [
+        "45 tools, one small app",
+        "Fast, private, in your language"
+      ]
+    ]
+  },
+  "ar": {
+    "title": "Toolbox: ماسح PDF وقارئ QR",
+    "short": "ماسح PDF، توقيع PDF، قارئ QR، إزالة خلفية الصور ومترجم. 45 أداة في تطبيق واحد",
+    "full": "ماسح ضوئي للمستندات إلى PDF، وقارئ QR وباركود، وتوقيع ملفات PDF وتعديلها، وإزالة خلفية الصور، ونسخ النص من الصور، ومترجم يعمل بدون إنترنت — 45 أداة في تطبيق واحد صغير وسريع.\n\nيعمل Utility Toolbox من أي مكان: شارك صورة أو ملف PDF معه من أي تطبيق، أو حدّد أي نص واضغط \"ترجمة\"، أو اضغط مطولًا على الأيقونة لتفتح الماسح الضوئي مباشرة.\n\n📄 المسح الضوئي و PDF\n• ماسح المستندات – اكتشاف تلقائي للحواف، عدة صفحات، ملف PDF نظيف في ثوانٍ\n• صورة إلى PDF – حوّل الصور إلى ملف PDF واحد\n• توقيع PDF – ارسم توقيعك مرة واحدة وضعه على أي صفحة\n• تنظيم PDF – أعد ترتيب الصفحات أو دوّرها أو احذفها\n• علامة مائية وأرقام صفحات – أضف نصًا أو رقّم كل الصفحات\n• دمج PDF، ضغط PDF، تقسيم PDF (استخراج الصفحات أو حذفها)\n• PDF إلى JPG و PDF إلى نص – احفظ الصفحات كصور أو انسخ نصها\n• قفل PDF بكلمة مرور، وفتح قفل PDF إذا كنت تعرف كلمة المرور\n• Word إلى PDF – حوّل ملفات docx\n\n🔳 QR والباركود\n• امسح رموز QR والباركود بالكاميرا أو من صورة\n• أنشئ رموز QR للروابط والنصوص وجهات الاتصال\n• رمز QR لشبكة WiFi – شارك الواي فاي دون كتابة كلمة المرور\n• زر في الإعدادات السريعة للمسح بلمسة واحدة\n\n🖼️ الصور\n• إزالة الخلفية – افصل الشخص أو العنصر عن الخلفية واحفظه PNG شفافًا، أو ضعه على خلفية بيضاء لصور الجواز والهوية\n• ضغط الصور لتقليل حجم الملف\n• تغيير المقاس بالبكسل بدقة وتحويل JPG و PNG و WEBP\n• محرر صور مع فلاتر وقص وتعديلات\n• تكبير الصور بالذكاء الاصطناعي (AI) – حتى 4×\n\n🔤 النصوص والترجمة\n• صورة إلى نص (OCR) – انسخ النص من أي صورة، والآن بالهندية والصينية واليابانية والكورية أيضًا\n• مترجم بدون إنترنت مع الإدخال الصوتي والنطق\n• ترجم من قائمة تحديد النص في أي تطبيق\n• عداد الكلمات، تغيير حالة الأحرف، Base64\n• مدير الحافظة\n\n🧮 الحساب والتحويل\n• محوّل العملات – أكثر من 150 عملة، ويعمل بدون إنترنت بآخر أسعار محفوظة\n• النسبة المئوية والخصم – السعر بعد الخصم، تقسيم البقشيش، وضريبة القيمة المضافة\n• آلة حاسبة، حاسبة العمر والتاريخ، حاسبة القرض والأقساط (EMI)، حاسبة مؤشر كتلة الجسم\n• محول الوحدات، ساعة عالمية مع ويدجت للشاشة الرئيسية، منتقي الألوان\n\n🔦 أدوات يومية\n• كشاف مع SOS ووميض وإضاءة الشاشة\n• ميزان الماء – تأكد من استواء رف أو إطار صورة\n• ساعة إيقاف مع اللفات ومؤقت تنازلي\n• الدردشة المباشرة – افتح محادثة واتساب مع أي رقم دون حفظه في جهات الاتصال\n• البوصلة (اتجاه القبلة)، حفظ الموقع\n\n📶 المزيد\n• قياس سرعة الإنترنت، IP و Ping\n• مولد كلمات المرور، مولد الهاش\n• تحويل الفيديو إلى MP3 و GIF و MP4\n\nلماذا UTILITY TOOLBOX\n✔ سريع: يفتح مباشرة على أدواتك، مع البحث والمفضلة والأدوات الأخيرة\n✔ بدون إنترنت: المسح الضوئي وأدوات PDF و OCR والترجمة تعمل على هاتفك\n✔ خاص: لا تُرفع ملفاتك أبدًا إلا إذا فعّلت خيارًا سحابيًا بنفسك\n✔ ملفاتي: اعثر على كل ما أنشأته وافتحه وشاركه\n✔ كل الأدوات بلغتك: 12 لغة، مظهر فاتح وداكن\n\nمجاني مع إعلانات. أزل الإعلانات بشراء لمرة واحدة — بدون اشتراك.\n\nسياسة الخصوصية: https://github.com/Ammadkhan462/utility_toolbox/blob/master/PRIVACY_POLICY.md",
+    "captions": [
+      [
+        "امسح المستندات إلى PDF",
+        "حواف تلقائية، عدة صفحات، PDF نظيف"
+      ],
+      [
+        "وقّع ملفات PDF وعدّلها",
+        "توقيع وترتيب الصفحات وعلامة مائية"
+      ],
+      [
+        "امسح أي رمز QR",
+        "بالكاميرا أو من صورة"
+      ],
+      [
+        "أزل خلفية الصور",
+        "PNG شفاف أو خلفية بيضاء"
+      ],
+      [
+        "ترجم من أي تطبيق",
+        "حدّد النص واضغط \"ترجمة\""
+      ],
+      [
+        "أدوات يومية",
+        "كشاف، عملات، نسبة مئوية والمزيد"
+      ],
+      [
+        "غيّر حجم الصور وحوّلها",
+        "بكسل دقيق، JPG و PNG و WEBP"
+      ],
+      [
+        "45 أداة في تطبيق صغير",
+        "سريع وخاص وبلغتك"
+      ]
+    ]
+  },
+  "bn-BD": {
+    "title": "Toolbox: PDF স্ক্যানার ও QR",
+    "short": "PDF স্ক্যানার, PDF সাইন, QR স্ক্যানার, ছবির ব্যাকগ্রাউন্ড সরান, অনুবাদ। ৪৫টি টুল",
+    "full": "ডকুমেন্ট স্ক্যান করে PDF বানান, যেকোনো QR কোড পড়ুন, PDF সাইন ও এডিট করুন, ছবির ব্যাকগ্রাউন্ড সরান, ছবি থেকে লেখা কপি করুন আর অফলাইনে অনুবাদ করুন — ৪৫টি টুল একটি ছোট, দ্রুত অ্যাপে।\n\nUtility Toolbox আপনার হাতের কাছেই কাজ করে: যেকোনো অ্যাপ থেকে ছবি বা PDF শেয়ার করুন, যেকোনো জায়গায় লেখা সিলেক্ট করে \"অনুবাদ\" চাপুন, বা আইকনে চেপে ধরে সরাসরি স্ক্যানার খুলুন।\n\n📄 স্ক্যান ও PDF\n• ডকুমেন্ট স্ক্যানার – অটো কিনারা শনাক্ত, একাধিক পাতা, কয়েক সেকেন্ডে পরিষ্কার PDF\n• ছবি থেকে PDF – ছবিগুলো একটি PDF-এ\n• PDF সাইন করুন – একবার সই এঁকে যেকোনো পাতায় বসান\n• PDF সাজান – পাতার ক্রম বদলান, ঘোরান ও মুছুন\n• জলছাপ ও পৃষ্ঠা নম্বর – প্রতিটি পাতায় লেখা বা নম্বর বসান\n• PDF জোড়া লাগান, PDF ছোট করুন, PDF ভাগ করুন (পাতা আলাদা বা মুছুন)\n• PDF থেকে JPG ও PDF থেকে টেক্সট – পাতা ছবি হিসেবে সেভ বা লেখা কপি\n• PDF-এ পাসওয়ার্ড দিন, জানা পাসওয়ার্ড দিয়ে PDF আনলক করুন\n• Word থেকে PDF – .docx ফাইল রূপান্তর\n\n🔳 QR ও বারকোড\n• ক্যামেরা বা ছবি থেকে QR কোড ও বারকোড স্ক্যান\n• লিংক, লেখা ও কন্টাক্টের জন্য QR কোড তৈরি\n• WiFi QR – পাসওয়ার্ড না লিখেই WiFi শেয়ার\n• এক ট্যাপে স্ক্যানের জন্য কুইক সেটিংস টাইল\n\n🖼️ ছবি\n• ব্যাকগ্রাউন্ড সরান – ছবি থেকে মানুষ বা জিনিস আলাদা করে স্বচ্ছ PNG সেভ করুন, বা পাসপোর্ট সাইজ ছবির জন্য সাদা ব্যাকগ্রাউন্ড দিন\n• ছবির ফাইল সাইজ কমান\n• সঠিক পিক্সেলে সাইজ বদল এবং JPG, PNG ও WEBP রূপান্তর\n• ফিল্টার, ক্রপ ও অ্যাডজাস্টমেন্টসহ ফটো এডিটর\n• AI আপস্কেলার – ছবি 4× পর্যন্ত বড় করুন\n\n🔤 লেখা ও অনুবাদ\n• ছবি থেকে লেখা (OCR) – যেকোনো ছবির লেখা কপি করুন, এখন হিন্দি, চীনা, জাপানি ও কোরিয়ানেও\n• ভয়েস ইনপুট ও উচ্চারণসহ অফলাইন অনুবাদক (বাংলা ↔ ইংরেজি সহ)\n• যেকোনো অ্যাপের টেক্সট-সিলেকশন মেনু থেকে অনুবাদ\n• শব্দ গণনা, কেস বদল, Base64\n• ক্লিপবোর্ড ম্যানেজার\n\n🧮 হিসাব ও রূপান্তর\n• মুদ্রা রূপান্তর – ১৫০+ মুদ্রা, শেষ সেভ করা রেট দিয়ে অফলাইনেও চলে\n• শতাংশ ও ছাড় – ছাড়ের পর দাম, টিপ ভাগ এবং VAT\n• ক্যালকুলেটর, বয়স ও তারিখ ক্যালকুলেটর, লোন ও EMI ক্যালকুলেটর, BMI ক্যালকুলেটর\n• ইউনিট কনভার্টার, হোম-স্ক্রিন উইজেটসহ বিশ্ব ঘড়ি, কালার পিকার\n\n🔦 প্রতিদিনের টুল\n• SOS, স্ট্রোব ও স্ক্রিন লাইটসহ টর্চ\n• বাবল লেভেল – তাক বা ফ্রেম সোজা আছে কি না দেখুন\n• ল্যাপসহ স্টপওয়াচ ও কাউন্টডাউন টাইমার\n• সরাসরি চ্যাট – নম্বর কন্টাক্টে সেভ না করেই WhatsApp-এ চ্যাট খুলুন\n• কম্পাস, লোকেশন সেভ\n\n📶 আরও\n• ইন্টারনেট স্পিড টেস্ট, IP ও পিং\n• পাসওয়ার্ড জেনারেটর, হ্যাশ জেনারেটর\n• ভিডিও থেকে MP3, GIF ও MP4\n\nকেন UTILITY TOOLBOX\n✔ দ্রুত: খুললেই সরাসরি টুলস, সাথে সার্চ, প্রিয় ও সাম্প্রতিক টুল\n✔ অফলাইন: স্ক্যান, PDF টুলস, OCR ও অনুবাদ আপনার ফোনেই চলে\n✔ প্রাইভেট: আপনি নিজে ক্লাউড অপশন চালু না করলে কোনো ফাইল আপলোড হয় না\n✔ আমার ফাইল: যা বানিয়েছেন সব খুঁজুন, খুলুন ও শেয়ার করুন\n✔ প্রতিটি টুল আপনার ভাষায়: 12টি ভাষা, লাইট ও ডার্ক থিম\n\nবিজ্ঞাপনসহ ফ্রি। একবার কিনে বিজ্ঞাপন সরান — কোনো সাবস্ক্রিপশন নেই।\n\nপ্রাইভেসি পলিসি: https://github.com/Ammadkhan462/utility_toolbox/blob/master/PRIVACY_POLICY.md",
+    "captions": [
+      [
+        "ডকুমেন্ট স্ক্যান করে PDF",
+        "অটো কিনারা, একাধিক পাতা, পরিষ্কার PDF"
+      ],
+      [
+        "PDF সাইন ও এডিট",
+        "সই, পাতা সাজানো, জলছাপ"
+      ],
+      [
+        "যেকোনো QR কোড স্ক্যান",
+        "ক্যামেরা বা ছবি থেকে"
+      ],
+      [
+        "ছবির ব্যাকগ্রাউন্ড সরান",
+        "স্বচ্ছ PNG বা সাদা ব্যাকগ্রাউন্ড"
+      ],
+      [
+        "যেকোনো অ্যাপ থেকে অনুবাদ",
+        "লেখা সিলেক্ট করে \"অনুবাদ\" চাপুন"
+      ],
+      [
+        "প্রতিদিনের টুল",
+        "টর্চ, মুদ্রা, শতাংশ ও আরও অনেক"
+      ],
+      [
+        "ছবির সাইজ ও ফরম্যাট বদলান",
+        "সঠিক পিক্সেল, JPG, PNG ও WEBP"
+      ],
+      [
+        "৪৫টি টুল, একটি ছোট অ্যাপ",
+        "দ্রুত, প্রাইভেট, আপনার ভাষায়"
+      ]
+    ]
+  },
+  "de-DE": {
+    "title": "Toolbox: PDF Scanner & QR-Code",
+    "short": "PDF Scanner, PDF unterschreiben, QR-Scanner, Hintergrund entfernen. 45 Tools.",
+    "full": "Dokumente als PDF scannen, jeden QR-Code lesen, PDFs unterschreiben und bearbeiten, Hintergründe aus Fotos entfernen, Text aus Bildern kopieren und offline übersetzen – 45 Tools in einer kleinen, schnellen App.\n\nUtility Toolbox funktioniert dort, wo du gerade bist: Teile ein Foto oder PDF aus jeder App, markiere irgendwo Text und tippe auf „Übersetzen“ oder halte das App-Symbol gedrückt, um direkt den Scanner zu öffnen.\n\n📄 SCANNEN & PDF\n• Dokumentenscanner – automatische Kantenerkennung, mehrseitig, sauberes PDF in Sekunden\n• Bild zu PDF – Fotos zu einem PDF zusammenfassen\n• PDF unterschreiben – Unterschrift einmal zeichnen und auf jeder Seite platzieren\n• PDF organisieren – Seiten neu anordnen, drehen und löschen\n• Wasserzeichen & Seitenzahlen – Text einstempeln oder alle Seiten nummerieren\n• PDF zusammenfügen, PDF komprimieren, PDF teilen (Seiten extrahieren oder löschen)\n• PDF zu JPG und PDF zu Text – Seiten als Bilder speichern oder den Text kopieren\n• PDF mit Passwort schützen, PDF entsperren, wenn du das Passwort kennst\n• Word zu PDF – .docx-Dateien umwandeln\n\n🔳 QR-CODE & BARCODE\n• QR-Codes und Barcodes mit der Kamera oder aus einem Foto scannen\n• QR-Codes für Links, Text und Kontakte erstellen\n• WLAN-QR-Code – WLAN teilen, ohne das Passwort einzutippen\n• Kachel in den Schnelleinstellungen zum Scannen mit einem Tipp\n\n🖼️ FOTOS\n• Hintergrund entfernen – Person oder Objekt freistellen und als transparentes PNG speichern oder auf weißen Hintergrund für Pass- und Bewerbungsfotos setzen\n• Fotos auf eine kleinere Dateigröße komprimieren\n• Auf exakte Pixel skalieren und in JPG, PNG und WEBP umwandeln\n• Foto-Editor mit Filtern, Zuschneiden und Anpassungen\n• KI-Upscaler – Fotos bis zu 4× vergrößern\n\n🔤 TEXT & ÜBERSETZEN\n• Bild zu Text (OCR) – Text aus jedem Foto kopieren, jetzt auch Hindi, Chinesisch, Japanisch und Koreanisch\n• Offline-Übersetzer mit Spracheingabe und Vorlesefunktion\n• Übersetzen direkt aus dem Textauswahl-Menü jeder App\n• Wortzähler, Groß-/Kleinschreibung, Base64\n• Zwischenablage-Manager\n\n🧮 RECHNEN & UMRECHNEN\n• Währungsrechner – über 150 Währungen, funktioniert offline mit den zuletzt gespeicherten Kursen\n• Prozent & Rabatt – reduzierte Preise, Trinkgeld aufteilen und Mehrwertsteuer\n• Taschenrechner, Alters- & Datumsrechner, Kredit- & Ratenrechner, BMI-Rechner\n• Einheitenrechner, Weltuhr mit Widget für den Startbildschirm, Farbwähler\n\n🔦 FÜR JEDEN TAG\n• Taschenlampe mit SOS, Stroboskop und Bildschirmlicht\n• Wasserwaage – prüfen, ob Regal oder Bilderrahmen gerade hängt\n• Stoppuhr mit Runden und Countdown-Timer\n• Direktchat – einen WhatsApp-Chat mit jeder Nummer öffnen, ohne sie in den Kontakten zu speichern\n• Kompass, Standort speichern\n\n📶 MEHR\n• Internet-Speedtest, IP & Ping\n• Passwort-Generator, Hash-Generator\n• Video zu MP3, GIF und MP4\n\nWARUM UTILITY TOOLBOX\n✔ Schnell: startet direkt bei deinen Tools, mit Suche, Favoriten und zuletzt verwendeten Tools\n✔ Offline: Scannen, PDF-Tools, OCR und Übersetzung laufen auf deinem Handy\n✔ Privat: Deine Dateien werden nie hochgeladen, außer du schaltest selbst eine Cloud-Option ein\n✔ Meine Dateien: alles, was du erstellt hast, finden, öffnen und teilen\n✔ Jedes Tool in deiner Sprache: 12 Sprachen, helles und dunkles Design\n\nKostenlos mit Werbung. Werbung per Einmalkauf entfernen – kein Abo.\n\nDatenschutzerklärung: https://github.com/Ammadkhan462/utility_toolbox/blob/master/PRIVACY_POLICY.md",
+    "captions": [
+      [
+        "Dokumente als PDF scannen",
+        "Kanten automatisch, mehrere Seiten"
+      ],
+      [
+        "PDFs signieren & bearbeiten",
+        "Unterschrift, Seiten, Wasserzeichen"
+      ],
+      [
+        "Jeden QR-Code scannen",
+        "Mit der Kamera oder aus einem Foto"
+      ],
+      [
+        "Fotohintergrund entfernen",
+        "Transparentes PNG oder weißer Grund"
+      ],
+      [
+        "Aus jeder App übersetzen",
+        "Text markieren, „Übersetzen“ tippen"
+      ],
+      [
+        "Tools für jeden Tag",
+        "Taschenlampe, Währung, Prozent & mehr"
+      ],
+      [
+        "Fotos skalieren & umwandeln",
+        "Exakte Pixel, JPG, PNG und WEBP"
+      ],
+      [
+        "45 Tools, eine kleine App",
+        "Schnell, privat, in deiner Sprache"
+      ]
+    ]
+  },
+  "es-419": {
+    "title": "Toolbox: Escáner PDF y QR",
+    "short": "Escáner de PDF, firmar PDF, lector QR, quitar fondo y traductor. 45 herramientas",
+    "full": "Escáner de documentos a PDF, lector de códigos QR, firmar y editar PDF, quitar el fondo de fotos, copiar texto de imágenes y traductor sin internet: 45 herramientas en una app pequeña y rápida.\n\nUtility Toolbox funciona donde ya estás: comparte una foto o un PDF desde cualquier app, selecciona texto en cualquier lugar y toca Traducir, o mantén presionado el ícono para ir directo al escáner.\n\n📄 ESCÁNER Y PDF\n• Escáner de documentos – detecta bordes automáticamente, varias páginas, PDF limpio en segundos\n• Imagen a PDF – convierte tus fotos en un solo PDF\n• Firmar PDF – dibuja tu firma una vez y colócala en cualquier página\n• Organizar PDF – reordena, gira y elimina páginas\n• Marca de agua y números de página – agrega un texto o numera cada página\n• Unir PDF, Comprimir PDF, Dividir PDF (extraer o eliminar páginas)\n• PDF a JPG y PDF a texto – guarda las páginas como imágenes o copia su texto\n• Bloquear PDF con contraseña, Desbloquear PDF si conoces la contraseña\n• Word a PDF – convierte archivos .docx\n\n🔳 QR Y CÓDIGO DE BARRAS\n• Lector de códigos QR y de barras con la cámara o desde una foto\n• Crea códigos QR para enlaces, texto y contactos\n• QR de WiFi – comparte tu WiFi sin escribir la contraseña\n• Botón en Ajustes rápidos para escanear con un toque\n\n🖼️ FOTOS\n• Quitar fondo – recorta a la persona u objeto y guarda un PNG transparente, o ponle fondo blanco para fotos de pasaporte y credencial\n• Comprime fotos para que pesen menos\n• Cambia el tamaño a píxeles exactos y convierte JPG, PNG y WEBP\n• Editor de fotos con filtros, recorte y ajustes\n• Mejorar con IA – amplía fotos hasta 4×\n\n🔤 TEXTO Y TRADUCTOR\n• Imagen a texto (OCR) – copia el texto de cualquier foto, ahora también en hindi, chino, japonés y coreano\n• Traductor sin internet con entrada por voz y lectura en voz alta\n• Traduce desde el menú de selección de texto de cualquier app\n• Contador de palabras, mayúsculas y minúsculas, Base64\n• Administrador del portapapeles\n\n🧮 CALCULAR Y CONVERTIR\n• Conversor de divisas – más de 150 monedas, funciona sin internet con las últimas tasas guardadas\n• Porcentaje y descuento – precio final con descuento, dividir la propina e IVA\n• Calculadora, calculadora de edad y fechas, calculadora de préstamos y cuotas, calculadora de IMC\n• Conversor de unidades, reloj mundial con widget, selector de color\n\n🔦 HERRAMIENTAS DEL DÍA A DÍA\n• Linterna con SOS, estroboscopio y luz de pantalla\n• Nivel de burbuja – comprueba que un estante o un cuadro quede derecho\n• Cronómetro con vueltas y temporizador\n• Chat directo – abre un chat de WhatsApp con cualquier número sin guardarlo en tus contactos\n• Brújula, guardar ubicación\n\n📶 MÁS\n• Test de velocidad de internet, IP y ping\n• Generador de contraseñas, generador de hash\n• Video a MP3, GIF y MP4\n\n¿POR QUÉ UTILITY TOOLBOX?\n✔ Rápida: abre directo en tus herramientas, con búsqueda, favoritos y recientes\n✔ Sin internet: el escáner, las herramientas PDF, el OCR y el traductor funcionan en tu teléfono\n✔ Privada: tus archivos nunca se suben, salvo que tú actives una opción en la nube\n✔ Mis archivos: encuentra, abre y comparte todo lo que creaste\n✔ Todas las herramientas en tu idioma: 12 idiomas, tema claro y oscuro\n\nGratis con anuncios. Quita los anuncios con un pago único, sin suscripción.\n\nPolítica de privacidad: https://github.com/Ammadkhan462/utility_toolbox/blob/master/PRIVACY_POLICY.md",
+    "captions": [
+      [
+        "Escanea documentos a PDF",
+        "Bordes automáticos, varias páginas"
+      ],
+      [
+        "Firma y edita tus PDF",
+        "Firma, ordena páginas y marca de agua"
+      ],
+      [
+        "Lee cualquier código QR",
+        "Con la cámara o desde una foto"
+      ],
+      [
+        "Quita el fondo de fotos",
+        "PNG transparente o fondo blanco"
+      ],
+      [
+        "Traduce desde cualquier app",
+        "Selecciona texto y toca Traducir"
+      ],
+      [
+        "Herramientas del día a día",
+        "Linterna, divisas, porcentajes y más"
+      ],
+      [
+        "Cambia el tamaño de fotos",
+        "Píxeles exactos, JPG, PNG y WEBP"
+      ],
+      [
+        "45 herramientas, una app",
+        "Rápida, privada y en tu idioma"
+      ]
+    ]
+  },
+  "fr-FR": {
+    "title": "Toolbox : Scanner PDF & QR",
+    "short": "Scanner PDF, signer un PDF, lecteur QR, détourage photo, traducteur. 45 outils",
+    "full": "Scanner PDF, lecteur de QR code, signature et modification de PDF, suppression de l’arrière-plan des photos, texte depuis une image (OCR) et traducteur hors ligne — 45 outils dans une appli petite et rapide.\n\nUtility Toolbox s’utilise là où vous êtes déjà : partagez une photo ou un PDF depuis n’importe quelle appli, sélectionnez du texte et touchez Traduire, ou appuyez longuement sur l’icône pour ouvrir directement le scanner.\n\n📄 SCANNER & PDF\n• Scanner de documents – détection automatique des bords, plusieurs pages, PDF net en quelques secondes\n• Image en PDF – vos photos en un seul PDF\n• Signer un PDF – dessinez votre signature une fois et placez-la sur n’importe quelle page\n• Organiser un PDF – réordonnez, faites pivoter et supprimez des pages\n• Filigrane et numéros de page – ajoutez un texte ou numérotez chaque page\n• Fusionner, compresser et diviser un PDF (extraire ou supprimer des pages)\n• PDF en JPG et PDF en texte – enregistrez les pages en images ou copiez leur texte\n• Protégez un PDF par mot de passe, déverrouillez un PDF dont vous connaissez le mot de passe\n• Word en PDF – convertir les fichiers .docx\n\n🔳 QR CODE & CODE-BARRES\n• Scannez les QR codes et codes-barres avec l’appareil photo ou depuis une image\n• Créez des QR codes pour liens, textes et contacts\n• QR code WiFi – partagez votre WiFi sans taper le mot de passe\n• Vignette dans les réglages rapides pour scanner en un geste\n\n🖼️ PHOTOS\n• Supprimer l’arrière-plan – détourez une personne ou un objet, enregistrez un PNG transparent ou placez-le sur fond blanc pour vos photos d’identité\n• Compressez vos photos pour un fichier plus léger\n• Redimensionnez au pixel près et convertissez en JPG, PNG et WEBP\n• Éditeur photo avec filtres, recadrage et réglages\n• Agrandissement IA – photos jusqu’à 4× plus grandes\n\n🔤 TEXTE & TRADUCTION\n• Image en texte (OCR) – copiez le texte de n’importe quelle photo, désormais aussi en hindi, chinois, japonais et coréen\n• Traducteur hors ligne avec saisie vocale et lecture à voix haute\n• Traduisez depuis le menu de sélection de texte de n’importe quelle appli\n• Compteur de mots, majuscules/minuscules, Base64\n• Gestionnaire de presse-papiers\n\n🧮 CALCUL & CONVERSION\n• Convertisseur de devises – plus de 150 devises, fonctionne hors ligne avec les derniers taux enregistrés\n• Pourcentage et remise – prix soldé, partage du pourboire et TVA\n• Calculatrice, calcul d’âge et de dates, simulateur de prêt et mensualités, calcul de l’IMC\n• Convertisseur d’unités, horloge mondiale avec widget, pipette de couleurs\n\n🔦 AU QUOTIDIEN\n• Lampe torche avec SOS, stroboscope et écran lumineux\n• Niveau à bulle – vérifiez qu’une étagère ou un cadre est bien droit\n• Chronomètre avec tours et minuteur\n• Chat direct – ouvrez une discussion WhatsApp avec n’importe quel numéro sans l’enregistrer dans vos contacts\n• Boussole, enregistrement de position\n\n📶 ET AUSSI\n• Test de débit internet, IP & ping\n• Générateur de mots de passe, générateur de hash\n• Vidéo en MP3, GIF et MP4\n\nPOURQUOI UTILITY TOOLBOX\n✔ Rapide : vos outils dès l’ouverture, avec recherche, favoris et outils récents\n✔ Hors ligne : scan, outils PDF, OCR et traduction fonctionnent sur votre téléphone\n✔ Privé : vos fichiers ne sont jamais envoyés, sauf si vous activez vous-même une option cloud\n✔ Mes fichiers : retrouvez, ouvrez et partagez tout ce que vous avez créé\n✔ Tous les outils dans votre langue : 12 langues, thème clair et sombre\n\nGratuit avec publicités. Supprimez les pubs avec un achat unique — sans abonnement.\n\nPolitique de confidentialité : https://github.com/Ammadkhan462/utility_toolbox/blob/master/PRIVACY_POLICY.md",
+    "captions": [
+      [
+        "Scannez vos documents en PDF",
+        "Bords détectés, plusieurs pages"
+      ],
+      [
+        "Signez et modifiez vos PDF",
+        "Signature, pages, filigrane"
+      ],
+      [
+        "Scannez tout QR code",
+        "Avec l’appareil photo ou une image"
+      ],
+      [
+        "Supprimez l’arrière-plan",
+        "PNG transparent ou fond blanc"
+      ],
+      [
+        "Traduisez depuis toute appli",
+        "Sélectionnez le texte, touchez Traduire"
+      ],
+      [
+        "Outils du quotidien",
+        "Lampe, devises, pourcentages et plus"
+      ],
+      [
+        "Redimensionnez vos photos",
+        "Au pixel près, JPG, PNG et WEBP"
+      ],
+      [
+        "45 outils, une petite appli",
+        "Rapide, privée, dans votre langue"
+      ]
+    ]
+  },
+  "hi-IN": {
+    "title": "Toolbox: PDF स्कैनर और QR",
+    "short": "PDF स्कैनर, PDF पर साइन, QR स्कैनर, बैकग्राउंड हटाएँ, अनुवाद। 45 टूल एक ऐप में।",
+    "full": "डॉक्यूमेंट स्कैन करके PDF बनाएँ, कोई भी QR कोड स्कैन करें, PDF पर साइन और एडिट करें, फ़ोटो का बैकग्राउंड हटाएँ और ऑफ़लाइन अनुवाद करें — 45 टूल एक छोटे, तेज़ ऐप में। पीडीएफ स्कैनर, QR scanner और translator, सब एक साथ।\n\nUtility Toolbox वहीं काम करता है जहाँ आप पहले से हैं: किसी भी ऐप से फ़ोटो या PDF इसमें शेयर करें, कहीं भी टेक्स्ट सिलेक्ट करके \"अनुवाद करें\" दबाएँ, या आइकन को दबाकर रखें और सीधे स्कैनर खोलें।\n\n📄 स्कैन और PDF\n• डॉक्यूमेंट स्कैनर – किनारे अपने आप पहचाने, कई पेज, सेकंडों में साफ़ PDF\n• फ़ोटो से PDF – कई फ़ोटो को एक PDF में बदलें (JPG to PDF)\n• PDF पर हस्ताक्षर – एक बार साइन बनाएँ और किसी भी पेज पर लगाएँ\n• PDF व्यवस्थित करें – पेज का क्रम बदलें, घुमाएँ और हटाएँ\n• वॉटरमार्क और पेज नंबर – हर पेज पर टेक्स्ट या नंबर लगाएँ\n• PDF जोड़ें, PDF छोटा करें (साइज़/KB कम करें), PDF अलग करें (पेज निकालें या हटाएँ)\n• PDF से JPG और PDF से टेक्स्ट – पेज को इमेज में सेव करें या उनका टेक्स्ट कॉपी करें\n• PDF पर पासवर्ड लगाएँ, और जिसका पासवर्ड पता हो उसे अनलॉक करें\n• Word से PDF – .docx फ़ाइलें कन्वर्ट करें\n\n🔳 QR और बारकोड\n• कैमरा या फ़ोटो से QR कोड और बारकोड स्कैन करें\n• लिंक, टेक्स्ट और कॉन्टैक्ट के लिए QR कोड बनाएँ\n• WiFi QR – पासवर्ड टाइप किए बिना अपना WiFi शेयर करें\n• एक टैप में स्कैन के लिए Quick Settings टाइल\n\n🖼️ फ़ोटो\n• बैकग्राउंड हटाएँ – फ़ोटो से व्यक्ति या चीज़ को अलग करें, ट्रांसपेरेंट PNG सेव करें या पासपोर्ट साइज़ फ़ोटो के लिए सफ़ेद बैकग्राउंड लगाएँ\n• फ़ोटो का साइज़ कम करें (KB छोटा करें)\n• सही पिक्सल में रीसाइज़ करें, JPG, PNG और WEBP में कन्वर्ट करें\n• फ़िल्टर, क्रॉप और एडजस्टमेंट वाला फ़ोटो एडिटर\n• AI अपस्केलर – फ़ोटो को 4× तक बड़ा और साफ़ करें\n\n🔤 टेक्स्ट और अनुवाद\n• फ़ोटो से टेक्स्ट (OCR) – किसी भी फ़ोटो से टेक्स्ट कॉपी करें, अब हिंदी, चीनी, जापानी और कोरियाई में भी\n• बोलकर लिखने और सुनने वाला ऑफ़लाइन ट्रांसलेटर (हिंदी ↔ इंग्लिश और कई भाषाएँ)\n• किसी भी ऐप के टेक्स्ट-सिलेक्शन मेन्यू से अनुवाद करें\n• शब्द गिनती, केस बदलना, Base64\n• क्लिपबोर्ड मैनेजर\n\n🧮 कैलकुलेट और कन्वर्ट\n• करेंसी कन्वर्टर – 150+ मुद्राएँ, आख़िरी सेव किए गए रेट से ऑफ़लाइन भी काम करता है\n• प्रतिशत और छूट – डिस्काउंट के बाद की कीमत, टिप बाँटना और GST\n• कैलकुलेटर, उम्र और तारीख कैलकुलेटर, लोन और EMI कैलकुलेटर, BMI कैलकुलेटर\n• यूनिट कन्वर्टर, होम-स्क्रीन विजेट वाली विश्व घड़ी, कलर पिकर\n\n🔦 रोज़ के काम के टूल\n• SOS, स्ट्रोब और स्क्रीन लाइट वाली टॉर्च\n• बबल लेवल – देखें कि शेल्फ़ या फ़्रेम सीधा है या नहीं\n• लैप वाली स्टॉपवॉच और काउंटडाउन टाइमर\n• डायरेक्ट चैट – किसी भी नंबर को कॉन्टैक्ट में सेव किए बिना WhatsApp पर चैट खोलें\n• कम्पास, लोकेशन सेव करें\n\n📶 और भी\n• इंटरनेट स्पीड टेस्ट, IP और पिंग\n• पासवर्ड जनरेटर, हैश जनरेटर\n• वीडियो से MP3, GIF और MP4\n\nUTILITY TOOLBOX क्यों\n✔ तेज़: सीधे आपके टूल्स खुलते हैं, सर्च, पसंदीदा और हाल के टूल्स के साथ\n✔ ऑफ़लाइन: स्कैनिंग, PDF टूल्स, OCR और अनुवाद आपके फ़ोन पर ही चलते हैं\n✔ प्राइवेट: आपकी फ़ाइलें तभी अपलोड होती हैं जब आप खुद कोई क्लाउड विकल्प चालू करें\n✔ मेरी फ़ाइलें: अपनी बनाई हर चीज़ ढूँढें, खोलें और शेयर करें\n✔ हर टूल आपकी भाषा में: 12 भाषाएँ, लाइट और डार्क थीम\n\nविज्ञापनों के साथ मुफ़्त। एक बार की खरीद से विज्ञापन हटाएँ — कोई सब्सक्रिप्शन नहीं।\n\nप्राइवेसी पॉलिसी: https://github.com/Ammadkhan462/utility_toolbox/blob/master/PRIVACY_POLICY.md",
+    "captions": [
+      [
+        "डॉक्यूमेंट स्कैन करके PDF",
+        "किनारे अपने आप, कई पेज, साफ़ PDF"
+      ],
+      [
+        "PDF पर साइन और एडिट",
+        "साइन, पेज व्यवस्थित, वॉटरमार्क"
+      ],
+      [
+        "कोई भी QR कोड स्कैन करें",
+        "कैमरा से या फ़ोटो से"
+      ],
+      [
+        "फ़ोटो का बैकग्राउंड हटाएँ",
+        "ट्रांसपेरेंट PNG या सफ़ेद बैकग्राउंड"
+      ],
+      [
+        "किसी भी ऐप से अनुवाद",
+        "टेक्स्ट सिलेक्ट करें, अनुवाद दबाएँ"
+      ],
+      [
+        "रोज़ के काम के टूल",
+        "टॉर्च, करेंसी, प्रतिशत और भी बहुत"
+      ],
+      [
+        "फ़ोटो रीसाइज़ और कन्वर्ट",
+        "सही पिक्सल, JPG, PNG और WEBP"
+      ],
+      [
+        "45 टूल, एक छोटा ऐप",
+        "तेज़, प्राइवेट, आपकी भाषा में"
+      ]
+    ]
+  },
+  "id": {
+    "title": "Toolbox: Scanner PDF & QR",
+    "short": "Scan dokumen ke PDF, tanda tangan PDF, scan QR, hapus latar foto. 45 alat.",
+    "full": "Scan dokumen ke PDF, scan kode QR apa pun, tanda tangan dan edit PDF, hapus latar belakang foto, salin teks dari foto, dan terjemahan offline — 45 alat dalam satu aplikasi kecil dan cepat.\n\nUtility Toolbox bisa dipakai dari mana saja: bagikan foto atau PDF ke sini dari aplikasi apa pun, pilih teks di mana saja lalu ketuk Terjemahkan, atau tekan lama ikon untuk langsung membuka scanner.\n\n📄 SCAN & PDF\n• Scanner Dokumen – deteksi tepi otomatis, banyak halaman, PDF rapi dalam hitungan detik\n• Gambar ke PDF – ubah foto jadi satu PDF\n• Tanda tangani PDF – buat tanda tangan sekali, lalu tempel di halaman mana pun\n• Atur PDF – urutkan ulang, putar, dan hapus halaman\n• Watermark & Nomor Halaman – beri teks watermark atau nomori setiap halaman\n• Gabung PDF, Kompres PDF, Pisah PDF (ambil atau hapus halaman)\n• PDF ke JPG dan PDF ke Teks – simpan halaman jadi gambar atau salin teksnya\n• Kunci PDF dengan kata sandi, Buka Kunci PDF yang sandinya Anda tahu\n• Word ke PDF – ubah file .docx\n\n🔳 QR & BARCODE\n• Scan kode QR dan barcode dari kamera atau dari foto\n• Buat kode QR untuk link, teks, dan kontak\n• QR WiFi – bagikan WiFi tanpa mengetik kata sandi\n• Tile Setelan Cepat untuk scan sekali ketuk\n\n🖼️ FOTO\n• Hapus Latar – potong objek foto dan simpan sebagai PNG transparan, atau ganti latar putih, merah, atau biru untuk pas foto\n• Kompres foto agar ukuran file lebih kecil (KB)\n• Ubah ukuran ke piksel yang pas dan konversi JPG, PNG, dan WEBP\n• Edit foto dengan filter, potong, dan penyesuaian\n• Penjernih Foto AI – perbesar foto hingga 4×\n\n🔤 TEKS & TERJEMAHAN\n• Gambar ke Teks (OCR) – salin teks dari foto apa pun, kini juga Hindi, Mandarin, Jepang, dan Korea\n• Penerjemah offline dengan input suara dan pelafalan\n• Terjemahkan dari menu pilih teks di aplikasi apa pun\n• Penghitung kata, ubah huruf besar/kecil, Base64\n• Pengelola clipboard\n\n🧮 HITUNG & KONVERSI\n• Konversi Mata Uang – 150+ mata uang, tetap bisa offline dengan kurs terakhir yang tersimpan\n• Persen & Diskon – harga setelah diskon, bagi tip, dan PPN\n• Kalkulator, kalkulator Umur & Tanggal, kalkulator Pinjaman & Cicilan, kalkulator BMI\n• Konversi satuan, Jam dunia dengan widget layar utama, Pemilih warna\n\n🔦 ALAT SEHARI-HARI\n• Senter dengan SOS, strobo, dan lampu layar\n• Waterpas – cek apakah rak atau bingkai sudah lurus\n• Stopwatch dengan putaran (lap) dan Timer hitung mundur\n• Chat Langsung – buka chat WhatsApp dengan nomor mana pun tanpa menyimpannya ke kontak\n• Kompas (arah kiblat), Simpan lokasi\n\n📶 LAINNYA\n• Tes kecepatan internet, IP & ping\n• Pembuat kata sandi, Pembuat hash\n• Video ke MP3, GIF, dan MP4\n\nKENAPA UTILITY TOOLBOX\n✔ Cepat: langsung terbuka ke alat Anda, dengan pencarian, favorit, dan alat terbaru\n✔ Offline: scan, alat PDF, OCR, dan terjemahan berjalan di ponsel Anda\n✔ Privat: file Anda tidak pernah diunggah kecuali Anda sendiri mengaktifkan opsi cloud\n✔ File Saya: temukan, buka, dan bagikan semua yang Anda buat\n✔ Semua alat dalam bahasa Anda: 12 bahasa, tema terang dan gelap\n\nGratis dengan iklan. Hapus iklan dengan sekali beli — tanpa langganan.\n\nKebijakan privasi: https://github.com/Ammadkhan462/utility_toolbox/blob/master/PRIVACY_POLICY.md",
+    "captions": [
+      [
+        "Scan dokumen ke PDF",
+        "Tepi otomatis, banyak halaman"
+      ],
+      [
+        "Tanda tangan & edit PDF",
+        "Tanda tangan, atur halaman, watermark"
+      ],
+      [
+        "Scan kode QR apa pun",
+        "Dari kamera atau dari foto"
+      ],
+      [
+        "Hapus latar belakang foto",
+        "PNG transparan atau latar pas foto"
+      ],
+      [
+        "Terjemahkan dari aplikasi",
+        "Pilih teks, ketuk Terjemahkan"
+      ],
+      [
+        "Alat sehari-hari",
+        "Senter, kurs, persen, dan lainnya"
+      ],
+      [
+        "Ubah ukuran & format foto",
+        "Piksel pas, JPG, PNG, dan WEBP"
+      ],
+      [
+        "45 alat, satu aplikasi kecil",
+        "Cepat, privat, dalam bahasa Anda"
+      ]
+    ]
+  },
+  "pt-BR": {
+    "title": "Toolbox: Scanner PDF e QR Code",
+    "short": "Scanner PDF, assinar PDF, QR code, remover fundo e tradutor. 45 ferramentas.",
+    "full": "Scanner de documentos em PDF, leitor de QR code, assinar e editar PDF, remover fundo de fotos, copiar texto de imagens e tradutor offline — 45 ferramentas em um app pequeno e rápido.\n\nO Utility Toolbox funciona onde você já está: compartilhe uma foto ou PDF de qualquer app, selecione um texto em qualquer lugar e toque em Traduzir, ou toque e segure o ícone para ir direto ao scanner.\n\n📄 SCANNER E PDF\n• Scanner de documentos – detecção automática de bordas, várias páginas, PDF limpo em segundos\n• Imagem para PDF – transforme fotos em um só PDF\n• Assinar PDF – desenhe sua assinatura uma vez e coloque em qualquer página\n• Organizar PDF – reordene, gire e exclua páginas\n• Marca d'água e números de página – carimbe um texto ou numere cada página\n• Juntar PDF, Comprimir PDF, Dividir PDF (extrair ou remover páginas)\n• PDF para JPG e PDF para texto – salve as páginas como imagem ou copie o texto\n• Bloquear PDF com senha, Desbloquear PDF quando você sabe a senha\n• Word para PDF – converta arquivos .docx\n\n🔳 QR CODE E CÓDIGO DE BARRAS\n• Leitor de QR code e código de barras pela câmera ou de uma foto\n• Crie QR codes para links, textos e contatos\n• QR do WiFi – compartilhe seu WiFi sem digitar a senha\n• Bloco nas Configurações rápidas para escanear com um toque\n\n🖼️ FOTOS\n• Remover fundo – recorte a pessoa ou objeto e salve em PNG transparente, ou com fundo branco para foto 3x4 e de documento\n• Comprima fotos para deixar o arquivo menor\n• Redimensione para pixels exatos e converta JPG, PNG e WEBP\n• Editor de fotos com filtros, corte e ajustes\n• Melhorar com IA – amplie fotos até 4×\n\n🔤 TEXTO E TRADUÇÃO\n• Imagem para texto (OCR) – copie o texto de qualquer foto, agora também em hindi, chinês, japonês e coreano\n• Tradutor offline com entrada por voz e leitura em voz alta\n• Traduza pelo menu de seleção de texto de qualquer app\n• Contador de palavras, maiúsculas e minúsculas, Base64\n• Gerenciador da área de transferência\n\n🧮 CALCULAR E CONVERTER\n• Conversor de moedas – mais de 150 moedas, funciona offline com as últimas cotações salvas\n• Porcentagem e desconto – preço com desconto, divisão da gorjeta e impostos\n• Calculadora, calculadora de idade e datas, simulador de empréstimo e parcelas, calculadora de IMC\n• Conversor de unidades, relógio mundial com widget na tela inicial, seletor de cores\n\n🔦 FERRAMENTAS DO DIA A DIA\n• Lanterna com SOS, luz estroboscópica e luz de tela\n• Nível de bolha – confira se a prateleira ou o quadro está reto\n• Cronômetro com voltas e timer\n• Conversa direta – abra uma conversa no WhatsApp com qualquer número sem salvar nos contatos\n• Bússola, salvar local\n\n📶 MAIS\n• Teste de velocidade da internet, IP e ping\n• Gerador de senhas, gerador de hash\n• Vídeo para MP3, GIF e MP4\n\nPOR QUE O UTILITY TOOLBOX\n✔ Rápido: abre direto nas suas ferramentas, com busca, favoritos e recentes\n✔ Offline: scanner, ferramentas de PDF, OCR e tradução funcionam no seu celular\n✔ Privado: seus arquivos nunca são enviados, a menos que você ative uma opção na nuvem\n✔ Meus arquivos: encontre, abra e compartilhe tudo o que você criou\n✔ Todas as ferramentas no seu idioma: 12 idiomas, tema claro e escuro\n\nGrátis com anúncios. Remova os anúncios com uma compra única — sem assinatura.\n\nPolítica de privacidade: https://github.com/Ammadkhan462/utility_toolbox/blob/master/PRIVACY_POLICY.md",
+    "captions": [
+      [
+        "Escaneie documentos em PDF",
+        "Bordas automáticas, várias páginas"
+      ],
+      [
+        "Assine e edite PDFs",
+        "Assine, organize e use marca d'água"
+      ],
+      [
+        "Leia qualquer QR code",
+        "Pela câmera ou de uma foto"
+      ],
+      [
+        "Remova o fundo da foto",
+        "PNG transparente ou fundo branco"
+      ],
+      [
+        "Traduza de qualquer app",
+        "Selecione o texto e toque em Traduzir"
+      ],
+      [
+        "Ferramentas do dia a dia",
+        "Lanterna, moedas, porcentagem e mais"
+      ],
+      [
+        "Redimensione suas fotos",
+        "Pixels exatos, JPG, PNG e WEBP"
+      ],
+      [
+        "45 ferramentas, um só app",
+        "Rápido, privado e no seu idioma"
+      ]
+    ]
+  },
+  "ru-RU": {
+    "title": "Сканер документов PDF и QR",
+    "short": "Сканер документов в PDF, подпись PDF, QR-сканер, удаление фона. 45 инструментов",
+    "full": "Сканер документов в PDF, QR-сканер, подпись и редактирование PDF, удаление фона с фото, распознавание текста и переводчик без интернета — 45 инструментов в одном маленьком и быстром приложении.\n\nUtility Toolbox работает там, где вы уже находитесь: отправьте в него фото или PDF из любого приложения, выделите текст где угодно и нажмите «Перевести» или удерживайте значок, чтобы сразу открыть сканер.\n\n📄 СКАНЕР И PDF\n• Сканер документов – автоматическое определение краёв, несколько страниц, чистый PDF за секунды\n• Фото в PDF – объедините снимки в один PDF\n• Подписать PDF – нарисуйте подпись один раз и ставьте её на любую страницу\n• Упорядочить PDF – меняйте порядок страниц, поворачивайте и удаляйте их\n• Водяной знак и номера страниц – добавьте текст или пронумеруйте все страницы\n• Объединить PDF, сжать PDF, разделить PDF (извлечь или удалить страницы)\n• PDF в JPG и PDF в текст – сохраните страницы картинками или скопируйте текст\n• Защитить PDF паролем, снять пароль с PDF, если вы его знаете\n• Word в PDF – конвертация файлов .docx\n\n🔳 QR И ШТРИХКОДЫ\n• Сканируйте QR-коды и штрихкоды камерой или с фото\n• Создавайте QR-коды для ссылок, текста и контактов\n• QR-код WiFi – делитесь WiFi без ввода пароля\n• Плитка в быстрых настройках – сканирование в одно касание\n\n🖼️ ФОТО\n• Удалить фон – вырежьте человека или предмет и сохраните PNG с прозрачным фоном или поставьте белый фон для фото на документы\n• Сжатие фото до меньшего размера файла\n• Изменение размера в пикселях и конвертация JPG, PNG и WEBP\n• Фоторедактор: фильтры, обрезка и настройки\n• AI-улучшение – увеличение фото до 4×\n\n🔤 ТЕКСТ И ПЕРЕВОД\n• Текст с фото (OCR) – копируйте текст с любого снимка, теперь также на хинди, китайском, японском и корейском\n• Офлайн-переводчик с голосовым вводом и озвучкой\n• Перевод из меню выделения текста в любом приложении\n• Счётчик слов, смена регистра, Base64\n• Менеджер буфера обмена\n\n🧮 РАСЧЁТЫ И КОНВЕРТЕРЫ\n• Конвертер валют – более 150 валют, работает без интернета по последнему сохранённому курсу\n• Проценты и скидки – цена со скидкой, деление чаевых и НДС\n• Калькулятор, калькулятор возраста и дат, кредитный калькулятор, калькулятор ИМТ\n• Конвертер величин, мировое время с виджетом, палитра цветов\n\n🔦 НА КАЖДЫЙ ДЕНЬ\n• Фонарик с SOS, стробоскопом и подсветкой экрана\n• Уровень – проверьте, ровно ли висит полка или рамка\n• Секундомер с кругами и таймер обратного отсчёта\n• Прямой чат – откройте чат в WhatsApp с любым номером, не сохраняя его в контакты\n• Компас, сохранение места\n\n📶 ЕЩЁ\n• Проверка скорости интернета, IP и пинг\n• Генератор паролей, генератор хешей\n• Видео в MP3, GIF и MP4\n\nПОЧЕМУ UTILITY TOOLBOX\n✔ Быстро: сразу открываются инструменты, есть поиск, избранное и недавние\n✔ Офлайн: сканер, PDF-инструменты, распознавание текста и перевод работают на телефоне\n✔ Приватно: файлы никуда не загружаются, пока вы сами не включите облачную функцию\n✔ Мои файлы: находите, открывайте и отправляйте всё, что создали\n✔ Каждый инструмент на вашем языке: 12 языков, светлая и тёмная тема\n\nБесплатно, с рекламой. Рекламу можно убрать разовой покупкой — без подписки.\n\nПолитика конфиденциальности: https://github.com/Ammadkhan462/utility_toolbox/blob/master/PRIVACY_POLICY.md",
+    "captions": [
+      [
+        "Сканируйте документы в PDF",
+        "Автопоиск краёв, несколько страниц"
+      ],
+      [
+        "Подпись и правка PDF",
+        "Подпись, порядок страниц, водяной знак"
+      ],
+      [
+        "Сканер любых QR-кодов",
+        "Камерой или с фото"
+      ],
+      [
+        "Удаление фона с фото",
+        "Прозрачный PNG или белый фон"
+      ],
+      [
+        "Перевод из любого приложения",
+        "Выделите текст, нажмите «Перевести»"
+      ],
+      [
+        "Инструменты на каждый день",
+        "Фонарик, валюты, проценты и др."
+      ],
+      [
+        "Размер и формат фото",
+        "Точные пиксели, JPG, PNG и WEBP"
+      ],
+      [
+        "45 инструментов в кармане",
+        "Быстро, приватно, на вашем языке"
+      ]
+    ]
+  },
+  "tr-TR": {
+    "title": "Toolbox: PDF Tarayıcı & QR",
+    "short": "PDF tarayıcı, PDF imzala, QR kod okuyucu, arka plan silme, çeviri. 45 araç",
+    "full": "Belgeleri PDF'ye tarayın, her QR kodu (karekod) okuyun, PDF imzalayın ve düzenleyin, fotoğraf arka planını kaldırın, fotoğraftaki yazıyı kopyalayın ve çevrimdışı çeviri yapın — tek, küçük ve hızlı bir uygulamada 45 araç.\n\nUtility Toolbox zaten kullandığınız yerde çalışır: herhangi bir uygulamadan fotoğraf veya PDF paylaşın, herhangi bir yerde metin seçip Çevir'e dokunun ya da doğrudan tarayıcıya geçmek için simgeye basılı tutun.\n\n📄 TARAMA & PDF\n• Belge Tarayıcı – otomatik kenar algılama, çok sayfa, saniyeler içinde temiz PDF\n• Resimden PDF'ye – fotoğrafları tek PDF yapın\n• PDF İmzala – imzanızı bir kez çizin, istediğiniz sayfaya yerleştirin\n• PDF Düzenle – sayfaları yeniden sıralayın, döndürün ve silin\n• Filigran ve Sayfa Numaraları – her sayfaya metin ekleyin veya numara verin\n• PDF Birleştir, PDF Küçült, PDF Böl (sayfa çıkarın veya silin)\n• PDF'den JPG'ye ve PDF'den Metne – sayfaları resim olarak kaydedin veya metnini kopyalayın\n• PDF'yi şifreyle kilitleyin, şifresini bildiğiniz PDF'nin kilidini açın\n• Word'den PDF'ye – .docx dosyalarını dönüştürün\n\n🔳 QR & BARKOD\n• Kameradan veya fotoğraftan QR kod ve barkod okuyun\n• Bağlantı, metin ve kişiler için QR kod oluşturun\n• WiFi QR – şifre yazmadan WiFi paylaşın\n• Tek dokunuşla tarama için Hızlı Ayarlar kutucuğu\n\n🖼️ FOTOĞRAFLAR\n• Arka Planı Kaldır – kişiyi veya nesneyi kesip şeffaf PNG olarak kaydedin ya da vesikalık ve biyometrik fotoğraf için beyaz arka plan koyun\n• Fotoğrafları daha küçük dosya boyutuna sıkıştırın\n• Tam piksel boyutuna getirin, JPG, PNG ve WEBP arasında çevirin\n• Filtre, kırpma ve ayarlarla fotoğraf düzenleyici\n• AI Netleştirici – fotoğrafları 4×'e kadar büyütün\n\n🔤 METİN & ÇEVİRİ\n• Resimden Metne (OCR) – her fotoğraftaki yazıyı kopyalayın, artık Hintçe, Çince, Japonca ve Korece de\n• Sesli giriş ve sesli okuma ile çevrimdışı çevirmen\n• Her uygulamanın metin seçme menüsünden çeviri\n• Kelime sayacı, büyük/küçük harf çevirici, Base64\n• Pano yöneticisi\n\n🧮 HESAPLA & DÖNÜŞTÜR\n• Döviz Çevirici – 150'den fazla para birimi, son kaydedilen kurlarla çevrimdışı da çalışır\n• Yüzde ve İndirim – indirimli fiyat, bahşiş paylaşımı ve KDV\n• Hesap makinesi, Yaş & Tarih hesaplama, Kredi taksit hesaplama, VKİ hesaplama\n• Birim çevirici, ana ekran widget'lı Dünya saati, Renk seçici\n\n🔦 GÜNLÜK ARAÇLAR\n• SOS, flaş (strobe) ve ekran ışığı olan el feneri\n• Su terazisi – raf veya çerçevenin düz olup olmadığını kontrol edin\n• Tur kaydeden kronometre ve geri sayım zamanlayıcı\n• Direkt Sohbet – numarayı rehbere kaydetmeden WhatsApp'ta sohbet açın\n• Pusula (kıble yönü), Konum kaydet\n\n📶 DAHA FAZLASI\n• İnternet hız testi, IP & ping\n• Şifre oluşturucu, Hash oluşturucu\n• Videodan MP3, GIF ve MP4\n\nNEDEN UTILITY TOOLBOX\n✔ Hızlı: doğrudan araçlarınız açılır; arama, favoriler ve son kullanılanlar hazır\n✔ Çevrimdışı: tarama, PDF araçları, OCR ve çeviri telefonunuzda çalışır\n✔ Gizli: bulut seçeneğini kendiniz açmadıkça dosyalarınız asla yüklenmez\n✔ Dosyalarım: oluşturduğunuz her şeyi bulun, açın ve paylaşın\n✔ Tüm araçlar sizin dilinizde: 12 dil, açık ve koyu tema\n\nReklamlarla ücretsiz. Reklamları tek seferlik ödemeyle kaldırın — abonelik yok.\n\nGizlilik politikası: https://github.com/Ammadkhan462/utility_toolbox/blob/master/PRIVACY_POLICY.md",
+    "captions": [
+      [
+        "Belgeleri PDF'ye tarayın",
+        "Otomatik kenar, çok sayfa, temiz PDF"
+      ],
+      [
+        "PDF imzala ve düzenle",
+        "İmza, sayfa düzeni, filigran"
+      ],
+      [
+        "Her QR kodu okuyun",
+        "Kameradan veya fotoğraftan"
+      ],
+      [
+        "Arka planı kaldırın",
+        "Şeffaf PNG veya beyaz arka plan"
+      ],
+      [
+        "Her uygulamadan çevirin",
+        "Metni seçin, Çevir'e dokunun"
+      ],
+      [
+        "Günlük araçlar",
+        "Fener, döviz, yüzde ve daha fazlası"
+      ],
+      [
+        "Fotoğrafları boyutlandırın",
+        "Tam piksel, JPG, PNG ve WEBP"
+      ],
+      [
+        "45 araç, tek küçük uygulama",
+        "Hızlı, gizli ve sizin dilinizde"
+      ]
+    ]
+  },
+  "ur": {
+    "title": "Toolbox: PDF اسکینر اور QR",
+    "short": "PDF اسکینر، PDF پر دستخط، QR اسکینر، بیک گراؤنڈ ہٹائیں، ترجمہ۔ 45 ٹولز ایک ساتھ",
+    "full": "ڈاکیومنٹ اسکین کر کے PDF بنائیں، کوئی بھی QR کوڈ اسکین کریں، PDF پر دستخط اور ایڈٹ کریں، تصویر کا بیک گراؤنڈ ہٹائیں اور آف لائن ترجمہ کریں — 45 ٹولز ایک چھوٹی، تیز ایپ میں۔ پی ڈی ایف اسکینر، QR scanner اور translator، سب ایک ساتھ۔\n\nUtility Toolbox وہیں کام کرتی ہے جہاں آپ پہلے سے ہیں: کسی بھی ایپ سے تصویر یا PDF اس میں شیئر کریں، کہیں بھی ٹیکسٹ منتخب کر کے \"ترجمہ کریں\" دبائیں، یا آئیکن کو دبائے رکھیں اور سیدھا اسکینر کھولیں۔\n\n📄 اسکین اور PDF\n• ڈاکیومنٹ اسکینر – کنارے خود پہچانے، کئی صفحات، سیکنڈوں میں صاف PDF\n• تصویر سے PDF – کئی تصویروں کو ایک PDF میں بدلیں (JPG to PDF)\n• PDF پر دستخط – ایک بار دستخط بنائیں اور کسی بھی صفحے پر لگائیں\n• PDF ترتیب دیں – صفحات کی ترتیب بدلیں، گھمائیں اور ہٹائیں\n• واٹرمارک اور صفحہ نمبر – ہر صفحے پر ٹیکسٹ یا نمبر لگائیں\n• PDF جوڑیں، PDF چھوٹی کریں (سائز/KB کم کریں)، PDF الگ کریں (صفحے نکالیں یا ہٹائیں)\n• PDF سے JPG اور PDF سے متن – صفحات کو تصویر کے طور پر محفوظ کریں یا ان کا ٹیکسٹ کاپی کریں\n• PDF پر پاس ورڈ لگائیں، اور جس کا پاس ورڈ معلوم ہو اسے ان لاک کریں\n• Word سے PDF – .docx فائلیں کنورٹ کریں\n\n🔳 QR اور بارکوڈ\n• کیمرے یا تصویر سے QR کوڈ اور بارکوڈ اسکین کریں\n• لنک، ٹیکسٹ اور کانٹیکٹ کے لیے QR کوڈ بنائیں\n• WiFi QR – پاس ورڈ لکھے بغیر اپنا WiFi شیئر کریں\n• ایک ٹیپ میں اسکین کے لیے Quick Settings ٹائل\n\n🖼️ تصویریں\n• بیک گراؤنڈ ہٹائیں – تصویر سے شخص یا چیز الگ کریں، ٹرانسپیرنٹ PNG محفوظ کریں یا پاسپورٹ سائز تصویر کے لیے سفید بیک گراؤنڈ لگائیں\n• تصویر کا سائز کم کریں (KB چھوٹا کریں)\n• درست پکسل میں ری سائز کریں، JPG، PNG اور WEBP میں کنورٹ کریں\n• فلٹر، کراپ اور ایڈجسٹمنٹ والا فوٹو ایڈیٹر\n• AI اپ اسکیلر – تصویر کو 4× تک بڑا اور صاف کریں\n\n🔤 ٹیکسٹ اور ترجمہ\n• تصویر سے ٹیکسٹ (OCR) – کسی بھی تصویر سے ٹیکسٹ کاپی کریں، اب ہندی، چینی، جاپانی اور کوریائی میں بھی\n• بول کر لکھنے اور سننے والا آف لائن مترجم (اردو ↔ انگلش اور کئی زبانیں)\n• کسی بھی ایپ کے ٹیکسٹ سلیکشن مینو سے ترجمہ کریں\n• الفاظ کی گنتی، کیس بدلنا، Base64\n• کلپ بورڈ مینیجر\n\n🧮 حساب اور کنورٹ\n• کرنسی کنورٹر – 150+ کرنسیاں، آخری محفوظ ریٹس کے ساتھ آف لائن بھی کام کرتا ہے\n• فیصد اور ڈسکاؤنٹ – رعایت کے بعد قیمت، ٹپ تقسیم کریں اور GST/سیلز ٹیکس\n• کیلکولیٹر، عمر اور تاریخ کیلکولیٹر، قرض اور EMI کیلکولیٹر، BMI کیلکولیٹر\n• یونٹ کنورٹر، ہوم اسکرین ویجیٹ والی عالمی گھڑی، کلر پکر\n\n🔦 روزمرہ کے ٹولز\n• SOS، اسٹروب اور اسکرین لائٹ والی ٹارچ\n• اسپرٹ لیول – دیکھیں کہ شیلف یا فریم سیدھا ہے یا نہیں\n• لیپ والی اسٹاپ واچ اور کاؤنٹ ڈاؤن ٹائمر\n• ڈائریکٹ چیٹ – کسی بھی نمبر کو کانٹیکٹس میں محفوظ کیے بغیر WhatsApp پر چیٹ کھولیں\n• قطب نما (قبلہ کی سمت)، لوکیشن محفوظ کریں\n\n📶 مزید\n• انٹرنیٹ اسپیڈ ٹیسٹ، IP اور پنگ\n• پاس ورڈ جنریٹر، ہیش جنریٹر\n• ویڈیو سے MP3، GIF اور MP4\n\nUTILITY TOOLBOX کیوں\n✔ تیز: سیدھا آپ کے ٹولز کھلتے ہیں، تلاش، پسندیدہ اور حالیہ ٹولز کے ساتھ\n✔ آف لائن: اسکیننگ، PDF ٹولز، OCR اور ترجمہ آپ کے فون پر ہی چلتے ہیں\n✔ محفوظ: آپ کی فائلیں تب ہی اپ لوڈ ہوتی ہیں جب آپ خود کوئی کلاؤڈ آپشن آن کریں\n✔ میری فائلیں: اپنی بنائی ہر چیز ڈھونڈیں، کھولیں اور شیئر کریں\n✔ ہر ٹول آپ کی زبان میں: 12 زبانیں، لائٹ اور ڈارک تھیم\n\nاشتہارات کے ساتھ مفت۔ ایک بار کی خریداری سے اشتہارات ہٹائیں — کوئی سبسکرپشن نہیں۔\n\nپرائیویسی پالیسی: https://github.com/Ammadkhan462/utility_toolbox/blob/master/PRIVACY_POLICY.md",
+    "captions": [
+      [
+        "ڈاکیومنٹ اسکین کر کے PDF",
+        "کنارے خود بخود، کئی صفحات، صاف PDF"
+      ],
+      [
+        "PDF پر دستخط اور ایڈٹ",
+        "دستخط، صفحات کی ترتیب، واٹرمارک"
+      ],
+      [
+        "کوئی بھی QR کوڈ اسکین کریں",
+        "کیمرے سے یا تصویر سے"
+      ],
+      [
+        "تصویر کا بیک گراؤنڈ ہٹائیں",
+        "ٹرانسپیرنٹ PNG یا سفید بیک گراؤنڈ"
+      ],
+      [
+        "کسی بھی ایپ سے ترجمہ",
+        "ٹیکسٹ منتخب کریں، ترجمہ دبائیں"
+      ],
+      [
+        "روزمرہ کے ٹولز",
+        "ٹارچ، کرنسی، فیصد اور بہت کچھ"
+      ],
+      [
+        "تصویریں ری سائز اور کنورٹ",
+        "درست پکسل، JPG، PNG اور WEBP"
+      ],
+      [
+        "45 ٹولز، ایک چھوٹی ایپ",
+        "تیز، محفوظ اور آپ کی زبان میں"
+      ]
+    ]
+  }
+}

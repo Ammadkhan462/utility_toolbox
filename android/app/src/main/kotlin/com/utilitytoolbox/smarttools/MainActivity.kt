@@ -7,6 +7,8 @@ import android.content.Intent
 import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
 import android.graphics.drawable.Icon
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraManager
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
@@ -63,13 +65,12 @@ class MainActivity : FlutterActivity() {
             when (call.method) {
                 "saveToDownloads" -> runIo(result) {
                     val fileName = call.argument<String>("fileName")!!
-                    val bytes = call.argument<ByteArray>("bytes")!!
                     val mimeType = call.argument<String>("mimeType") ?: "application/octet-stream"
-                    saveToDownloads(fileName, bytes, mimeType)
+                    saveToDownloads(fileName, payload(call.argument("bytes"), call.argument("sourcePath")), mimeType)
                 }
                 "saveToGallery" -> runIo(result) {
                     val fileName = call.argument<String>("fileName")!!
-                    val bytes = call.argument<ByteArray>("bytes")!!
+                    val bytes = payload(call.argument("bytes"), call.argument("sourcePath"))
                     val mimeType = call.argument<String>("mimeType") ?: "image/jpeg"
                     saveToGallery(fileName, bytes, mimeType)
                 }
@@ -141,8 +142,45 @@ class MainActivity : FlutterActivity() {
                     val mimeType = call.argument<String>("mimeType") ?: "*/*"
                     result.success(shareFile(location, mimeType))
                 }
+                // Flashlight tool. CameraManager.setTorchMode needs no
+                // CAMERA permission and works while no app holds the camera.
+                "hasTorch" -> result.success(torchCameraId() != null)
+                "setTorch" -> result.success(setTorch(call.argument<Boolean>("on") ?: false))
+                // Screen-light mode: max brightness for this window only;
+                // null restores the user's own brightness.
+                "setScreenBrightness" -> {
+                    val value = call.argument<Double>("value")
+                    window.attributes = window.attributes.apply {
+                        screenBrightness = value?.toFloat()?.coerceIn(0f, 1f)
+                            ?: android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
+                    }
+                    result.success(true)
+                }
                 else -> result.notImplemented()
             }
+        }
+    }
+
+    private fun torchCameraId(): String? = try {
+        val manager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        manager.cameraIdList.firstOrNull { id ->
+            val c = manager.getCameraCharacteristics(id)
+            c.get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true &&
+                c.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_BACK
+        } ?: manager.cameraIdList.firstOrNull { id ->
+            manager.getCameraCharacteristics(id).get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
+        }
+    } catch (e: Exception) {
+        null
+    }
+
+    private fun setTorch(on: Boolean): Boolean {
+        val id = torchCameraId() ?: return false
+        return try {
+            (getSystemService(Context.CAMERA_SERVICE) as CameraManager).setTorchMode(id, on)
+            true
+        } catch (e: Exception) {
+            false
         }
     }
 
@@ -326,7 +364,7 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    private fun saveToDownloads(fileName: String, bytes: ByteArray, mimeType: String): String {
+    private fun saveToDownloads(fileName: String, bytes: Payload, mimeType: String): String {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val values = ContentValues().apply {
                 put(MediaStore.Downloads.DISPLAY_NAME, fileName)
@@ -345,7 +383,7 @@ class MainActivity : FlutterActivity() {
         return writeLegacy(dir, fileName, bytes, mimeType)
     }
 
-    private fun saveToGallery(fileName: String, bytes: ByteArray, mimeType: String): String {
+    private fun saveToGallery(fileName: String, bytes: Payload, mimeType: String): String {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val values = ContentValues().apply {
                 put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
@@ -368,14 +406,14 @@ class MainActivity : FlutterActivity() {
     private fun insertAndWrite(
         collection: Uri,
         values: ContentValues,
-        bytes: ByteArray,
+        bytes: Payload,
         finish: ContentValues.() -> Unit,
     ): String {
         val resolver = contentResolver
         val uri = resolver.insert(collection, values)
             ?: throw IllegalStateException("MediaStore insert returned null")
         try {
-            resolver.openOutputStream(uri)?.use { it.write(bytes) }
+            resolver.openOutputStream(uri)?.use { bytes(it) }
                 ?: throw IllegalStateException("Could not open output stream for $uri")
             values.clear()
             values.finish()
@@ -387,7 +425,7 @@ class MainActivity : FlutterActivity() {
         return uri.toString()
     }
 
-    private fun writeLegacy(dir: File, fileName: String, bytes: ByteArray, mimeType: String): String {
+    private fun writeLegacy(dir: File, fileName: String, bytes: Payload, mimeType: String): String {
         if (!dir.exists()) dir.mkdirs()
         var target = File(dir, fileName)
         var n = 1
@@ -395,8 +433,19 @@ class MainActivity : FlutterActivity() {
             target = File(dir, "${fileName.substringBeforeLast('.')} ($n).${fileName.substringAfterLast('.', "")}")
             n++
         }
-        FileOutputStream(target).use { it.write(bytes) }
+        FileOutputStream(target).use { bytes(it) }
         MediaScannerConnection.scanFile(this, arrayOf(target.absolutePath), arrayOf(mimeType), null)
         return FileProvider.getUriForFile(this, "$packageName.fileprovider", target).toString()
     }
+
+    /// Writes either in-memory bytes or, for big files, a stream copy of a
+    /// file in our own storage (avoids holding a large video in Dart memory
+    /// and sending it over the platform channel).
+    private fun payload(bytes: ByteArray?, sourcePath: String?): Payload = when {
+        bytes != null -> { out -> out.write(bytes) }
+        sourcePath != null -> { out -> File(sourcePath).inputStream().use { it.copyTo(out, 64 * 1024) } }
+        else -> throw IllegalArgumentException("bytes or sourcePath required")
+    }
 }
+
+private typealias Payload = (java.io.OutputStream) -> Unit

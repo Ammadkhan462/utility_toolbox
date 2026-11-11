@@ -23,6 +23,17 @@ class AiUpscalerNotifier extends StateNotifier<UpscalerState> {
   final AiUpscalerService _service;
   final StorageService _storage;
 
+  /// Bumped by every new run, cancel, new source and reset. A run whose id
+  /// is no longer current must not touch state: otherwise a cancelled or
+  /// superseded job could still land its result (or its progress) later.
+  int _runId = 0;
+
+  /// Stops the running job, if any, and invalidates its pending callbacks.
+  void _abortRun() {
+    _runId++;
+    if (state.isProcessing) _service.cancel();
+  }
+
   // ── Settings ───────────────────────────────────────────────────────────
 
   void setFactor(UpscaleFactor f) =>
@@ -45,6 +56,7 @@ class AiUpscalerNotifier extends StateNotifier<UpscalerState> {
   }
 
   void setSource(File f) {
+    _abortRun();
     state = state.copyWith(
       sourceFile: f,
       status: UpscaleStatus.idle,
@@ -54,16 +66,20 @@ class AiUpscalerNotifier extends StateNotifier<UpscalerState> {
     if (state.useCloud) _service.warmUp();
   }
 
-  void reset() => state = UpscalerState(useCloud: state.useCloud);
+  void reset() {
+    _abortRun();
+    state = UpscalerState(useCloud: state.useCloud);
+  }
 
   // ── Cancel ─────────────────────────────────────────────────────────────
 
   void cancel() {
+    _runId++;
     _service.cancel();
     state = state.copyWith(
       status: UpscaleStatus.idle,
       progress: 0,
-      progressLabel: '',
+      clearStep: true,
       clearResult: true,
     );
   }
@@ -72,55 +88,61 @@ class AiUpscalerNotifier extends StateNotifier<UpscalerState> {
 
   Future<void> upscale() async {
     final src = state.sourceFile;
-    if (src == null) return;
+    if (src == null || state.isProcessing) return; // no double-submit
+    final run = ++_runId;
+    bool stale() => !mounted || run != _runId;
 
     final useCloud = state.useCloud && AiUpscalerService.cloudAvailable;
+    // Snapshot: the settings can change before the job finishes.
+    final factor = state.factor;
 
     try {
       state = state.copyWith(
         status: UpscaleStatus.processing,
         progress: 0.04,
-        progressLabel: useCloud
-            ? 'Connecting to AI server…'
-            : 'Starting on-device processing…',
+        step: UpscaleStep(
+          useCloud ? UpscaleStage.connecting : UpscaleStage.starting,
+        ),
         clearResult: true,
       );
 
       final sw = Stopwatch()..start();
 
-      // Read dimensions quickly — decode a scaled-down thumbnail
-      // instead of the full image, so this step takes <100ms
+      // Header-only read (no pixel decode), so this stays fast on 50 MP.
       final originalBytes = await src.length();
-      final srcRaw = await src.readAsBytes();
-      final dims = await compute(_fastDimensions, srcRaw);
+      final dims = await compute(_headerDimensions, src.path);
       final origW = dims[0];
       final origH = dims[1];
 
       // Cancelled while reading dimensions (before the service started):
       // cancel() already reset state to idle — don't start the job anyway.
-      if (!mounted || state.status != UpscaleStatus.processing) return;
+      if (stale()) return;
 
-      final outFile = await _service.upscale(
+      final output = await _service.upscale(
         source: src,
-        factor: state.factor,
+        factor: factor,
         mode: state.mode,
         denoise: state.denoise,
         sharpen: state.sharpen,
         useCloud: useCloud,
-        onProgress: (progress, label) {
-          if (mounted) {
-            state = state.copyWith(progress: progress, progressLabel: label);
+        onProgress: (progress, step) {
+          if (!stale()) {
+            state = state.copyWith(progress: progress, step: step);
           }
         },
       );
+      final outFile = output.file;
 
       sw.stop();
 
       // Guard: notifier may have been cancelled/disposed while processing
-      if (!mounted) return;
+      if (stale()) return;
 
       final outBytes = await outFile.length();
-      final scale = state.factor.multiplier;
+      // Real output size: big photos are pre-shrunk before the AI pass, so
+      // "original × factor" over-reported the resolution.
+      final outDims = await compute(_headerDimensions, outFile.path);
+      if (stale()) return;
 
       state = state.copyWith(
         status: UpscaleStatus.done,
@@ -128,40 +150,41 @@ class AiUpscalerNotifier extends StateNotifier<UpscalerState> {
           outputFile: outFile,
           originalWidth: origW,
           originalHeight: origH,
-          outputWidth: origW * scale,
-          outputHeight: origH * scale,
+          outputWidth: outDims[0] > 0 ? outDims[0] : origW * factor.multiplier,
+          outputHeight: outDims[1] > 0 ? outDims[1] : origH * factor.multiplier,
           originalBytes: originalBytes,
           outputBytes: outBytes,
           processingMs: sw.elapsed.inMilliseconds,
+          fallback: output.fallback,
         ),
         progress: 1.0,
-        progressLabel: 'Done!',
+        step: const UpscaleStep(UpscaleStage.done),
       );
     } catch (e) {
-      if (!mounted) return;
-      // If cancelled, go back to idle instead of showing error
-      if (state.status == UpscaleStatus.idle) return;
+      // Cancelled / superseded: cancel() already put state back to idle.
+      if (stale()) return;
+      debugPrint('[AiUpscaler] upscale failed: $e');
       state = state.copyWith(
         status: UpscaleStatus.error,
-        errorMessage: _friendlyError(e),
+        error: _errorKind(e),
         progress: 0,
       );
     }
   }
 
-  String _friendlyError(Object e) {
+  /// Mapped to a localized message by the screen.
+  UpscaleErrorKind _errorKind(Object e) {
     final msg = e.toString().toLowerCase();
     if (msg.contains('memory') || msg.contains('oom')) {
-      return 'Image too large. Try a smaller photo or use 2× upscale.';
+      return UpscaleErrorKind.tooLarge;
     }
     if (msg.contains('decode') || msg.contains('format')) {
-      return 'Could not read this image. Use a JPG or PNG file.';
+      return UpscaleErrorKind.unreadable;
     }
     if (msg.contains('timeout') || msg.contains('socket')) {
-      return 'Network timeout. Check connection or use on-device mode.';
+      return UpscaleErrorKind.network;
     }
-    if (msg.contains('cancel')) return '';
-    return 'Upscale failed: $e';
+    return UpscaleErrorKind.generic;
   }
 
   @override
@@ -171,11 +194,21 @@ class AiUpscalerNotifier extends StateNotifier<UpscalerState> {
   }
 }
 
-// ── Fast dimension read — decodes thumbnail only ───────────────────────────
+// ── Fast dimension read — parses the header only ───────────────────────────
 
-List<int> _fastDimensions(Uint8List bytes) {
-  // Try decoding at 1/8 size — just enough to read width/height.
-  // Falls back to full decode if thumbnail decode isn't supported.
-  final full = img.decodeImage(bytes);
-  return [full?.width ?? 0, full?.height ?? 0];
+/// Width/height as displayed (EXIF rotation applied) without decoding any
+/// pixels. The old version fully decoded the photo just to read its size.
+List<int> _headerDimensions(String path) {
+  try {
+    final bytes = File(path).readAsBytesSync();
+    final info = img.findDecoderForData(bytes)?.startDecode(bytes);
+    if (info == null) return const [0, 0];
+    var w = info.width;
+    var h = info.height;
+    final orientation = img.decodeJpgExif(bytes)?.imageIfd.orientation ?? 1;
+    if (orientation >= 5 && orientation <= 8) (w, h) = (h, w);
+    return [w, h];
+  } catch (_) {
+    return const [0, 0];
+  }
 }

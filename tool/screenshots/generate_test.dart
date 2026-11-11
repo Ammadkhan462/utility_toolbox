@@ -22,6 +22,7 @@ import 'package:utility_toolbox/app.dart';
 import 'package:utility_toolbox/core/routing/app_router.dart';
 import 'package:utility_toolbox/core/routing/app_routes.dart';
 import 'package:utility_toolbox/core/services/storage_service.dart';
+import 'package:utility_toolbox/core/widgets/app_logo.dart';
 import 'package:utility_toolbox/features/home/tools_tab.dart';
 
 const _outDir = 'store_listing/screenshots';
@@ -414,10 +415,7 @@ class _FeatureGraphic extends StatelessWidget {
                             BoxShadow(color: Color(0x55100840), blurRadius: 40, offset: Offset(0, 18)),
                           ],
                         ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(58),
-                          child: Image.asset('assets/images/app_logo.png', fit: BoxFit.cover),
-                        ),
+                        child: const AppLogo(size: 250, radius: 58 / 250),
                       ),
                       const SizedBox(width: 60),
                       const Expanded(
@@ -438,7 +436,7 @@ class _FeatureGraphic extends StatelessWidget {
                             ),
                             SizedBox(height: 22),
                             Text(
-                              'Offline · Private · 30+ tools',
+                              'Offline · Private · 45 tools',
                               style: TextStyle(
                                 fontFamily: 'PlusJakartaSans',
                                 fontSize: 32,
@@ -555,57 +553,59 @@ void main() {
   });
 
   testWidgets('phone_1 – Tools tab', (tester) async {
-    await _pumpApp(tester, 'Scan documents\nto PDF');
+    await _pumpApp(tester, '45 tools in one\nsmall app');
     await _capture(tester, 'phone_1.png');
   });
 
   testWidgets('phone_2 – PDF tools', (tester) async {
-    await _pumpApp(tester, 'Every PDF tool\nyou need');
+    await _pumpApp(tester, 'Sign, edit &\nconvert PDFs');
     await _scrollToSection(tester, 'PDF');
     await _capture(tester, 'phone_2.png');
   });
 
-  testWidgets('phone_3 – search', (tester) async {
-    await _pumpApp(tester, 'Find any tool\nin seconds');
-    await tester.enterText(find.byType(TextField), 'compress');
-    await tester.pumpAndSettle();
+  testWidgets('phone_3 – photo tools', (tester) async {
+    await _pumpApp(tester, 'Remove backgrounds,\nresize & compress');
+    await _scrollToSection(tester, 'Photo & image');
     await _capture(tester, 'phone_3.png');
   });
 
-  testWidgets('phone_4 – calculator', (tester) async {
-    final container = await _pumpApp(tester, 'A calculator built in');
-    container.read(appRouterProvider).push(AppRoutes.calculator);
+  testWidgets('phone_4 – percentage', (tester) async {
+    final container = await _pumpApp(tester, 'Discounts, tips\n& tax in a tap');
+    container.read(appRouterProvider).push(AppRoutes.percentageCalculator);
     await tester.pumpAndSettle();
-
-    Future<void> keys(List<String> labels) async {
-      for (final k in labels) {
-        await tester.tap(find.text(k).last);
-        await tester.pump(const Duration(milliseconds: 50));
-      }
+    final fields = find.byType(TextField);
+    if (fields.evaluate().length >= 2) {
+      await tester.enterText(fields.at(0), '15');
+      await tester.enterText(fields.at(1), '2499');
     }
-
-    await keys(['1', '8', '9', '9', '+', '2', '4', '9', '9', '=', 'C']);
-    await keys(['6', '4', '0', '÷', '8', '=', 'C']);
-    await keys(['3', '5', '×', '1', '2', '=', 'C']);
-    await keys(['9', '8', '0', '−', '1', '2', '0', '=', 'C']);
-    await keys(['1', '5', '.', '5', '×', '4', '=', 'C']);
-    await keys(['7', '2', '0', '0', '÷', '3', '0', '=', 'C']);
-    await keys(['1', '2', '5', '0', '×', '1', '2', '%']);
     await tester.pumpAndSettle();
     await _capture(tester, 'phone_4.png');
   });
 
-  testWidgets('phone_5 – My Files', (tester) async {
-    await _pumpApp(tester, 'Open & share\nall your files', files: true);
-    await tester.tap(find.text('My Files'));
-    await tester.pumpAndSettle();
+  testWidgets('phone_5 – everyday tools', (tester) async {
+    await _pumpApp(tester, 'Torch, level,\ntimer & more');
+    await _scrollToSection(tester, 'Device & location');
     await _capture(tester, 'phone_5.png');
   });
 
-  testWidgets('phone_6 – categories', (tester) async {
-    await _pumpApp(tester, '30+ tools,\n12 languages');
-    await _scrollToSection(tester, 'Favorites');
+  testWidgets('phone_6 – search', (tester) async {
+    await _pumpApp(tester, 'Find any tool\nin seconds');
+    await tester.enterText(find.byType(TextField), 'pdf');
+    await tester.pumpAndSettle();
     await _capture(tester, 'phone_6.png');
+  });
+
+  testWidgets('phone_7 – My Files', (tester) async {
+    await _pumpApp(tester, 'Open & share\nall your files', files: true);
+    await tester.tap(find.text('My Files'));
+    await tester.pumpAndSettle();
+    await _capture(tester, 'phone_7.png');
+  });
+
+  testWidgets('phone_8 – calculate & convert', (tester) async {
+    await _pumpApp(tester, 'Currency, BMI,\nunits & more');
+    await _scrollToSection(tester, 'Calculate & convert');
+    await _capture(tester, 'phone_8.png');
   });
 
   testWidgets('feature_graphic', (tester) async {

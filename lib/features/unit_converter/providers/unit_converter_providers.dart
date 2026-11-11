@@ -21,7 +21,8 @@ final convertedValueProvider = Provider<String>((ref) {
   final input = ref.watch(inputValueProvider);
   if (input.isEmpty) return '';
 
-  final value = double.tryParse(input);
+  // Accept a locale decimal comma ("1,5") as well as "1.5".
+  final value = double.tryParse(input.trim().replaceAll(',', '.'));
   if (value == null) return '';
 
   final category = ref.watch(selectedCategoryProvider);

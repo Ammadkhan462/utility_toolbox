@@ -112,9 +112,16 @@ class ResizeOutput {
 /// Runs in a background isolate. WebP can't be encoded by package:image, so
 /// for WebP this returns PNG bytes and the caller re-encodes natively.
 ResizeOutput resizeInIsolate(ResizeJob job) {
-  final decoded = img.decodeImage(job.bytes);
+  // frame: 0 — only the first frame of an animated GIF/WebP/PNG, so a long
+  // GIF doesn't decode (and resize) every frame.
+  final decoded = img.decodeImage(job.bytes, frame: 0);
   if (decoded == null) throw const FormatException('Unsupported image');
-  final source = img.bakeOrientation(decoded);
+  // bakeOrientation always copies the whole bitmap; skip it when there is
+  // nothing to rotate so a big photo isn't held in memory twice.
+  final ifd = decoded.exif.imageIfd;
+  final source = (ifd.hasOrientation && ifd.orientation != 1)
+      ? img.bakeOrientation(decoded)
+      : decoded;
   final plan = planResize(source.width, source.height, job.spec);
 
   var out = (plan.scaledWidth == source.width && plan.scaledHeight == source.height)
@@ -133,6 +140,13 @@ ResizeOutput resizeInIsolate(ResizeJob job) {
       width: plan.cropWidth!,
       height: plan.cropHeight!,
     );
+  }
+
+  // JPG has no alpha: transparent pixels would otherwise turn black.
+  if (job.format == OutputFormat.jpg && out.hasAlpha) {
+    final flat = img.Image(width: out.width, height: out.height)
+      ..clear(img.ColorRgb8(255, 255, 255));
+    out = img.compositeImage(flat, out);
   }
 
   final encoded = switch (job.format) {

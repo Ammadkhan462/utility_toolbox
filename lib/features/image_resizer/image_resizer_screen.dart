@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'dart:isolate';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -12,29 +12,31 @@ import 'package:utility_toolbox/core/services/ads_service.dart';
 import 'package:utility_toolbox/core/utils/file_utils.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/image_resizer/image_resize_logic.dart';
+import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 
 enum _Mode { percent, fit, exact }
 
 class _Preset {
   const _Preset(this.label, this.spec);
-  final String label;
+  final String Function(AppLocalizations l) label;
   final ResizeSpec spec;
 }
 
-const _presets = [
-  _Preset('Passport 35×45 mm', ExactResize(413, 531)),
-  _Preset('Square 1080', ExactResize(1080, 1080)),
-  _Preset('Story 1080×1920', ExactResize(1080, 1920)),
-  _Preset('HD (max 1280)', FitResize(1280)),
-  _Preset('Full HD (max 1920)', FitResize(1920)),
+final _presets = [
+  _Preset((l) => l.imgResizePresetPassport, const ExactResize(413, 531)),
+  _Preset((l) => l.imgResizePresetSquare('1080'), const ExactResize(1080, 1080)),
+  _Preset((l) => l.imgResizePresetStory('1080×1920'), const ExactResize(1080, 1920)),
+  _Preset((l) => l.imgResizePresetMax('HD', '1280'), const FitResize(1280)),
+  _Preset((l) => l.imgResizePresetMax('Full HD', '1920'), const FitResize(1920)),
 ];
 
 class _Result {
-  const _Result(this.source, this.file, this.output, this.srcBytes);
+  const _Result(this.source, this.file, this.output, this.srcBytes, this.outBytes);
   final String source;
   final File file;
   final ResizeOutput output;
   final int srcBytes;
+  final int outBytes;
 }
 
 /// Resize to exact pixels / a percentage / a max side, or a preset
@@ -62,25 +64,46 @@ class _ImageResizerScreenState extends ConsumerState<ImageResizerScreen> {
   int _quality = 85;
   bool _working = false;
   bool _saving = false;
-  String? _error;
+
+  /// Shown under the form: width/height out of range, or how many photos
+  /// failed. Kept as data so the text follows the app language.
+  bool _invalidSize = false;
+  int _failedCount = 0;
   final List<_Result> _results = [];
   final _w = TextEditingController(text: '1080');
   final _h = TextEditingController(text: '1080');
+  Directory? _outDir;
 
   @override
   void dispose() {
     _w.dispose();
     _h.dispose();
+    _deleteOutDir();
     super.dispose();
   }
 
+  /// Outputs live in a per-run temp folder; drop the previous one so repeated
+  /// runs don't pile up full-size copies in the cache.
+  void _deleteOutDir() {
+    final dir = _outDir;
+    _outDir = null;
+    if (dir != null) dir.delete(recursive: true).ignore();
+  }
+
   Future<void> _pick() async {
-    final picked = await ImagePicker().pickMultiImage(imageQuality: 100);
+    List<XFile> picked;
+    try {
+      picked = await ImagePicker().pickMultiImage(imageQuality: 100);
+    } on PlatformException catch (e) {
+      debugPrint('Image pick failed: $e');
+      return;
+    }
     if (picked.isEmpty || !mounted) return;
     setState(() {
       _inputs = [for (final x in picked) x.path];
       _results.clear();
-      _error = null;
+      _invalidSize = false;
+      _failedCount = 0;
     });
   }
 
@@ -104,70 +127,119 @@ class _ImageResizerScreenState extends ConsumerState<ImageResizerScreen> {
   Future<void> _run() async {
     final spec = _spec();
     if (spec == null) {
-      setState(() => _error = 'Enter a width and height between 1 and 12000.');
+      setState(() {
+        _invalidSize = true;
+        _failedCount = 0;
+      });
       return;
     }
+    if (_working) return;
     setState(() {
       _working = true;
-      _error = null;
+      _invalidSize = false;
+      _failedCount = 0;
       _results.clear();
     });
-    final outDir = await Directory.systemTemp.createTemp('resized_');
+    _deleteOutDir();
+    final format = _format;
+    final quality = _quality;
     var failed = 0;
-    for (final path in _inputs) {
-      try {
-        final bytes = await File(path).readAsBytes();
-        final job = ResizeJob(bytes: bytes, spec: spec, format: _format, quality: _quality);
-        final out = await Isolate.run(() => resizeInIsolate(job));
-        var data = out.bytes;
-        if (_format == OutputFormat.webp) {
-          data = await FlutterImageCompress.compressWithList(
-            data,
-            format: CompressFormat.webp,
-            quality: _quality,
-            minWidth: 1,
-            minHeight: 1,
-          );
+    try {
+      final outDir = _outDir = await Directory.systemTemp.createTemp('resized_');
+      for (final path in List.of(_inputs)) {
+        try {
+          final bytes = await File(path).readAsBytes();
+          final job = ResizeJob(bytes: bytes, spec: spec, format: format, quality: quality);
+          // compute() with a top-level function: a closure here would also
+          // try to send this State (captured by setState below) to the isolate.
+          ResizeOutput out;
+          try {
+            out = await compute(resizeInIsolate, job);
+          } catch (_) {
+            // package:image can't read HEIC/HEIF (default camera format on
+            // many phones). Let Android decode it to JPEG, then retry.
+            final converted = await FlutterImageCompress.compressWithFile(
+              path,
+              format: CompressFormat.jpeg,
+              quality: 95,
+              minWidth: 1 << 14,
+              minHeight: 1 << 14,
+            );
+            if (converted == null) rethrow;
+            out = await compute(
+              resizeInIsolate,
+              ResizeJob(bytes: converted, spec: spec, format: format, quality: quality),
+            );
+          }
+          var data = out.bytes;
+          if (format == OutputFormat.webp) {
+            // minWidth/minHeight are a scale floor: passing 1 shrank every
+            // WEBP to a few pixels. The exact output size means "don't scale".
+            data = await FlutterImageCompress.compressWithList(
+              data,
+              format: CompressFormat.webp,
+              quality: quality,
+              minWidth: out.width,
+              minHeight: out.height,
+              autoCorrectionAngle: false,
+            );
+          }
+          final name = '${p.basenameWithoutExtension(path)}_${out.width}x${out.height}.${format.ext}';
+          final file = await File(p.join(outDir.path, name)).writeAsBytes(data);
+          if (!mounted) return;
+          setState(() => _results.add(_Result(path, file, out, bytes.length, data.length)));
+        } catch (e) {
+          debugPrint('Resize failed for $path: $e');
+          failed++;
         }
-        final name = '${p.basenameWithoutExtension(path)}_${out.width}x${out.height}.${_format.ext}';
-        final file = await File(p.join(outDir.path, name)).writeAsBytes(data);
-        if (!mounted) return;
-        setState(() => _results.add(_Result(path, file, out, bytes.length)));
-      } catch (_) {
-        failed++;
       }
+    } catch (e) {
+      debugPrint('Resize run failed: $e');
+      failed = _inputs.length - _results.length;
     }
     if (!mounted) return;
     setState(() {
       _working = false;
-      if (failed > 0) _error = '$failed photo${failed == 1 ? '' : 's'} couldn’t be read.';
+      _failedCount = failed;
     });
   }
 
   Future<void> _saveAll() async {
+    if (_saving) return;
     final messenger = ScaffoldMessenger.of(context);
+    final l = AppLocalizations.of(context);
     setState(() => _saving = true);
     var saved = 0;
-    for (final r in _results) {
-      final ok = await FileUtils.saveImageToGallery(
-        bytes: await r.file.readAsBytes(),
-        fileName: p.basename(r.file.path),
-        mimeType: _format.mime,
-        toolId: 'image_resizer',
-      );
-      if (ok) saved++;
+    final mime = _format.mime;
+    for (final r in List.of(_results)) {
+      try {
+        final ok = await FileUtils.saveImageToGallery(
+          bytes: await r.file.readAsBytes(),
+          fileName: p.basename(r.file.path),
+          mimeType: mime,
+          toolId: 'image_resizer',
+        );
+        if (ok) saved++;
+      } catch (e) {
+        debugPrint('Saving ${r.file.path} failed: $e');
+      }
     }
     if (!mounted) return;
     setState(() => _saving = false);
-    messenger.showSnackBar(SnackBar(content: Text('Saved $saved to your gallery')));
+    messenger.showSnackBar(SnackBar(
+      content: Text(saved > 0 ? l.imgResizeSavedCount(saved) : l.commonSaveFailed),
+    ));
     await ref.read(adsServiceProvider).showInterstitialIfAllowed();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context);
+    // RTL: "1920×1080 ← 960×540" reads right to left.
+    final arrow = Directionality.of(context) == TextDirection.rtl ? '←' : '→';
     return ToolScaffold(
-      title: 'Resize & Convert',
+      title: l.toolImageResizerTitle,
       accentColor: _accent,
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -177,23 +249,27 @@ class _ImageResizerScreenState extends ConsumerState<ImageResizerScreen> {
               leading: const Icon(Icons.photo_library_rounded, color: _accent, size: 32),
               title: Text(
                 _inputs.isEmpty
-                    ? 'Choose photos'
-                    : '${_inputs.length} photo${_inputs.length == 1 ? '' : 's'} selected',
+                    ? l.imgResizeChoosePhotos
+                    : l.imgResizeSelected(_inputs.length),
                 style: const TextStyle(fontWeight: FontWeight.w700),
               ),
               subtitle: _inputs.isEmpty
-                  ? const Text('Pick one or many — or share them to the app')
-                  : Text(_inputs.map(p.basename).take(3).join(', ')),
+                  ? Text(l.imgResizePickHint)
+                  : Text(
+                      _inputs.map(p.basename).take(3).join(', '),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
               trailing: TextButton(
                 onPressed: _working ? null : _pick,
-                child: Text(_inputs.isEmpty ? 'Choose' : 'Change'),
+                child: Text(_inputs.isEmpty ? l.imgResizeChoose : l.imgResizeChange),
               ),
               onTap: _working ? null : _pick,
             ),
           ),
           if (_inputs.isNotEmpty && _results.isEmpty) ...[
             const SizedBox(height: 16),
-            Text('Presets', style: theme.textTheme.titleSmall),
+            Text(l.imgResizePresets, style: theme.textTheme.titleSmall),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -201,7 +277,7 @@ class _ImageResizerScreenState extends ConsumerState<ImageResizerScreen> {
               children: [
                 for (final preset in _presets)
                   ChoiceChip(
-                    label: Text(preset.label),
+                    label: Text(preset.label(l)),
                     selected: _preset == preset,
                     onSelected: (sel) => setState(() => _preset = sel ? preset : null),
                   ),
@@ -210,10 +286,10 @@ class _ImageResizerScreenState extends ConsumerState<ImageResizerScreen> {
             const SizedBox(height: 16),
             if (_preset == null) ...[
               SegmentedButton<_Mode>(
-                segments: const [
-                  ButtonSegment(value: _Mode.percent, label: Text('Percent')),
-                  ButtonSegment(value: _Mode.fit, label: Text('Max side')),
-                  ButtonSegment(value: _Mode.exact, label: Text('Exact')),
+                segments: [
+                  ButtonSegment(value: _Mode.percent, label: Text(l.imgResizeModePercent)),
+                  ButtonSegment(value: _Mode.fit, label: Text(l.imgResizeModeMaxSide)),
+                  ButtonSegment(value: _Mode.exact, label: Text(l.imgResizeModeExact)),
                 ],
                 selected: {_mode},
                 onSelectionChanged: (s) => setState(() => _mode = s.first),
@@ -254,17 +330,17 @@ class _ImageResizerScreenState extends ConsumerState<ImageResizerScreen> {
                   children: [
                     Row(
                       children: [
-                        Expanded(child: _numField(_w, 'Width (px)')),
+                        Expanded(child: _numField(_w, l.imgResizeWidth)),
                         const Padding(
                           padding: EdgeInsets.symmetric(horizontal: 8),
                           child: Text('×'),
                         ),
-                        Expanded(child: _numField(_h, 'Height (px)')),
+                        Expanded(child: _numField(_h, l.imgResizeHeight)),
                       ],
                     ),
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: const Text('Crop to fit (no stretching)'),
+                      title: Text(l.imgResizeCrop),
                       value: _crop,
                       onChanged: (v) => setState(() => _crop = v),
                     ),
@@ -273,7 +349,7 @@ class _ImageResizerScreenState extends ConsumerState<ImageResizerScreen> {
               },
             ],
             const SizedBox(height: 8),
-            Text('Format', style: theme.textTheme.titleSmall),
+            Text(l.imgResizeFormat, style: theme.textTheme.titleSmall),
             const SizedBox(height: 8),
             SegmentedButton<OutputFormat>(
               segments: [
@@ -286,7 +362,7 @@ class _ImageResizerScreenState extends ConsumerState<ImageResizerScreen> {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  const Text('Quality'),
+                  Text(l.imgResizeQuality),
                   Expanded(
                     child: Slider(
                       value: _quality.toDouble(),
@@ -311,7 +387,7 @@ class _ImageResizerScreenState extends ConsumerState<ImageResizerScreen> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.aspect_ratio_rounded),
-              label: Text(_working ? 'Working…' : 'Resize'),
+              label: Text(_working ? l.commonWorking : l.imgResizeButton),
             ),
           ],
           if (_results.isNotEmpty) ...[
@@ -321,12 +397,22 @@ class _ImageResizerScreenState extends ConsumerState<ImageResizerScreen> {
                 child: ListTile(
                   leading: ClipRRect(
                     borderRadius: BorderRadius.circular(6),
-                    child: Image.file(r.file, width: 48, height: 48, fit: BoxFit.cover, cacheWidth: 96),
+                    child: Image.file(
+                      r.file,
+                      width: 48,
+                      height: 48,
+                      fit: BoxFit.cover,
+                      cacheWidth: 96,
+                      errorBuilder: (_, _, _) => const SizedBox.square(
+                        dimension: 48,
+                        child: Icon(Icons.broken_image_outlined),
+                      ),
+                    ),
                   ),
                   title: Text(p.basename(r.file.path), maxLines: 1, overflow: TextOverflow.ellipsis),
                   subtitle: Text(
-                    '${r.output.srcWidth}×${r.output.srcHeight} → ${r.output.width}×${r.output.height}  ·  '
-                    '${FileUtils.formatFileSize(r.srcBytes)} → ${FileUtils.formatFileSize(r.file.lengthSync())}',
+                    '${r.output.srcWidth}×${r.output.srcHeight} $arrow ${r.output.width}×${r.output.height}  ·  '
+                    '${FileUtils.formatFileSize(r.srcBytes)} $arrow ${FileUtils.formatFileSize(r.outBytes)}',
                   ),
                 ),
               ),
@@ -336,24 +422,29 @@ class _ImageResizerScreenState extends ConsumerState<ImageResizerScreen> {
                 style: FilledButton.styleFrom(backgroundColor: _accent),
                 onPressed: _saving ? null : _saveAll,
                 icon: const Icon(Icons.save_alt_rounded),
-                label: Text('Save ${_results.length} to gallery'),
+                label: Text(l.imgResizeSaveAll(_results.length)),
               ),
               const SizedBox(height: 8),
               OutlinedButton.icon(
                 onPressed: () => Share.shareXFiles([for (final r in _results) XFile(r.file.path)]),
                 icon: const Icon(Icons.share_rounded),
-                label: const Text('Share'),
+                label: Text(l.commonShare),
               ),
               TextButton(
                 onPressed: () => setState(_results.clear),
-                child: const Text('Change settings'),
+                child: Text(l.imgResizeChangeSettings),
               ),
             ],
           ],
-          if (_error != null)
+          if (_invalidSize || _failedCount > 0)
             Padding(
               padding: const EdgeInsets.only(top: 12),
-              child: Text(_error!, style: TextStyle(color: theme.colorScheme.error)),
+              child: Text(
+                _invalidSize
+                    ? l.imgResizeInvalidSize(1, 12000)
+                    : l.imgResizeFailedCount(_failedCount),
+                style: TextStyle(color: theme.colorScheme.error),
+              ),
             ),
         ],
       ),

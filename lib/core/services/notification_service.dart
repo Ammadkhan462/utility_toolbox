@@ -18,7 +18,7 @@ class NotificationService {
     // NOT a named 'settings:' parameter.
     await _plugin.initialize(
       const InitializationSettings(
-        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        android: AndroidInitializationSettings('ic_notification'),
         iOS: DarwinInitializationSettings(
           requestAlertPermission: true,
           requestBadgePermission: false,

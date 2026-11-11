@@ -22,10 +22,9 @@ final supportedLanguagesProvider = Provider<List<TranslateLanguage>>((ref) {
   return all;
 });
 
-/// Friendly display name for a [TranslateLanguage], shared by the language
-/// dropdowns and the "Listening in …" voice-input status text. Falls back
-/// to the raw enum name for any future language the package adds before
-/// this map is updated.
+/// English display name for a [TranslateLanguage]. The screen shows the
+/// localized name (`translateLanguageName(bcpCode)`) and re-sorts by it;
+/// this English name only orders the provider's list.
 String translateLanguageDisplayName(TranslateLanguage lang) {
   return switch (lang) {
     TranslateLanguage.afrikaans   => 'Afrikaans',
@@ -111,7 +110,8 @@ final modelDownloadStateProvider =
 final isListeningProvider = StateProvider<bool>((ref) => false);
 
 /// Set when speech recognition can't start (no mic permission, unsupported
-/// device, etc). Cleared automatically on the next successful listen.
+/// device, etc). Holds a [TranslateErrorCode] or a speech-engine `error_*`
+/// code, which the screen localizes. Cleared on the next successful listen.
 final voiceInputErrorProvider = StateProvider<String?>((ref) => null);
 
 // ── Voice output (text → speech) ──────────────────────────────────────────
@@ -153,8 +153,8 @@ class TranslationActions {
     if (permission != PermissionOutcome.granted) {
       _ref.read(voiceInputErrorProvider.notifier).state =
           permission == PermissionOutcome.permanentlyDenied
-              ? 'Microphone access is blocked. Enable it in Settings to use voice input.'
-              : 'Microphone permission is needed for voice input.';
+              ? TranslateErrorCode.micBlocked
+              : TranslateErrorCode.micNeeded;
       return;
     }
 
@@ -165,6 +165,22 @@ class TranslationActions {
     _stopHandled = false;
     _ref.read(isListeningProvider.notifier).state = true;
 
+    try {
+      await _startListening(voice, source);
+    } catch (_) {
+      // initialize()/listen() throw PlatformException / ListenFailedException
+      // on devices with no recognizer or a busy mic — don't leave the mic
+      // stuck in "listening".
+      _handleListeningStopped(autoTranslate: false);
+      _ref.read(voiceInputErrorProvider.notifier).state =
+          TranslateErrorCode.speechUnavailable;
+    }
+  }
+
+  Future<void> _startListening(
+    TranslationVoiceService voice,
+    TranslateLanguage source,
+  ) async {
     await voice.startListening(
       isoCode: source.bcpCode,
       onResult: (text, isFinal) {
@@ -245,8 +261,13 @@ class TranslationActions {
     final voice = _ref.read(translationVoiceServiceProvider);
 
     _ref.read(isSpeakingProvider.notifier).state = true;
-    await voice.speak(result.data, target.bcpCode);
-    _ref.read(isSpeakingProvider.notifier).state = false;
+    try {
+      await voice.speak(result.data, target.bcpCode);
+    } catch (_) {
+      // No TTS engine / voice — just reset the button below.
+    } finally {
+      _ref.read(isSpeakingProvider.notifier).state = false;
+    }
   }
 
   Future<void> stopSpeaking() async {
@@ -273,7 +294,7 @@ class TranslationActions {
 
     if (path == null) {
       _ref.read(generatedAudioProvider.notifier).state = const ErrorResult(
-        'Could not generate an audio file on this device.',
+        TranslateErrorCode.audioFailed,
       );
       return;
     }
@@ -295,26 +316,41 @@ class TranslationActions {
     final source = _ref.read(sourceLanguageProvider);
     final target = _ref.read(targetLanguageProvider);
 
-    _ref.read(modelDownloadStateProvider.notifier).state = const Loading();
-
     try {
       final sourceReady =
           await _modelManager.isModelDownloaded(source.bcpCode);
       final targetReady =
           await _modelManager.isModelDownloaded(target.bcpCode);
 
-      if (!sourceReady) {
-        await _modelManager.downloadModel(source.bcpCode);
+      // Only show "Downloading…" when something actually has to download,
+      // so already-installed models don't flash a progress card.
+      if (!sourceReady || !targetReady) {
+        _ref.read(modelDownloadStateProvider.notifier).state = const Loading();
       }
-      if (!targetReady) {
-        await _modelManager.downloadModel(target.bcpCode);
+
+      // isWifiRequired defaults to true in ML Kit: on mobile data the
+      // download would wait for Wi-Fi forever and the spinner never ends.
+      // downloadModel also reports failure via `false`, not only by throwing.
+      if (!sourceReady &&
+          !await _modelManager.downloadModel(
+            source.bcpCode,
+            isWifiRequired: false,
+          )) {
+        throw StateError('download failed');
+      }
+      if (!targetReady &&
+          !await _modelManager.downloadModel(
+            target.bcpCode,
+            isWifiRequired: false,
+          )) {
+        throw StateError('download failed');
       }
 
       _ref.read(modelDownloadStateProvider.notifier).state = const Success(null);
       return true;
     } catch (_) {
       _ref.read(modelDownloadStateProvider.notifier).state = const ErrorResult(
-        'Could not download language models. Check your internet connection.',
+        TranslateErrorCode.downloadFailed,
       );
       return false;
     }
@@ -333,9 +369,9 @@ class TranslationActions {
 
     final ready = await ensureModelsDownloaded();
     if (!ready) {
-      _ref.read(translationResultProvider.notifier).state = const ErrorResult(
-        'Language models are not available offline yet.',
-      );
+      // The download error card (with its own Retry) already explains this;
+      // a second error card underneath would just repeat it.
+      _ref.read(translationResultProvider.notifier).state = const Idle();
       return;
     }
 
@@ -357,7 +393,7 @@ class TranslationActions {
       }
     } catch (_) {
       _ref.read(translationResultProvider.notifier).state = const ErrorResult(
-        'Translation failed. Try again.',
+        TranslateErrorCode.translateFailed,
       );
     } finally {
       await translator.close();

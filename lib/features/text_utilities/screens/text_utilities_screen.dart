@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:utility_toolbox/core/theme/app_colors.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
+import 'package:intl/intl.dart';
 import 'package:utility_toolbox/features/text_utilities/providers/text_utilities_providers.dart';
+import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 
 class TextUtilitiesScreen extends ConsumerStatefulWidget {
   const TextUtilitiesScreen({super.key, this.initialText});
@@ -50,8 +52,25 @@ class _TextUtilitiesScreenState extends ConsumerState<TextUtilitiesScreen> {
     );
   }
 
+  Future<void> _copy(String value) async {
+    await Clipboard.setData(ClipboardData(text: value));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context).commonCopied),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l             = AppLocalizations.of(context);
+    final numbers       = NumberFormat.decimalPattern(
+      Localizations.localeOf(context).toLanguageTag(),
+    );
     final text          = ref.watch(textInputProvider);
     final base64Mode    = ref.watch(base64ModeProvider);
     final base64Output  = ref.watch(base64OutputProvider);
@@ -68,7 +87,7 @@ class _TextUtilitiesScreenState extends ConsumerState<TextUtilitiesScreen> {
     }
 
     return ToolScaffold(
-      title: 'Text Utilities',
+      title: l.toolTextUtilitiesTitle,
       accentColor: AppColors.toolAccent('text_utilities'),
       body: SingleChildScrollView(
         padding: EdgeInsets.fromLTRB(
@@ -80,12 +99,17 @@ class _TextUtilitiesScreenState extends ConsumerState<TextUtilitiesScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // ── Mode toggle ────────────────────────────────────────
-            Row(
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Text('Mode', style: theme.textTheme.labelLarge),
-                const SizedBox(width: 12),
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(end: 4),
+                  child: Text(l.textUtilMode, style: theme.textTheme.labelLarge),
+                ),
                 ChoiceChip(
-                  label: const Text('Text'),
+                  label: Text(l.textUtilModeText),
                   selected: !base64Mode,
                   onSelected: (_) {
                     ref.read(base64ModeProvider.notifier).state = false;
@@ -93,7 +117,6 @@ class _TextUtilitiesScreenState extends ConsumerState<TextUtilitiesScreen> {
                     ref.read(base64ErrorProvider.notifier).state = null;
                   },
                 ),
-                const SizedBox(width: 8),
                 ChoiceChip(
                   label: const Text('Base64'),
                   selected: base64Mode,
@@ -114,12 +137,11 @@ class _TextUtilitiesScreenState extends ConsumerState<TextUtilitiesScreen> {
               minLines: 4,
               textInputAction: TextInputAction.newline,
               decoration: InputDecoration(
-                hintText: base64Mode
-                    ? 'Enter text or Base64 to convert…'
-                    : 'Enter text here…',
+                hintText: base64Mode ? l.textUtilHintBase64 : l.textUtilHint,
                 suffixIcon: text.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear_rounded, size: 18),
+                        tooltip: l.commonClear,
                         onPressed: () {
                           _inputCtrl.clear();
                           ref.read(textInputProvider.notifier).state = '';
@@ -149,13 +171,28 @@ class _TextUtilitiesScreenState extends ConsumerState<TextUtilitiesScreen> {
                   ),
                 ),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _StatChip(label: 'Words', value: '$words'),
-                    const SizedBox(width: 16),
-                    _StatChip(label: 'Chars', value: '$chars'),
-                    const SizedBox(width: 16),
-                    _StatChip(
-                        label: 'No spaces', value: '$charsNoSpaces'),
+                    Expanded(
+                      child: _StatChip(
+                        label: l.textUtilWords(words),
+                        value: numbers.format(words),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _StatChip(
+                        label: l.textUtilCharacters(chars),
+                        value: numbers.format(chars),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _StatChip(
+                        label: l.textUtilNoSpaces,
+                        value: numbers.format(charsNoSpaces),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -169,25 +206,25 @@ class _TextUtilitiesScreenState extends ConsumerState<TextUtilitiesScreen> {
                 runSpacing: 8,
                 children: [
                   _ActionChip(
-                    label: 'UPPERCASE',
+                    label: l.textUtilUpper,
                     enabled: text.isNotEmpty,
                     onTap: () =>
                         _applyTransform(service.toUpperCase(text)),
                   ),
                   _ActionChip(
-                    label: 'lowercase',
+                    label: l.textUtilLower,
                     enabled: text.isNotEmpty,
                     onTap: () =>
                         _applyTransform(service.toLowerCase(text)),
                   ),
                   _ActionChip(
-                    label: 'Title Case',
+                    label: l.textUtilTitle,
                     enabled: text.isNotEmpty,
                     onTap: () =>
                         _applyTransform(service.toTitleCase(text)),
                   ),
                   _ActionChip(
-                    label: 'Sentence case',
+                    label: l.textUtilSentence,
                     enabled: text.isNotEmpty,
                     onTap: () =>
                         _applyTransform(service.toSentenceCase(text)),
@@ -200,10 +237,9 @@ class _TextUtilitiesScreenState extends ConsumerState<TextUtilitiesScreen> {
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () => Clipboard.setData(
-                            ClipboardData(text: text)),
+                        onPressed: () => _copy(text),
                         icon: const Icon(Icons.copy_rounded, size: 18),
-                        label: const Text('Copy'),
+                        label: Text(l.commonCopy),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -211,7 +247,7 @@ class _TextUtilitiesScreenState extends ConsumerState<TextUtilitiesScreen> {
                       child: OutlinedButton.icon(
                         onPressed: () => Share.share(text),
                         icon: const Icon(Icons.share_rounded, size: 18),
-                        label: const Text('Share'),
+                        label: Text(l.commonShare),
                       ),
                     ),
                   ],
@@ -238,7 +274,7 @@ class _TextUtilitiesScreenState extends ConsumerState<TextUtilitiesScreen> {
                             },
                       icon: const Icon(Icons.lock_outline_rounded,
                           size: 18),
-                      label: const Text('Encode'),
+                      label: Text(l.textUtilEncode),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -252,7 +288,7 @@ class _TextUtilitiesScreenState extends ConsumerState<TextUtilitiesScreen> {
                               if (decoded == null) {
                                 ref
                                     .read(base64ErrorProvider.notifier)
-                                    .state = 'Invalid Base64 input';
+                                    .state = 'invalid';
                                 ref
                                     .read(base64OutputProvider.notifier)
                                     .state = '';
@@ -267,7 +303,7 @@ class _TextUtilitiesScreenState extends ConsumerState<TextUtilitiesScreen> {
                             },
                       icon: const Icon(Icons.lock_open_rounded,
                           size: 18),
-                      label: const Text('Decode'),
+                      label: Text(l.textUtilDecode),
                     ),
                   ),
                 ],
@@ -278,13 +314,14 @@ class _TextUtilitiesScreenState extends ConsumerState<TextUtilitiesScreen> {
                 readOnly: true,
                 maxLines: 4,
                 decoration: InputDecoration(
-                  labelText: 'Output',
-                  errorText: base64Error,
+                  labelText: l.textUtilOutput,
+                  errorText:
+                      base64Error == null ? null : l.textUtilInvalidBase64,
                   suffixIcon: base64Output.isNotEmpty
                       ? IconButton(
                           icon: const Icon(Icons.copy_rounded, size: 18),
-                          onPressed: () => Clipboard.setData(
-                              ClipboardData(text: base64Output)),
+                          tooltip: l.commonCopy,
+                          onPressed: () => _copy(base64Output),
                         )
                       : null,
                 ),
@@ -318,6 +355,8 @@ class _StatChip extends StatelessWidget {
         ),
         Text(
           label,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),

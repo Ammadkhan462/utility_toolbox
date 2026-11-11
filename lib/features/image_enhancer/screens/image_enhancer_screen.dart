@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:utility_toolbox/core/utils/file_utils.dart';
 import 'package:utility_toolbox/core/utils/result.dart';
 import 'package:utility_toolbox/core/widgets/empty_state.dart';
 import 'package:utility_toolbox/core/widgets/feature_badge.dart';
@@ -10,17 +12,35 @@ import 'package:utility_toolbox/core/widgets/premium_button.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/image_enhancer/providers/image_enhancer_providers.dart';
 import 'package:utility_toolbox/features/image_enhancer/services/image_enhancer_service.dart';
+import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 
 const _accent = Color(0xFFDB2777); // Pink — image/creative tool
 const _accentGlow = Color(0xFFF472B6);
 final _enhancerService = ImageEnhancerService();
 
+/// ErrorResult marker; the screen shows the localized message for it.
+const _kEnhanceFailed = 'enhance_failed';
+
 class ImageEnhancerScreen extends ConsumerWidget {
   const ImageEnhancerScreen({super.key});
 
   Future<void> _pickImage(WidgetRef ref, ImageSource src) async {
-    final picked = await ImagePicker().pickImage(source: src, imageQuality: 95);
-    if (picked == null) return;
+    XFile? picked;
+    try {
+      // Edits run in pure Dart (several full-size bitmap copies), so cap the
+      // size: a 50 MP photo would run a low-end phone out of memory.
+      picked = await ImagePicker().pickImage(
+        source: src,
+        imageQuality: 95,
+        maxWidth: 4096,
+        maxHeight: 4096,
+      );
+    } on PlatformException catch (e) {
+      // Camera/photos permission denied, no camera app, etc.
+      debugPrint('Image pick failed: $e');
+      return;
+    }
+    if (picked == null || !ref.context.mounted) return;
     ref.read(sourceImageProvider.notifier).state = File(picked.path);
     ref.read(enhancerSettingsProvider.notifier).state =
         const EnhancementSettings();
@@ -28,15 +48,28 @@ class ImageEnhancerScreen extends ConsumerWidget {
   }
 
   Future<void> _applyEnhancements(WidgetRef ref, File source) async {
+    if (ref.read(enhancerResultProvider) is Loading) return;
     ref.read(enhancerResultProvider.notifier).state = const Loading();
+    final settings = ref.read(enhancerSettingsProvider);
+    // A slider moved / photo changed meanwhile: this render is stale.
+    bool stale() =>
+        !ref.context.mounted ||
+        ref.read(sourceImageProvider) != source ||
+        ref.read(enhancerSettingsProvider) != settings;
     try {
-      final settings = ref.read(enhancerSettingsProvider);
       final originalSize = await source.length();
       final enhanced = await _enhancerService.enhance(
         source: source,
         settings: settings,
       );
       final enhancedSize = await enhanced.length();
+      if (stale()) {
+        if (ref.context.mounted &&
+            ref.read(enhancerResultProvider) is Loading) {
+          ref.read(enhancerResultProvider.notifier).state = const Idle();
+        }
+        return;
+      }
       ref.read(enhancerResultProvider.notifier).state = Success(
         EnhancerResult(
           file: enhanced,
@@ -45,10 +78,43 @@ class ImageEnhancerScreen extends ConsumerWidget {
         ),
       );
     } catch (e) {
-      ref.read(enhancerResultProvider.notifier).state = ErrorResult(
-        'Enhancement failed: $e',
+      debugPrint('Enhancement failed: $e');
+      if (!ref.context.mounted) return;
+      ref.read(enhancerResultProvider.notifier).state = const ErrorResult(
+        _kEnhanceFailed,
       );
     }
+  }
+
+  Future<void> _save(BuildContext context, File file) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l = AppLocalizations.of(context);
+    var ok = false;
+    try {
+      ok = await FileUtils.saveImageToGallery(
+        bytes: await file.readAsBytes(),
+        fileName: 'enhanced_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        toolId: 'image_enhancer',
+      );
+    } catch (e) {
+      debugPrint('Saving enhanced image failed: $e');
+    }
+    messenger.showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              ok ? Icons.check_circle_rounded : Icons.error_outline_rounded,
+              color: ok ? const Color(0xFF22C55E) : Colors.redAccent,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(ok ? l.commonSavedToGallery : l.commonSaveFailed),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -58,9 +124,10 @@ class ImageEnhancerScreen extends ConsumerWidget {
     final result = ref.watch(enhancerResultProvider);
     final isLoading = result is Loading<EnhancerResult>;
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context);
 
     return ToolScaffold(
-      title: 'Image Enhancer',
+      title: l.toolImageEnhancerTitle,
       accentColor: _accent,
       body: source == null
           ? _EmptyPicker(onPick: (src) => _pickImage(ref, src))
@@ -74,7 +141,11 @@ class ImageEnhancerScreen extends ConsumerWidget {
                     children: [
                       // Show enhanced result if available
                       result is Success<EnhancerResult>
-                          ? Image.file((result).data.file, fit: BoxFit.contain)
+                          ? Image.file(
+                              (result).data.file,
+                              fit: BoxFit.contain,
+                              cacheWidth: _previewCacheWidth(context),
+                            )
                           : _PreviewWithFilter(
                               source: source,
                               settings: settings,
@@ -83,29 +154,29 @@ class ImageEnhancerScreen extends ConsumerWidget {
                       if (isLoading)
                         Container(
                           color: Colors.black54,
-                          child: const Center(
+                          child: Center(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                CircularProgressIndicator(color: Colors.white),
-                                SizedBox(height: 12),
+                                const CircularProgressIndicator(color: Colors.white),
+                                const SizedBox(height: 12),
                                 Text(
-                                  'Enhancing…',
-                                  style: TextStyle(color: Colors.white),
+                                  l.imgEnhanceApplying,
+                                  style: const TextStyle(color: Colors.white),
                                 ),
                               ],
                             ),
                           ),
                         ),
                       // Change / Reset buttons
-                      Positioned(
+                      PositionedDirectional(
                         top: 8,
-                        right: 8,
+                        end: 8,
                         child: Row(
                           children: [
                             _PreviewButton(
                               icon: Icons.refresh_rounded,
-                              label: 'Reset',
+                              label: l.commonReset,
                               onTap: () {
                                 ref
                                         .read(enhancerSettingsProvider.notifier)
@@ -120,7 +191,7 @@ class ImageEnhancerScreen extends ConsumerWidget {
                             const SizedBox(width: 6),
                             _PreviewButton(
                               icon: Icons.photo_library_rounded,
-                              label: 'Change',
+                              label: l.imgEnhanceChange,
                               onTap: () => _pickImage(ref, ImageSource.gallery),
                             ),
                           ],
@@ -145,7 +216,9 @@ class ImageEnhancerScreen extends ConsumerWidget {
                           Padding(
                             padding: const EdgeInsets.only(bottom: 8),
                             child: Text(
-                              (result).message,
+                              (result).message == _kEnhanceFailed
+                                  ? l.imgEnhanceFailed
+                                  : (result).message,
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: Colors.red,
                               ),
@@ -153,7 +226,7 @@ class ImageEnhancerScreen extends ConsumerWidget {
                           ),
 
                         // ── Presets ──────────────────────────────────
-                        _SectionLabel('Presets'),
+                        _SectionLabel(l.imgEnhancePresets),
                         const SizedBox(height: 8),
                         _PresetRow(
                           source: source,
@@ -168,13 +241,13 @@ class ImageEnhancerScreen extends ConsumerWidget {
                         const SizedBox(height: 14),
 
                         // ── Transform ────────────────────────────────
-                        _SectionLabel('Transform'),
+                        _SectionLabel(l.imgEnhanceTransform),
                         const SizedBox(height: 8),
                         Row(
                           children: [
                             _TransformBtn(
                               icon: Icons.rotate_right_rounded,
-                              label: 'Rotate',
+                              label: l.imgEnhanceRotate,
                               onTap: () {
                                 final newRot = (settings.rotation + 90) % 360;
                                 ref
@@ -191,7 +264,7 @@ class ImageEnhancerScreen extends ConsumerWidget {
                             const SizedBox(width: 8),
                             _TransformBtn(
                               icon: Icons.flip_rounded,
-                              label: 'Flip H',
+                              label: l.imgEnhanceFlipH,
                               onTap: () {
                                 ref
                                     .read(enhancerSettingsProvider.notifier)
@@ -208,7 +281,7 @@ class ImageEnhancerScreen extends ConsumerWidget {
                             const SizedBox(width: 8),
                             _TransformBtn(
                               icon: Icons.flip_rounded,
-                              label: 'Flip V',
+                              label: l.imgEnhanceFlipV,
                               onTap: () {
                                 ref
                                     .read(enhancerSettingsProvider.notifier)
@@ -228,10 +301,10 @@ class ImageEnhancerScreen extends ConsumerWidget {
                         const SizedBox(height: 14),
 
                         // ── Adjustments ──────────────────────────────
-                        _SectionLabel('Adjustments'),
+                        _SectionLabel(l.imgEnhanceAdjustments),
                         const SizedBox(height: 4),
                         _SliderRow(
-                          label: 'Brightness',
+                          label: l.imgEnhanceBrightness,
                           icon: Icons.brightness_6_rounded,
                           value: settings.brightness,
                           min: -1,
@@ -244,7 +317,7 @@ class ImageEnhancerScreen extends ConsumerWidget {
                           },
                         ),
                         _SliderRow(
-                          label: 'Contrast',
+                          label: l.imgEnhanceContrast,
                           icon: Icons.contrast_rounded,
                           value: settings.contrast,
                           min: -1,
@@ -257,7 +330,7 @@ class ImageEnhancerScreen extends ConsumerWidget {
                           },
                         ),
                         _SliderRow(
-                          label: 'Saturation',
+                          label: l.imgEnhanceSaturation,
                           icon: Icons.color_lens_rounded,
                           value: settings.saturation,
                           min: -1,
@@ -270,7 +343,7 @@ class ImageEnhancerScreen extends ConsumerWidget {
                           },
                         ),
                         _SliderRow(
-                          label: 'Sharpen',
+                          label: l.imgEnhanceSharpen,
                           icon: Icons.blur_off_rounded,
                           value: settings.sharpness,
                           min: 0,
@@ -283,7 +356,7 @@ class ImageEnhancerScreen extends ConsumerWidget {
                           },
                         ),
                         _SliderRow(
-                          label: 'Blur',
+                          label: l.imgEnhanceBlur,
                           icon: Icons.blur_on_rounded,
                           value: settings.blur,
                           min: 0,
@@ -296,7 +369,7 @@ class ImageEnhancerScreen extends ConsumerWidget {
                           },
                         ),
                         _SliderRow(
-                          label: 'Quality',
+                          label: l.imgEnhanceQuality,
                           icon: Icons.high_quality_rounded,
                           value: settings.outputQuality.toDouble(),
                           min: 20,
@@ -323,14 +396,33 @@ class ImageEnhancerScreen extends ConsumerWidget {
                                 icon: isLoading
                                     ? null
                                     : Icons.auto_fix_high_rounded,
-                                label: isLoading ? 'Enhancing…' : 'Apply',
+                                label: isLoading
+                                    ? l.imgEnhanceApplying
+                                    : l.imgEnhanceApply,
                                 gradient: const LinearGradient(
                                   colors: [_accent, _accentGlow],
                                 ),
                                 dense: true,
                               ),
                             ),
-                            if (result is Success<EnhancerResult>) ...[
+                          ],
+                        ),
+                        if (result is Success<EnhancerResult>) ...[
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              // Without this the edit only lived in the
+                              // cache: never saved, never in My Files.
+                              Expanded(
+                                child: PremiumOutlineButton(
+                                  onPressed: () =>
+                                      _save(context, (result).data.file),
+                                  icon: Icons.save_alt_rounded,
+                                  label: l.commonSave,
+                                  accent: _accent,
+                                  dense: true,
+                                ),
+                              ),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: PremiumOutlineButton(
@@ -338,14 +430,14 @@ class ImageEnhancerScreen extends ConsumerWidget {
                                     XFile((result).data.file.path),
                                   ]),
                                   icon: Icons.share_rounded,
-                                  label: 'Share',
+                                  label: l.commonShare,
                                   accent: _accent,
                                   dense: true,
                                 ),
                               ),
                             ],
-                          ],
-                        ),
+                          ),
+                        ],
                         const SizedBox(height: 24),
                       ],
                     ),
@@ -366,21 +458,21 @@ class _EmptyPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return EmptyState(
       icon: Icons.photo_camera_rounded,
       gradient: const LinearGradient(colors: [_accent, _accentGlow]),
-      title: 'Enhance Your Photos',
-      message:
-          'Adjust brightness, contrast, saturation, sharpness, apply artistic presets, rotate, and flip — all on-device.',
-      badges: const [
+      title: l.imgEnhanceEmptyTitle,
+      message: l.imgEnhanceEmptyBody,
+      badges: [
         FeatureBadge(
           icon: Icons.auto_fix_high_rounded,
-          label: 'Presets',
+          label: l.imgEnhancePresets,
           accent: _accent,
         ),
         FeatureBadge(
           icon: Icons.tune_rounded,
-          label: 'Fine controls',
+          label: l.imgEnhanceFineControls,
           accent: _accent,
         ),
       ],
@@ -390,14 +482,14 @@ class _EmptyPicker extends StatelessWidget {
           PremiumButton(
             onPressed: () => onPick(ImageSource.gallery),
             icon: Icons.photo_library_rounded,
-            label: 'Pick from Gallery',
+            label: l.commonChoosePhoto,
             gradient: const LinearGradient(colors: [_accent, _accentGlow]),
           ),
           const SizedBox(height: 12),
           PremiumOutlineButton(
             onPressed: () => onPick(ImageSource.camera),
             icon: Icons.camera_alt_rounded,
-            label: 'Take a Photo',
+            label: l.commonCamera,
             accent: _accent,
           ),
         ],
@@ -422,7 +514,14 @@ class _PreviewWithFilter extends StatelessWidget {
         settings.saturation + (settings.presetDeltas['saturation'] ?? 0.0);
     final isMono = saturation <= -0.95;
 
-    Widget child = Image.file(source, fit: BoxFit.contain);
+    Widget child = Image.file(
+      source,
+      fit: BoxFit.contain,
+      cacheWidth: _previewCacheWidth(context),
+      errorBuilder: (_, _, _) => const Center(
+        child: Icon(Icons.broken_image_outlined, size: 48),
+      ),
+    );
 
     // Grayscale overlay for noir/mono
     if (isMono) {
@@ -571,32 +670,35 @@ class _PresetRow extends StatelessWidget {
   final EnhancementPreset current;
   final ValueChanged<EnhancementPreset> onSelect;
 
-  static const _presets = [
-    (p: EnhancementPreset.original, label: 'Original', emoji: '📷'),
-    (p: EnhancementPreset.vivid, label: 'Vivid', emoji: '🌈'),
-    (p: EnhancementPreset.cool, label: 'Cool', emoji: '❄️'),
-    (p: EnhancementPreset.warm, label: 'Warm', emoji: '🌅'),
-    (p: EnhancementPreset.dramatic, label: 'Dramatic', emoji: '🎭'),
-    (p: EnhancementPreset.fade, label: 'Fade', emoji: '🌫️'),
-    (p: EnhancementPreset.vintage, label: 'Vintage', emoji: '📸'),
-    (p: EnhancementPreset.noir, label: 'Noir', emoji: '🎞️'),
-  ];
+  static String _label(AppLocalizations l, EnhancementPreset p) =>
+      switch (p) {
+        EnhancementPreset.original => l.imgEnhancePresetOriginal,
+        EnhancementPreset.vivid => l.imgEnhancePresetVivid,
+        EnhancementPreset.cool => l.imgEnhancePresetCool,
+        EnhancementPreset.warm => l.imgEnhancePresetWarm,
+        EnhancementPreset.dramatic => l.imgEnhancePresetDramatic,
+        EnhancementPreset.fade => l.imgEnhancePresetFade,
+        EnhancementPreset.vintage => l.imgEnhancePresetVintage,
+        EnhancementPreset.noir => l.imgEnhancePresetNoir,
+      };
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context);
+    const presets = EnhancementPreset.values;
 
     return SizedBox(
       height: 80,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: _presets.length,
+        itemCount: presets.length,
         separatorBuilder: (_, __) => const SizedBox(width: 10),
         itemBuilder: (context, i) {
-          final preset = _presets[i];
-          final selected = preset.p == current;
+          final preset = presets[i];
+          final selected = preset == current;
           return GestureDetector(
-            onTap: () => onSelect(preset.p),
+            onTap: () => onSelect(preset),
             child: Column(
               children: [
                 AnimatedContainer(
@@ -626,25 +728,30 @@ class _PresetRow extends StatelessWidget {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        Image.file(source, fit: BoxFit.cover),
+                        Image.file(
+                          source,
+                          fit: BoxFit.cover,
+                          cacheWidth: 168, // 56 px × 3 dpr
+                          errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                        ),
                         // Tint overlay to hint at the filter
-                        if (preset.p == EnhancementPreset.noir)
+                        if (preset == EnhancementPreset.noir)
                           Container(color: Colors.black38),
-                        if (preset.p == EnhancementPreset.warm)
+                        if (preset == EnhancementPreset.warm)
                           Container(
                             color: const Color(
                               0xFFF97316,
                             ).withValues(alpha: 0.25),
                           ),
-                        if (preset.p == EnhancementPreset.cool)
+                        if (preset == EnhancementPreset.cool)
                           Container(
                             color: const Color(
                               0xFF06B6D4,
                             ).withValues(alpha: 0.25),
                           ),
-                        if (preset.p == EnhancementPreset.dramatic)
+                        if (preset == EnhancementPreset.dramatic)
                           Container(color: Colors.black26),
-                        if (preset.p == EnhancementPreset.fade)
+                        if (preset == EnhancementPreset.fade)
                           Container(color: Colors.white24),
                       ],
                     ),
@@ -652,7 +759,8 @@ class _PresetRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  preset.label,
+                  _label(l, preset),
+                  maxLines: 1,
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: selected
                         ? _accent
@@ -671,6 +779,11 @@ class _PresetRow extends StatelessWidget {
 }
 
 // ── Small helper widgets ───────────────────────────────────────────────────
+
+/// Decode previews at screen size instead of full resolution.
+int _previewCacheWidth(BuildContext context) =>
+    (MediaQuery.sizeOf(context).width * MediaQuery.devicePixelRatioOf(context))
+        .round();
 
 class _SectionLabel extends StatelessWidget {
   const _SectionLabel(this.text);
@@ -721,8 +834,12 @@ class _SliderRow extends StatelessWidget {
           Icon(icon, size: 18, color: theme.colorScheme.onSurfaceVariant),
           const SizedBox(width: 8),
           SizedBox(
-            width: 76,
-            child: Text(label, style: theme.textTheme.bodySmall),
+            width: 84,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: AlignmentDirectional.centerStart,
+              child: Text(label, style: theme.textTheme.bodySmall),
+            ),
           ),
           Expanded(
             child: SliderTheme(
@@ -743,7 +860,7 @@ class _SliderRow extends StatelessWidget {
             width: 38,
             child: Text(
               displayV,
-              textAlign: TextAlign.right,
+              textAlign: TextAlign.end,
               style: theme.textTheme.labelSmall?.copyWith(
                 fontFamily: 'monospace',
                 color: _accent,
@@ -839,11 +956,17 @@ class _TransformBtn extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                label,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: active ? _accent : theme.colorScheme.onSurfaceVariant,
-                  fontSize: 10,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: active ? _accent : theme.colorScheme.onSurfaceVariant,
+                    fontSize: 10,
+                  ),
                 ),
               ),
             ],
@@ -884,9 +1007,11 @@ class _ResultBadge extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Enhanced! ${_formatBytes(result.originalBytes)} → '
-              '${_formatBytes(result.enhancedBytes)} '
-              '(${saved ? '-' : '+'}${delta.abs().toStringAsFixed(1)}%)',
+              AppLocalizations.of(context).imgEnhanceResult(
+                _formatBytes(result.originalBytes),
+                _formatBytes(result.enhancedBytes),
+                '${saved ? '-' : '+'}${delta.abs().toStringAsFixed(1)}%',
+              ),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: const Color(0xFF22C55E),
               ),

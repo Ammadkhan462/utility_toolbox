@@ -4,13 +4,14 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:utility_toolbox/features/ai_upscaler/providers/upscaler_providers.dart';
 import 'package:utility_toolbox/features/ai_upscaler/services/real_esrgan_processor.dart';
+import 'package:utility_toolbox/features/ai_upscaler/services/upscaler_model_store.dart';
 
 /// Thrown by [AiUpscalerService.upscale] when [AiUpscalerService.cancel] was
 /// called mid-run. The notifier treats any error after its own cancel() as
@@ -20,6 +21,16 @@ class UpscaleCancelledException implements Exception {
   @override
   String toString() => 'Upscale cancelled';
 }
+
+/// Output file plus why (if at all) a fallback pipeline produced it.
+class UpscaleOutput {
+  const UpscaleOutput(this.file, [this.fallback]);
+  final File file;
+  final UpscaleFallback? fallback;
+}
+
+/// Progress callback: 0..1 plus the current step (localized by the screen).
+typedef UpscaleProgress = void Function(double progress, UpscaleStep step);
 
 class AiUpscalerService {
   /// Your Hugging Face Space URL (Docker/FastAPI backend running
@@ -85,20 +96,20 @@ class AiUpscalerService {
 
   // ── Public entry point ─────────────────────────────────────────────────
 
-  Future<File> upscale({
+  Future<UpscaleOutput> upscale({
     required File source,
     required UpscaleFactor factor,
     required EnhanceMode mode,
     required double denoise,
     required double sharpen,
-    required void Function(double progress, String label) onProgress,
+    required UpscaleProgress onProgress,
     bool useCloud = false,
   }) async {
     _cancelled = false;
     // Privacy gate: the photo leaves the device ONLY when the user has
     // explicitly enabled cloud processing. Default is on-device.
     if (!useCloud) {
-      onProgress(0.08, 'Using on-device processing…');
+      onProgress(0.08, const UpscaleStep(UpscaleStage.onDevice));
       return _onDeviceUpscale(
         source: source,
         factor: factor,
@@ -113,11 +124,13 @@ class AiUpscalerService {
     //    Best quality, needs internet, ~5-15s inference.
     if (cloudAvailable) {
       try {
-        return await _cloudUpscaleHF(
-          source: source,
-          factor: factor,
-          mode: mode,
-          onProgress: onProgress,
+        return UpscaleOutput(
+          await _cloudUpscaleHF(
+            source: source,
+            factor: factor,
+            mode: mode,
+            onProgress: onProgress,
+          ),
         );
       } catch (e) {
         // cancel() closes the HTTP client, which surfaces here as a
@@ -127,14 +140,19 @@ class AiUpscalerService {
       }
     }
     // 2) On-device real TFLite Real-ESRGAN — always available, offline.
-    onProgress(0.08, 'Cloud unavailable — using on-device processing…');
-    return _onDeviceUpscale(
+    onProgress(0.08, const UpscaleStep(UpscaleStage.cloudUnavailable));
+    final local = await _onDeviceUpscale(
       source: source,
       factor: factor,
       mode: mode,
       denoise: denoise,
       sharpen: sharpen,
       onProgress: onProgress,
+    );
+    // A missing/failed AI model matters more to the user than the cloud.
+    return UpscaleOutput(
+      local.file,
+      local.fallback ?? UpscaleFallback.cloudUnavailable,
     );
   }
 
@@ -148,9 +166,9 @@ class AiUpscalerService {
     required File source,
     required UpscaleFactor factor,
     required EnhanceMode mode,
-    required void Function(double, String) onProgress,
+    required UpscaleProgress onProgress,
   }) async {
-    onProgress(0.05, 'Connecting to AI server…');
+    onProgress(0.05, const UpscaleStep(UpscaleStage.connecting));
 
     final client = http.Client();
     _activeHttpClient = client;
@@ -168,7 +186,7 @@ class AiUpscalerService {
     File source,
     UpscaleFactor factor,
     EnhanceMode mode,
-    void Function(double, String) onProgress,
+    UpscaleProgress onProgress,
   ) async {
 
     // Skip GFPGAN's face-restoration pass for illustration/art content —
@@ -185,7 +203,7 @@ class AiUpscalerService {
       request.headers['Authorization'] = 'Bearer $cloudApiToken';
     }
 
-    onProgress(0.15, 'Uploading image…');
+    onProgress(0.15, const UpscaleStep(UpscaleStage.uploading));
 
     // Generous timeout: covers a possible ~20-30s cold start on top of
     // 5-15s CPU inference plus upload/download of the image itself.
@@ -196,7 +214,7 @@ class AiUpscalerService {
           onTimeout: () => throw Exception('timeout: AI server took too long'),
         );
 
-    onProgress(0.5, 'AI restoring faces & detail…');
+    onProgress(0.5, const UpscaleStep(UpscaleStage.restoringFaces));
     final res = await http.Response.fromStream(streamed);
 
     if (res.statusCode != 200) {
@@ -207,13 +225,55 @@ class AiUpscalerService {
       throw Exception('Cloud upscale failed: $detail');
     }
 
-    onProgress(0.9, 'Saving result…');
-    final dir = await getTemporaryDirectory();
-    final out = File(
-      '${dir.path}/${p.basenameWithoutExtension(source.path)}_ai_cloud.jpg',
-    );
+    onProgress(0.9, const UpscaleStep(UpscaleStage.saving));
+    final out = File(await _newOutputPath(source, 'cloud', 'jpg'));
     await out.writeAsBytes(res.bodyBytes);
     return out;
+  }
+
+  /// A fresh path per run. Re-using one name per source+factor made the
+  /// preview show the previous run (Flutter's ImageCache keys files by
+  /// path); older outputs — often tens of MB of PNG — are deleted here.
+  Future<String> _newOutputPath(File source, String tag, String ext) async {
+    final dir = await getTemporaryDirectory();
+    const prefix = 'ai_upscaled_';
+    try {
+      await for (final e in dir.list(followLinks: false)) {
+        if (e is File && p.basename(e.path).startsWith(prefix)) {
+          await e.delete();
+        }
+      }
+    } catch (_) {}
+    final name = p.basenameWithoutExtension(source.path);
+    final stamp = DateTime.now().millisecondsSinceEpoch;
+    return '${dir.path}/$prefix${name}_${tag}_$stamp.$ext';
+  }
+
+  /// Source bytes for the on-device pipelines. Android decodes the photo
+  /// natively (HEIC/HEIF too, which package:image can't read), applies the
+  /// EXIF rotation and shrinks it to about 1600 px on the short side —
+  /// both pipelines cap their input far below that anyway, and a 50 MP
+  /// photo decoded in Dart would run a low-end phone out of memory.
+  Future<Uint8List> _loadInput(File source) async {
+    // Small, readable files go in untouched (no extra JPEG generation loss
+    // on the thumbnails/old scans this tool is best at).
+    if (await source.length() < 1500000) {
+      final bytes = await source.readAsBytes();
+      if (img.findDecoderForData(bytes) != null) return bytes;
+    }
+    try {
+      final shrunk = await FlutterImageCompress.compressWithFile(
+        source.absolute.path,
+        minWidth: 1600,
+        minHeight: 1600,
+        quality: 95,
+        format: CompressFormat.jpeg,
+      );
+      if (shrunk != null && shrunk.isNotEmpty) return shrunk;
+    } catch (e) {
+      debugPrint('[AiUpscaler] native pre-shrink failed, using original: $e');
+    }
+    return source.readAsBytes();
   }
 
   // ── On-device (real AI, tiled TFLite Real-ESRGAN) ───────────────────────
@@ -233,29 +293,30 @@ class AiUpscalerService {
   //      file, unsupported device), we transparently fall back to the old
   //      fast bicubic pipeline so upscaling never just fails outright.
 
-  Future<File> _onDeviceUpscale({
+  Future<UpscaleOutput> _onDeviceUpscale({
     required File source,
     required UpscaleFactor factor,
     required EnhanceMode mode,
     required double denoise,
     required double sharpen,
-    required void Function(double, String) onProgress,
+    required UpscaleProgress onProgress,
   }) async {
-    onProgress(0.08, 'Preparing image…');
+    onProgress(0.08, const UpscaleStep(UpscaleStage.preparing));
 
-    final bytes = await source.readAsBytes();
-    final dir = await getTemporaryDirectory();
-    final name = p.basenameWithoutExtension(source.path);
-    final outPath = '${dir.path}/${name}_${factor.multiplier}x.png';
+    final bytes = await _loadInput(source);
+    _throwIfCancelled();
+    final outPath = await _newOutputPath(source, '${factor.multiplier}x', 'png');
 
+    var fallback = UpscaleFallback.modelFailed;
     try {
-      onProgress(0.1, 'Loading AI model…');
-      final modelData = await rootBundle.load(
-        'assets/models/realesrgan_x4.tflite',
-      );
-      final modelBytes = modelData.buffer.asUint8List(
-        modelData.offsetInBytes,
-        modelData.lengthInBytes,
+      onProgress(0.1, const UpscaleStep(UpscaleStage.loadingModel));
+      // Downloaded once on first use (not bundled; saves ~4 MB per install).
+      final modelBytes = await UpscalerModelStore.load(
+        isCancelled: () => _cancelled,
+        onProgress: (p) => onProgress(
+          0.1 + 0.04 * p,
+          const UpscaleStep(UpscaleStage.downloadingModel),
+        ),
       );
 
       _throwIfCancelled();
@@ -276,13 +337,21 @@ class AiUpscalerService {
 
       if (result is String && !result.startsWith('AI_ERROR:')) {
         final out = File(result);
-        return sharpen > 0.05 || mode != EnhanceMode.auto
-            ? await _postProcess(out, mode: mode, sharpen: sharpen)
-            : out;
+        return UpscaleOutput(
+          sharpen > 0.05 || mode != EnhanceMode.auto
+              ? await _postProcess(out, mode: mode, sharpen: sharpen)
+              : out,
+        );
       }
       debugPrint('[AiUpscaler] AI model failed → bicubic fallback: $result');
     } on UpscaleCancelledException {
       rethrow;
+    } on UpscalerModelUnavailable catch (e) {
+      // Not downloaded yet and no internet (or a bad download): the user is
+      // told the model needs internet once; bicubic keeps the tool working.
+      _throwIfCancelled();
+      fallback = UpscaleFallback.modelUnavailable;
+      debugPrint('[AiUpscaler] model unavailable → bicubic fallback: $e');
     } catch (e) {
       // A cancel can also surface as some other error (e.g. from the killed
       // isolate); never fall back to bicubic after the user cancelled.
@@ -291,8 +360,8 @@ class AiUpscalerService {
     }
 
     // Fallback — only reached if the real AI model couldn't run at all.
-    onProgress(0.14, 'Using fallback processing…');
-    return _bicubicFallback(
+    onProgress(0.14, const UpscaleStep(UpscaleStage.fallback));
+    final out = await _bicubicFallback(
       bytes: bytes,
       factor: factor,
       mode: mode,
@@ -301,6 +370,7 @@ class AiUpscalerService {
       outPath: outPath,
       onProgress: onProgress,
     );
+    return UpscaleOutput(out, fallback);
   }
 
   // Light post-processing on top of the real AI output — colour grading and
@@ -325,7 +395,7 @@ class AiUpscalerService {
     required double denoise,
     required double sharpen,
     required String outPath,
-    required void Function(double, String) onProgress,
+    required UpscaleProgress onProgress,
   }) async {
     _throwIfCancelled();
     final result = await _runIsolate<_ProcessArgs>(
@@ -357,7 +427,7 @@ class AiUpscalerService {
   Future<Object?> _runIsolate<T>(
     void Function(T) entry,
     T Function(SendPort resultPort, SendPort progressPort) buildArgs,
-    void Function(double, String) onProgress,
+    UpscaleProgress onProgress,
   ) async {
     final resultPort = ReceivePort();
     final progressPort = ReceivePort();
@@ -386,8 +456,15 @@ class AiUpscalerService {
     });
     progressPort.listen((msg) {
       if (_cancelled) return;
-      if (msg is List && msg.length == 2) {
-        onProgress(msg[0] as double, msg[1] as String);
+      // [progress, stage index, args] — see _progress().
+      if (msg is List && msg.length == 3) {
+        onProgress(
+          msg[0] as double,
+          UpscaleStep(
+            UpscaleStage.values[msg[1] as int],
+            (msg[2] as List).cast<Object>(),
+          ),
+        );
       }
     });
 
@@ -491,17 +568,28 @@ class _ProcessArgs {
   final SendPort progressPort;
 }
 
-void _progress(SendPort port, double p, String label) => port.send([p, label]);
+/// [p, stage index, args]: decoded into an [UpscaleStep] in _runIsolate.
+void _progress(
+  SendPort port,
+  double p,
+  UpscaleStage stage, [
+  List<Object> args = const [],
+]) => port.send([p, stage.index, args]);
 
 Future<void> _processAll(_ProcessArgs args) async {
   final pp = args.progressPort;
   try {
-    _progress(pp, 0.18, 'Decoding…');
+    _progress(pp, 0.18, UpscaleStage.decoding);
 
-    img.Image? image = img.decodeImage(args.bytes);
+    img.Image? image = img.decodeImage(args.bytes, frame: 0);
     if (image == null) {
       args.sendPort.send('Could not decode image');
       return;
+    }
+    // The PNG output carries no EXIF: rotate the pixels upright first.
+    final ifd = image.exif.imageIfd;
+    if (ifd.hasOrientation && ifd.orientation != 1) {
+      image = img.bakeOrientation(image);
     }
 
     // ── FIX 1: Cap input size to max 1.5 MP before processing ─────────
@@ -517,7 +605,8 @@ Future<void> _processAll(_ProcessArgs args) async {
       _progress(
         pp,
         0.25,
-        'Resizing input (${image.width}×${image.height} → $capW×$capH)…',
+        UpscaleStage.resizingInput,
+        ['${image.width}×${image.height}', '$capW×$capH'],
       );
       image = img.copyResize(
         image,
@@ -532,13 +621,13 @@ Future<void> _processAll(_ProcessArgs args) async {
     // We use a single-pass bilateral-approximation via adjustColor,
     // which is O(n) and takes <200ms even on large images.
     if (args.denoise > 0.1) {
-      _progress(pp, 0.32, 'Denoising…');
+      _progress(pp, 0.32, UpscaleStage.denoising);
       // Slight smoothing via mild blur radius 1 — always fast
       image = img.gaussianBlur(image, radius: 1);
     }
 
     // ── Upscale ────────────────────────────────────────────────────────
-    _progress(pp, 0.42, 'Upscaling (${args.scale}×)…');
+    _progress(pp, 0.42, UpscaleStage.upscaling, [args.scale]);
     final outW = image.width * args.scale;
     final outH = image.height * args.scale;
 
@@ -554,7 +643,7 @@ Future<void> _processAll(_ProcessArgs args) async {
     // Instead we do: blurred = blur(image), then blend(original, blurred).
     // This is 2–3× faster and produces equivalent crispness.
     if (args.sharpen > 0.05) {
-      _progress(pp, 0.68, 'Sharpening…');
+      _progress(pp, 0.68, UpscaleStage.sharpening);
       final strength = args.sharpen.clamp(0.0, 1.0);
       // Unsharp mask: result = image + strength * (image - blur(image))
       final blurred = img.gaussianBlur(image, radius: 1);
@@ -568,7 +657,7 @@ Future<void> _processAll(_ProcessArgs args) async {
     }
 
     // ── Colour grading ─────────────────────────────────────────────────
-    _progress(pp, 0.84, 'Colour grading…');
+    _progress(pp, 0.84, UpscaleStage.colourGrading);
     image = switch (args.mode) {
       EnhanceMode.photo => img.adjustColor(
         image,
@@ -589,7 +678,7 @@ Future<void> _processAll(_ProcessArgs args) async {
     };
 
     // ── Encode & save ──────────────────────────────────────────────────
-    _progress(pp, 0.93, 'Saving…');
+    _progress(pp, 0.93, UpscaleStage.saving);
     final encoded = img.encodePng(image);
     File(args.outPath).writeAsBytesSync(encoded);
 

@@ -57,8 +57,28 @@ class _EnhanceArgs {
 /// Top-level function so [compute] can send it to a separate isolate.
 Future<Uint8List> _processImage(_EnhanceArgs args) async {
   final settings = args.settings;
-  img.Image? image = img.decodeImage(args.bytes);
+  img.Image? image = img.decodeImage(args.bytes, frame: 0);
   if (image == null) throw Exception('Could not decode image');
+
+  // 0. Normalise ─────────────────────────────────────────────────────────────
+  // The preview shows the photo EXIF-rotated, so rotate/flip must act on the
+  // upright pixels; otherwise "Flip H" on a portrait shot flips vertically
+  // and the saved JPEG keeps a stale orientation tag. bakeOrientation copies
+  // the bitmap, so only call it when there is something to bake.
+  final ifd = image.exif.imageIfd;
+  if (ifd.hasOrientation && ifd.orientation != 1) {
+    image = img.bakeOrientation(image);
+  }
+  // _tint works in 0–255 and JPEG has no alpha: bring 16-bit/palette PNGs to
+  // 8-bit RGB, flattening transparency onto white instead of black.
+  if (image.format != img.Format.uint8 || image.hasPalette) {
+    image = image.convert(format: img.Format.uint8);
+  }
+  if (image.hasAlpha) {
+    final flat = img.Image(width: image.width, height: image.height)
+      ..clear(img.ColorRgb8(255, 255, 255));
+    image = img.compositeImage(flat, image);
+  }
 
   // 1. Rotation ─────────────────────────────────────────────────────────────
   if (settings.rotation != 0) {

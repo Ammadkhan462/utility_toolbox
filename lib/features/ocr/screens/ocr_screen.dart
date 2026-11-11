@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart'
+    show TextRecognitionScript;
 import 'package:image_picker/image_picker.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:utility_toolbox/core/services/ads_service.dart';
@@ -16,6 +19,9 @@ import 'package:utility_toolbox/core/widgets/premium_button.dart';
 import 'package:utility_toolbox/core/theme/app_colors.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/ocr/providers/ocr_providers.dart';
+import 'package:utility_toolbox/features/ocr/services/ocr_service.dart'
+    show OcrTimeoutException;
+import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  OcrScreen
@@ -41,7 +47,25 @@ class OcrScreen extends ConsumerStatefulWidget {
 
 class _OcrScreenState extends ConsumerState<OcrScreen> {
   static Color get _ocrAccent => AppColors.toolAccent('ocr');
+
+  /// A second tap while the camera/picker is opening threw "already_active".
+  bool _picking = false;
+
   Future<void> _pickImage(ImageSource source) async {
+    if (_picking) return;
+    _picking = true;
+    try {
+      await _pickImageInner(source);
+    } catch (e) {
+      // Picker/permission platform errors (no camera app, picker already
+      // open, …) must not escape as uncaught async errors.
+      debugPrint('OCR image pick failed: $e');
+    } finally {
+      _picking = false;
+    }
+  }
+
+  Future<void> _pickImageInner(ImageSource source) async {
     // Read everything we need BEFORE the first await so ref is accessed
     // synchronously and cannot be disposed between reads.
     final permission = ref.read(permissionServiceProvider);
@@ -56,10 +80,11 @@ class _OcrScreenState extends ConsumerState<OcrScreen> {
       if (!mounted) return;
 
       if (outcome != PermissionOutcome.granted) {
+        final l = AppLocalizations.of(context);
         ref.read(ocrResultProvider.notifier).state = ErrorResult(
           outcome == PermissionOutcome.permanentlyDenied
-              ? 'Camera permission denied. Open Settings to allow access.'
-              : 'Camera permission is required to take a photo.',
+              ? l.ocrCameraDenied
+              : l.ocrCameraRequired,
         );
         return;
       }
@@ -76,25 +101,57 @@ class _OcrScreenState extends ConsumerState<OcrScreen> {
     await _recognize(File(picked.path));
   }
 
+  /// Writing system the recognizer reads; restored from preferences.
+  TextRecognitionScript _script = TextRecognitionScript.latin;
+  late final Future<void> _scriptReady = _loadScript();
+
   @override
   void initState() {
     super.initState();
     final initial = widget.initialImagePath;
-    if (initial != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _recognize(File(initial));
-      });
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _scriptReady;
+      if (mounted && initial != null) _recognize(File(initial));
+    });
+  }
+
+  Future<void> _loadScript() async {
+    final saved = await OcrScriptPrefs.load();
+    if (!mounted) return;
+    // No choice yet: suggest Devanagari for people using the app in Hindi.
+    final suggested = Localizations.localeOf(context).languageCode == 'hi'
+        ? TextRecognitionScript.devanagiri
+        : TextRecognitionScript.latin;
+    _applyScript(saved ?? suggested);
+  }
+
+  void _applyScript(TextRecognitionScript script) {
+    ref.read(ocrServiceProvider).setScript(script);
+    setState(() => _script = script);
+  }
+
+  /// Saves the choice and, when a photo is already open, reads it again
+  /// with the new script.
+  Future<void> _selectScript(TextRecognitionScript script) async {
+    if (script == _script) return;
+    _applyScript(script);
+    unawaited(OcrScriptPrefs.save(script));
+    final image = ref.read(ocrImageProvider);
+    final state = ref.read(ocrResultProvider);
+    if (image != null && state is! Loading<String> && state is! Idle<String>) {
+      await _recognize(image);
     }
   }
 
   Future<void> _recognize(File file) async {
     final ocrService = ref.read(ocrServiceProvider);
+    final l = AppLocalizations.of(context);
 
     // Set state synchronously — no await between here and the OCR call.
     ref.read(ocrImageProvider.notifier).state = file;
     ref.read(ocrDetailedResultProvider.notifier).state = null;
     ref.read(ocrHighlightedBlockProvider.notifier).state = -1;
-    ref.read(ocrLoadingMessageProvider.notifier).state = 'Scanning image…';
+    ref.read(ocrLoadingStageProvider.notifier).state = OcrLoadingStage.scanning;
     ref.read(ocrResultProvider.notifier).state = const Loading();
 
     try {
@@ -108,9 +165,10 @@ class _OcrScreenState extends ConsumerState<OcrScreen> {
       ref.read(ocrTextProvider.notifier).state = detailed.fullText;
       ref.read(ocrResultProvider.notifier).state = Success(detailed.fullText);
     } catch (e) {
+      debugPrint('OCR failed: $e');
       if (!mounted) return;
-      ref.read(ocrResultProvider.notifier).state = const ErrorResult(
-        'Could not read text from this image. Try a clearer photo.',
+      ref.read(ocrResultProvider.notifier).state = ErrorResult(
+        e is OcrTimeoutException ? l.ocrTimeout : l.ocrFailed,
       );
     }
   }
@@ -129,14 +187,39 @@ class _OcrScreenState extends ConsumerState<OcrScreen> {
     final text = ref.watch(ocrTextProvider);
     final image = ref.watch(ocrImageProvider);
     final detailed = ref.watch(ocrDetailedResultProvider);
-    final loadingMsg = ref.watch(ocrLoadingMessageProvider);
+    final l = AppLocalizations.of(context);
+    final loadingMsg = switch (ref.watch(ocrLoadingStageProvider)) {
+      OcrLoadingStage.preparing => l.ocrPreparing,
+      OcrLoadingStage.scanning => l.ocrScanning,
+    };
 
     return ToolScaffold(
-      title: 'OCR Scanner',
+      title: l.toolOcrTitle,
       accentColor: _ocrAccent,
       resizeToAvoidBottomInset: false,
+      actions: [
+        PopupMenuButton<TextRecognitionScript>(
+          tooltip: l.ocrScriptLabel,
+          icon: const Icon(Icons.translate_rounded),
+          initialValue: _script,
+          enabled: resultState is! Loading<String>,
+          onSelected: _selectScript,
+          itemBuilder: (_) => [
+            for (final s in TextRecognitionScript.values)
+              CheckedPopupMenuItem(
+                value: s,
+                checked: s == _script,
+                child: Text(ocrScriptName(l, s)),
+              ),
+          ],
+        ),
+      ],
       body: switch (resultState) {
-        Idle() => _IdleView(onPick: _pickImage),
+        Idle() => _IdleView(
+          onPick: _pickImage,
+          script: _script,
+          onScriptChanged: _selectScript,
+        ),
         Loading() => _LoadingView(image: image, message: loadingMsg),
         ErrorResult(message: final msg) => ErrorState(
           message: msg,
@@ -162,13 +245,21 @@ class _OcrScreenState extends ConsumerState<OcrScreen> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _IdleView extends StatelessWidget {
-  const _IdleView({required this.onPick});
+  const _IdleView({
+    required this.onPick,
+    required this.script,
+    required this.onScriptChanged,
+  });
   final Future<void> Function(ImageSource) onPick;
+  final TextRecognitionScript script;
+  final ValueChanged<TextRecognitionScript> onScriptChanged;
 
   @override
   Widget build(BuildContext context) {
     final accent = AppColors.toolAccent('ocr');
     final gradient = AppColors.toolGradient('ocr');
+    final l = AppLocalizations.of(context);
+    final theme = Theme.of(context);
 
     return Consumer(
       builder: (ctx, ref, _) {
@@ -182,40 +273,68 @@ class _IdleView extends StatelessWidget {
         return EmptyState(
           icon: Icons.document_scanner_outlined,
           gradient: gradient,
-          title: 'Extract text from any image',
-          message:
-              'Point your camera or choose a photo — text is extracted instantly, on-device.',
+          title: l.ocrIdleTitle,
+          message: l.ocrIdleBody,
           badges: [
             FeatureBadge(
               icon: Icons.phone_android_rounded,
-              label: 'On-device AI',
+              label: l.ocrBadgeOnDevice,
               accent: accent,
             ),
             FeatureBadge(
               icon: Icons.lock_outline_rounded,
-              label: 'Processed locally',
+              label: l.ocrBadgeLocal,
               accent: accent,
             ),
             FeatureBadge(
               icon: Icons.layers_outlined,
-              label: 'Block-level copy',
+              label: l.ocrBadgeBlocks,
               accent: accent,
             ),
           ],
           action: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // ── Script (writing system) choice ──────────────────────────
+              Text(
+                l.ocrScriptLabel,
+                style: theme.textTheme.labelLarge,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final s in TextRecognitionScript.values)
+                    ChoiceChip(
+                      label: Text(ocrScriptName(l, s)),
+                      selected: s == script,
+                      onSelected: (_) => onScriptChanged(s),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                l.ocrScriptHint,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 20),
               PremiumButton(
                 onPressed: () => onPick(ImageSource.camera),
                 icon: Icons.camera_alt_rounded,
-                label: 'Use Camera',
+                label: l.ocrUseCamera,
                 gradient: gradient,
               ),
               const SizedBox(height: 12),
               PremiumOutlineButton(
                 onPressed: () => onPick(ImageSource.gallery),
                 icon: Icons.photo_library_outlined,
-                label: 'Choose from Gallery',
+                label: l.ocrChooseGallery,
                 accent: accent,
               ),
             ],
@@ -255,7 +374,8 @@ class _LoadingView extends StatelessWidget {
             (isDark ? Colors.black : Colors.white).withValues(alpha: 0.55),
             BlendMode.srcOver,
           ),
-          child: Image.file(image!, fit: BoxFit.cover),
+          // Decoded at screen size: a 12 MP photo decoded in full is ~48 MB.
+          child: Image.file(image!, fit: BoxFit.cover, cacheWidth: 720),
         ),
 
         // ── Scan-line animation overlay ────────────────────────────────────
@@ -299,7 +419,7 @@ class _LoadingView extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'On-device · no upload needed',
+                  AppLocalizations.of(context).ocrOnDeviceNote,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -428,12 +548,13 @@ class _ResultViewState extends ConsumerState<_ResultView>
     final gradient = AppColors.toolGradient('ocr');
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context);
 
     return Column(
       children: [
         // ── Tab bar ──────────────────────────────────────────────────────────
         Container(
-          margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+          margin: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
           decoration: BoxDecoration(
             color: isDark
                 ? AppColors.darkSurfaceVariant
@@ -455,12 +576,15 @@ class _ResultViewState extends ConsumerState<_ResultView>
               fontWeight: FontWeight.w700,
               fontSize: 13.5,
             ),
-            tabs: const [
+            tabs: [
               Tab(
-                icon: Icon(Icons.image_search_rounded, size: 18),
-                text: 'Image',
+                icon: const Icon(Icons.image_search_rounded, size: 18),
+                text: l.ocrTabImage,
               ),
-              Tab(icon: Icon(Icons.article_outlined, size: 18), text: 'Text'),
+              Tab(
+                icon: const Icon(Icons.article_outlined, size: 18),
+                text: l.ocrTabText,
+              ),
             ],
           ),
         ),
@@ -477,6 +601,9 @@ class _ResultViewState extends ConsumerState<_ResultView>
                 fullText: widget.fullText,
                 detailed: widget.detailed,
                 accent: accent,
+                // Edits must reach Copy All / Share, which read this text.
+                onChanged: (text) =>
+                    ref.read(ocrTextProvider.notifier).state = text,
               ),
             ],
           ),
@@ -527,6 +654,25 @@ class _ImageOverlayTabState extends ConsumerState<_ImageOverlayTab> {
           maxScale: 4.0,
           child: LayoutBuilder(
             builder: (ctx, constraints) {
+              // The image is letterboxed by BoxFit.contain, so the overlays
+              // must be mapped onto the fitted image rect, not the whole box.
+              final detailed = widget.detailed;
+              var fitted = Offset.zero & constraints.biggest;
+              if (detailed != null &&
+                  detailed.imageWidth > 0 &&
+                  detailed.imageHeight > 0) {
+                fitted = Alignment.center.inscribe(
+                  applyBoxFit(
+                    BoxFit.contain,
+                    Size(
+                      detailed.imageWidth.toDouble(),
+                      detailed.imageHeight.toDouble(),
+                    ),
+                    constraints.biggest,
+                  ).destination,
+                  fitted,
+                );
+              }
               return Stack(
                 children: [
                   // ── Image ────────────────────────────────────────────────
@@ -537,6 +683,8 @@ class _ImageOverlayTabState extends ConsumerState<_ImageOverlayTab> {
                       fit: BoxFit.contain,
                       width: constraints.maxWidth,
                       height: constraints.maxHeight,
+                      // Enough for 2× zoom without decoding a 12 MP photo.
+                      cacheWidth: 1600,
                     ),
                   ),
 
@@ -548,10 +696,10 @@ class _ImageOverlayTabState extends ConsumerState<_ImageOverlayTab> {
                       final isHit = highlighted == i;
 
                       // Map normalised [0-1] rect to pixel coords
-                      final left = block.rect.left * constraints.maxWidth;
-                      final top = block.rect.top * constraints.maxHeight;
-                      final width = block.rect.width * constraints.maxWidth;
-                      final height = block.rect.height * constraints.maxHeight;
+                      final left = fitted.left + block.rect.left * fitted.width;
+                      final top = fitted.top + block.rect.top * fitted.height;
+                      final width = block.rect.width * fitted.width;
+                      final height = block.rect.height * fitted.height;
 
                       return Positioned(
                         left: left,
@@ -601,7 +749,7 @@ class _ImageOverlayTabState extends ConsumerState<_ImageOverlayTab> {
             right: 0,
             child: Center(
               child: _HintChip(
-                label: 'Tap a highlighted block to copy it',
+                label: AppLocalizations.of(context).ocrTapBlockHint,
                 accent: accent,
                 isDark: isDark,
               ),
@@ -638,6 +786,7 @@ class _BlockBottomSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context);
 
     return DraggableScrollableSheet(
       initialChildSize: 0.5,
@@ -660,7 +809,7 @@ class _BlockBottomSheet extends StatelessWidget {
             // Handle + header
             const _SheetHandle(),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 16, 12),
+              padding: const EdgeInsetsDirectional.fromSTEB(20, 4, 16, 12),
               child: Row(
                 children: [
                   Container(
@@ -682,13 +831,13 @@ class _BlockBottomSheet extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Block text',
+                          l.ocrBlockTitle,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                         Text(
-                          '${block.lines.length} line${block.lines.length == 1 ? '' : 's'} · tap to copy',
+                          l.ocrBlockLines(block.lines.length),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -700,7 +849,7 @@ class _BlockBottomSheet extends StatelessWidget {
                   _CopyIconBtn(
                     text: block.text,
                     accent: accent,
-                    tooltip: 'Copy block',
+                    tooltip: l.ocrCopyBlock,
                   ),
                 ],
               ),
@@ -725,7 +874,7 @@ class _BlockBottomSheet extends StatelessWidget {
             ),
             // Full block copy button
             Padding(
-              padding: EdgeInsets.fromLTRB(
+              padding: EdgeInsetsDirectional.fromSTEB(
                 16,
                 8,
                 16,
@@ -734,11 +883,11 @@ class _BlockBottomSheet extends StatelessWidget {
               child: PremiumButton(
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: block.text));
-                  _toast(context, 'Block copied!');
+                  _toast(context, l.ocrBlockCopied);
                   Navigator.pop(context);
                 },
                 icon: Icons.copy_all_rounded,
-                label: 'Copy entire block',
+                label: l.ocrCopyEntireBlock,
                 gradient: AppColors.toolGradient('ocr'),
               ),
             ),
@@ -774,7 +923,7 @@ class _LineRow extends StatelessWidget {
       trailing: _CopyIconBtn(
         text: line.text,
         accent: accent,
-        tooltip: 'Copy line',
+        tooltip: AppLocalizations.of(context).ocrCopyLine,
       ),
     );
   }
@@ -789,11 +938,13 @@ class _TextTab extends StatefulWidget {
     required this.fullText,
     required this.detailed,
     required this.accent,
+    required this.onChanged,
   });
 
   final String fullText;
   final OcrResult? detailed;
   final Color accent;
+  final ValueChanged<String> onChanged;
 
   @override
   State<_TextTab> createState() => _TextTabState();
@@ -812,7 +963,9 @@ class _TextTabState extends State<_TextTab> {
   @override
   void didUpdateWidget(_TextTab old) {
     super.didUpdateWidget(old);
-    if (old.fullText != widget.fullText) {
+    // Skip when the change came from our own field: resetting the text
+    // would move the cursor to the end and break IME composition.
+    if (old.fullText != widget.fullText && widget.fullText != _ctrl.text) {
       _ctrl.text = widget.fullText;
     }
   }
@@ -828,11 +981,12 @@ class _TextTabState extends State<_TextTab> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final accent = widget.accent;
+    final l = AppLocalizations.of(context);
 
-    if (widget.fullText.isEmpty) {
-      return const EmptyState(
+    if (widget.fullText.isEmpty && !_editing) {
+      return EmptyState(
         icon: Icons.text_snippet_outlined,
-        message: 'No text detected — try a clearer photo.',
+        message: l.ocrNoText,
       );
     }
 
@@ -845,9 +999,9 @@ class _TextTabState extends State<_TextTab> {
         // ── Per-block chips (quick-copy paragraph) ────────────────────────
         if (widget.detailed != null && widget.detailed!.blocks.length > 1) ...[
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
             child: Text(
-              'Quick copy by section',
+              l.ocrQuickCopy,
               style: theme.textTheme.labelSmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
                 letterSpacing: 0.5,
@@ -874,7 +1028,7 @@ class _TextTabState extends State<_TextTab> {
                   ),
                   onPressed: () {
                     Clipboard.setData(ClipboardData(text: block.text));
-                    _toast(context, 'Copied block ${i + 1}');
+                    _toast(context, l.ocrBlockNCopied(i + 1));
                   },
                 );
               },
@@ -888,12 +1042,13 @@ class _TextTabState extends State<_TextTab> {
           child: Stack(
             children: [
               SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
+                padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 80),
                 keyboardDismissBehavior:
                     ScrollViewKeyboardDismissBehavior.onDrag,
                 child: _editing
                     ? TextField(
                         controller: _ctrl,
+                        onChanged: widget.onChanged,
                         maxLines: null,
                         autofocus: true,
                         textInputAction: TextInputAction.newline,
@@ -917,14 +1072,14 @@ class _TextTabState extends State<_TextTab> {
               ),
 
               // Edit / Done toggle FAB
-              Positioned(
-                right: 16,
+              PositionedDirectional(
+                end: 16,
                 bottom: 16,
                 child: FloatingActionButton.small(
                   heroTag: 'ocr_edit',
                   backgroundColor: accent,
                   foregroundColor: Colors.white,
-                  tooltip: _editing ? 'Done editing' : 'Edit text',
+                  tooltip: _editing ? l.ocrDoneEditing : l.ocrEditText,
                   onPressed: () => setState(() => _editing = !_editing),
                   child: Icon(
                     _editing ? Icons.check_rounded : Icons.edit_rounded,
@@ -963,9 +1118,10 @@ class _ActionBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bottom = MediaQuery.paddingOf(context).bottom;
+    final l = AppLocalizations.of(context);
 
     return Container(
-      padding: EdgeInsets.fromLTRB(16, 10, 16, bottom + 10),
+      padding: EdgeInsetsDirectional.fromSTEB(16, 10, 16, bottom + 10),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
         border: Border(
@@ -983,10 +1139,10 @@ class _ActionBar extends StatelessWidget {
             child: PremiumOutlineButton(
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: fullText));
-                _toast(context, 'All text copied!');
+                _toast(context, l.ocrAllCopied);
               },
               icon: Icons.copy_all_rounded,
-              label: 'Copy All',
+              label: l.ocrCopyAll,
               accent: accent,
               dense: true,
             ),
@@ -997,7 +1153,7 @@ class _ActionBar extends StatelessWidget {
             child: PremiumOutlineButton(
               onPressed: () => Share.share(fullText),
               icon: Icons.share_rounded,
-              label: 'Share',
+              label: l.commonShare,
               accent: accent,
               dense: true,
             ),
@@ -1007,7 +1163,7 @@ class _ActionBar extends StatelessWidget {
           PremiumButton(
             onPressed: onScan,
             icon: Icons.document_scanner_outlined,
-            label: 'Scan',
+            label: l.ocrScanAgain,
             gradient: gradient,
             expanded: false,
             dense: true,
@@ -1034,32 +1190,31 @@ class _StatsBar extends StatelessWidget {
     final lines = '\n'.allMatches(text).length + 1;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l = AppLocalizations.of(context);
 
     return Container(
       color: isDark
           ? AppColors.darkSurfaceVariant
           : AppColors.lightSurfaceVariant,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
+      // Wrap: "1 234 Zeichen" and friends don't fit one row on small phones.
+      child: Wrap(
+        spacing: 16,
+        runSpacing: 4,
         children: [
           _StatChip(
             icon: Icons.format_list_numbered_rounded,
-            value: '$lines',
-            label: 'lines',
+            label: l.ocrStatLines(lines),
             accent: accent,
           ),
-          const SizedBox(width: 16),
           _StatChip(
             icon: Icons.text_fields_rounded,
-            value: '$words',
-            label: 'words',
+            label: l.ocrStatWords(words),
             accent: accent,
           ),
-          const SizedBox(width: 16),
           _StatChip(
             icon: Icons.numbers_rounded,
-            value: '$chars',
-            label: 'chars',
+            label: l.ocrStatChars(chars),
             accent: accent,
           ),
         ],
@@ -1071,12 +1226,10 @@ class _StatsBar extends StatelessWidget {
 class _StatChip extends StatelessWidget {
   const _StatChip({
     required this.icon,
-    required this.value,
     required this.label,
     required this.accent,
   });
   final IconData icon;
-  final String value;
   final String label;
   final Color accent;
 
@@ -1089,7 +1242,7 @@ class _StatChip extends StatelessWidget {
         Icon(icon, size: 14, color: accent),
         const SizedBox(width: 4),
         Text(
-          '$value $label',
+          label,
           style: theme.textTheme.labelSmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w600,
@@ -1126,12 +1279,15 @@ class _HintChip extends StatelessWidget {
         children: [
           Icon(Icons.touch_app_rounded, size: 14, color: accent),
           const SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: accent,
+          Flexible(
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: accent,
+              ),
             ),
           ),
         ],
@@ -1176,11 +1332,21 @@ class _CopyIconBtn extends StatelessWidget {
       tooltip: tooltip,
       onPressed: () {
         Clipboard.setData(ClipboardData(text: text));
-        _toast(context, 'Copied!');
+        _toast(context, AppLocalizations.of(context).commonCopied);
       },
     );
   }
 }
+
+/// Display name of an ML Kit script, with example languages.
+String ocrScriptName(AppLocalizations l, TextRecognitionScript s) =>
+    switch (s) {
+      TextRecognitionScript.latin => l.ocrScriptLatin,
+      TextRecognitionScript.devanagiri => l.ocrScriptDevanagari,
+      TextRecognitionScript.chinese => l.ocrScriptChinese,
+      TextRecognitionScript.japanese => l.ocrScriptJapanese,
+      TextRecognitionScript.korean => l.ocrScriptKorean,
+    };
 
 void _toast(BuildContext context, String message) {
   ScaffoldMessenger.of(context).showSnackBar(
@@ -1189,7 +1355,7 @@ void _toast(BuildContext context, String message) {
         children: [
           const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
           const SizedBox(width: 10),
-          Text(message),
+          Expanded(child: Text(message)),
         ],
       ),
       duration: const Duration(seconds: 2),

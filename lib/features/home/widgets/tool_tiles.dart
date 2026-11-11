@@ -6,6 +6,20 @@ import 'package:utility_toolbox/core/tools/tool_registry.dart';
 import 'package:utility_toolbox/core/widgets/tool_icon.dart';
 import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 
+DateTime _lastOpen = DateTime.fromMillisecondsSinceEpoch(0);
+
+/// Opens [tool] from a tile. A fast double tap would otherwise push the tool
+/// screen twice (Back then lands on a second copy), so taps that arrive while
+/// the first push is still animating are ignored. Also drops the search
+/// keyboard so it doesn't pop back up when the user returns.
+void _openFromTile(BuildContext context, WidgetRef ref, ToolDefinition tool) {
+  final now = DateTime.now();
+  if (now.difference(_lastOpen) < const Duration(milliseconds: 700)) return;
+  _lastOpen = now;
+  FocusManager.instance.primaryFocus?.unfocus();
+  openTool(context, ref, tool);
+}
+
 /// Long-press menu shared by every tool tile: favorite + pin to home screen.
 Future<void> showToolActions(
   BuildContext context,
@@ -115,7 +129,7 @@ class ToolGridTile extends ConsumerWidget {
         excludeSemantics: true,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () => openTool(context, ref, tool),
+          onTap: () => _openFromTile(context, ref, tool),
           onLongPress: () => showToolActions(context, ref, tool),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(4, 8, 4, 4),
@@ -134,11 +148,8 @@ class ToolGridTile extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 7),
-                Text(
+                _FitLabel(
                   title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
                   style: theme.textTheme.labelMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                     height: 1.2,
@@ -188,7 +199,7 @@ class QuickActionCard extends ConsumerWidget {
       child: Ink(
         decoration: BoxDecoration(gradient: tool.gradient),
         child: InkWell(
-          onTap: () => openTool(context, ref, tool),
+          onTap: () => _openFromTile(context, ref, tool),
           onLongPress: () => showToolActions(context, ref, tool),
           child: Padding(
             padding: const EdgeInsets.all(14),
@@ -243,8 +254,58 @@ class ToolListTile extends ConsumerWidget {
       ),
       subtitle: Text(tool.description(l)),
       trailing: const Icon(Icons.chevron_right_rounded),
-      onTap: () => openTool(context, ref, tool),
+      onTap: () => _openFromTile(context, ref, tool),
       onLongPress: () => showToolActions(context, ref, tool),
+    );
+  }
+}
+
+
+/// Two-line tile label that steps the font down a little for long names
+/// ("Watermark & Page Numbers", German/Russian titles) instead of cutting a
+/// word in half or ending in "…".
+class _FitLabel extends StatelessWidget {
+  const _FitLabel(this.text, {this.style});
+
+  final String text;
+  final TextStyle? style;
+
+  @override
+  Widget build(BuildContext context) {
+    final base = style ?? DefaultTextStyle.of(context).style;
+    final scaler = MediaQuery.textScalerOf(context);
+    final direction = Directionality.of(context);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxWidth = constraints.maxWidth;
+        final words = text.split(RegExp(r'\s+'));
+        var chosen = base;
+        final start = base.fontSize ?? 12;
+        for (var size = start; size >= 9; size -= 0.5) {
+          final candidate = base.copyWith(fontSize: size);
+          bool fits(String s, {int? maxLines}) {
+            final tp = TextPainter(
+              text: TextSpan(text: s, style: candidate),
+              textDirection: direction,
+              textScaler: scaler,
+              maxLines: maxLines,
+            )..layout(maxWidth: maxLines == null ? double.infinity : maxWidth);
+            final ok = maxLines == null ? tp.width <= maxWidth : !tp.didExceedMaxLines;
+            tp.dispose();
+            return ok;
+          }
+
+          chosen = candidate;
+          if (words.every((w) => fits(w)) && fits(text, maxLines: 2)) break;
+        }
+        return Text(
+          text,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: chosen,
+        );
+      },
     );
   }
 }

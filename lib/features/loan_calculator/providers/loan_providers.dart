@@ -45,11 +45,22 @@ final loanResultProvider = Provider<LoanResult?>((ref) {
   final months      = inYears ? (rawTenure * 12).round() : rawTenure.round();
   final monthlyRate = annualRate / 12 / 100;
 
-  if (principal <= 0 || months <= 0 || annualRate <= 0) return null;
+  // Cap the tenure (100 years) so a stray extra digit can't build a
+  // multi-million-row schedule and freeze the UI.
+  if (principal <= 0 || months <= 0 || months > 1200 || annualRate < 0) {
+    return null;
+  }
 
-  // EMI formula: P × r × (1+r)^n / ((1+r)^n − 1)
-  final factor = pow(1 + monthlyRate, months);
-  final emi    = principal * monthlyRate * factor / (factor - 1);
+  // EMI formula: P × r × (1+r)^n / ((1+r)^n − 1); at 0% interest the loan is
+  // simply split into equal instalments.
+  final double emi;
+  if (monthlyRate == 0) {
+    emi = principal / months;
+  } else {
+    final factor = pow(1 + monthlyRate, months);
+    emi = principal * monthlyRate * factor / (factor - 1);
+  }
+  if (!emi.isFinite) return null;
 
   // Build amortization schedule
   final schedule = <AmortizationRow>[];
@@ -70,7 +81,7 @@ final loanResultProvider = Provider<LoanResult?>((ref) {
   return LoanResult(
     emi:           emi,
     totalPayment:  emi * months,
-    totalInterest: emi * months - principal,
+    totalInterest: max(0, emi * months - principal),
     schedule:      schedule,
   );
 });

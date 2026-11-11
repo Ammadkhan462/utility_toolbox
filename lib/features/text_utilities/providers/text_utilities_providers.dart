@@ -9,6 +9,8 @@ final base64ModeProvider = StateProvider.autoDispose<bool>((ref) => false);
 
 final base64OutputProvider = StateProvider.autoDispose<String>((ref) => '');
 
+/// Non-null (an error code) when the last decode failed; the screen shows
+/// the localized message.
 final base64ErrorProvider = StateProvider.autoDispose<String?>((ref) => null);
 
 final wordCountProvider = Provider.autoDispose<int>((ref) {

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:utility_toolbox/core/theme/app_colors.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/unit_converter/data/conversion_data.dart';
 import 'package:utility_toolbox/features/unit_converter/models/unit_category.dart';
 import 'package:utility_toolbox/features/unit_converter/providers/unit_converter_providers.dart';
+import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 
 class UnitConverterScreen extends ConsumerStatefulWidget {
   const UnitConverterScreen({super.key});
@@ -22,8 +26,10 @@ class _UnitConverterScreenState extends ConsumerState<UnitConverterScreen> {
   @override
   void initState() {
     super.initState();
-    _fromCtrl = TextEditingController();
-    _toCtrl = TextEditingController();
+    // The providers outlive this screen, so restore what was typed last time
+    // instead of showing an empty "From" next to a stale result.
+    _fromCtrl = TextEditingController(text: ref.read(inputValueProvider));
+    _toCtrl = TextEditingController(text: ref.read(convertedValueProvider));
   }
 
   @override
@@ -33,23 +39,48 @@ class _UnitConverterScreenState extends ConsumerState<UnitConverterScreen> {
     super.dispose();
   }
 
+  /// [raw] (from [formatConvertedValue]) in the app locale's digits and
+  /// separators; exponent notation is left as is.
+  String _display(String raw) {
+    final value = double.tryParse(raw);
+    if (raw.isEmpty || raw.contains('e') || value == null) return raw;
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    return (NumberFormat.decimalPattern(locale)..maximumFractionDigits = 6)
+        .format(value);
+  }
+
+  Future<void> _copy(String text) async {
+    await Clipboard.setData(ClipboardData(text: text));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context).commonCopied),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final category = ref.watch(selectedCategoryProvider);
     final fromUnit = ref.watch(fromUnitProvider);
     final toUnit = ref.watch(toUnitProvider);
-    final input = ref.watch(inputValueProvider);
     final output = ref.watch(convertedValueProvider);
+    final shown = _display(output);
+    final input = ref.watch(inputValueProvider).trim();
+    final summary = '$input ${fromUnit.symbol} = $shown ${toUnit.symbol}';
 
-    // Sync controllers only when value changed externally (swap, category)
-    if (_fromCtrl.text != input && !_fromCtrl.selection.isCollapsed) {
-      _fromCtrl.text = input;
-    } else if (_toCtrl.text != output) {
-      _toCtrl.text = output;
+    // The "From" field is driven by the user (and set directly on swap /
+    // category change); only the read-only result needs syncing here.
+    if (_toCtrl.text != shown) {
+      _toCtrl.text = shown;
     }
 
     return ToolScaffold(
-      title: 'Unit Converter',
+      title: l.toolUnitConverterTitle,
       accentColor: AppColors.toolAccent('unit_converter'),
       body: SingleChildScrollView(
         padding: EdgeInsets.fromLTRB(
@@ -73,7 +104,7 @@ class _UnitConverterScreenState extends ConsumerState<UnitConverterScreen> {
                   final item = conversionCategories[index];
                   final selected = item.name == category.name;
                   return FilterChip(
-                    label: Text(item.name),
+                    label: Text(l.unitCategoryName(item.id)),
                     selected: selected,
                     onSelected: (_) {
                       resetUnitsForCategory(ref, item);
@@ -88,7 +119,7 @@ class _UnitConverterScreenState extends ConsumerState<UnitConverterScreen> {
 
             // From row
             _UnitCard(
-              label: 'From',
+              label: l.unitFrom,
               accentColor: AppColors.toolAccent('unit_converter'),
               units: category.units,
               selected: fromUnit,
@@ -98,17 +129,17 @@ class _UnitConverterScreenState extends ConsumerState<UnitConverterScreen> {
                 ref.read(fromUnitProvider.notifier).state = unit;
               },
               onValueChanged: (value) {
+                // The result field re-syncs (locale-formatted) on rebuild.
                 ref.read(inputValueProvider.notifier).state = value;
-                // Sync output controller
-                final out = ref.read(convertedValueProvider);
-                _toCtrl.text = out;
               },
             ),
             const SizedBox(height: 8),
 
             // Swap button
             Center(
-              child: Material(
+              child: Tooltip(
+                message: l.unitSwap,
+                child: Material(
                 color: AppColors.toolAccent(
                   'unit_converter',
                 ).withValues(alpha: 0.12),
@@ -133,12 +164,13 @@ class _UnitConverterScreenState extends ConsumerState<UnitConverterScreen> {
                   ),
                 ),
               ),
+              ),
             ),
             const SizedBox(height: 8),
 
             // To row
             _UnitCard(
-              label: 'To',
+              label: l.unitTo,
               accentColor: AppColors.toolAccent('unit_converter'),
               units: category.units,
               selected: toUnit,
@@ -149,6 +181,28 @@ class _UnitConverterScreenState extends ConsumerState<UnitConverterScreen> {
               },
               onValueChanged: (_) {},
             ),
+            if (shown.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _copy(shown),
+                      icon: const Icon(Icons.copy_rounded, size: 18),
+                      label: Text(l.commonCopy),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => Share.share(summary),
+                      icon: const Icon(Icons.share_rounded, size: 18),
+                      label: Text(l.commonShare),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
@@ -180,6 +234,7 @@ class _UnitCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -206,7 +261,7 @@ class _UnitCard extends StatelessWidget {
               return DropdownMenuItem(
                 value: u,
                 child: Text(
-                  '${u.name} (${u.symbol})',
+                  '${l.unitName(u.id)} (${u.symbol})',
                   overflow: TextOverflow.ellipsis,
                 ),
               );
@@ -219,13 +274,17 @@ class _UnitCard extends StatelessWidget {
           TextFormField(
             controller: controller,
             readOnly: readOnly,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            // signed: temperatures (and differences) can be negative.
+            keyboardType: const TextInputType.numberWithOptions(
+              decimal: true,
+              signed: true,
+            ),
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.w600,
               color: readOnly ? accentColor : null,
             ),
             decoration: InputDecoration(
-              hintText: readOnly ? '—' : 'Enter value',
+              hintText: readOnly ? '—' : l.unitEnterValue,
               suffixText: selected.symbol,
             ),
             onChanged: readOnly ? null : onValueChanged,

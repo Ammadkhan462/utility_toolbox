@@ -7,27 +7,39 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+import 'package:utility_toolbox/core/utils/file_utils.dart';
 import 'package:utility_toolbox/core/widgets/premium_button.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/wifi_qr/providers/wifi_qr_providers.dart';
+import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 
 const _accentColor = Color(0xFF06B6D4);
 const _accentGlow  = Color(0xFF22D3EE);
-final _qrKey = GlobalKey();
 
-class WifiQrScreen extends ConsumerWidget {
+class WifiQrScreen extends ConsumerStatefulWidget {
   const WifiQrScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<WifiQrScreen> createState() => _WifiQrScreenState();
+}
+
+class _WifiQrScreenState extends ConsumerState<WifiQrScreen> {
+  // Per screen, not a top-level global: two live instances (e.g. reopening
+  // the tool during the pop animation) crashed with a duplicate GlobalKey.
+  final _qrKey = GlobalKey();
+  bool _busy = false;
+
+  @override
+  Widget build(BuildContext context) {
     final qrString = ref.watch(wifiQrStringProvider);
     final encryption = ref.watch(wifiEncryptionProvider);
     final hidden = ref.watch(wifiHiddenProvider);
     final showPass = ref.watch(showPasswordProvider);
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context);
 
     return ToolScaffold(
-      title: 'WiFi QR Generator',
+      title: l.toolWifiQrTitle,
       accentColor: _accentColor,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -62,12 +74,15 @@ class WifiQrScreen extends ConsumerWidget {
                                 color: _accentColor.withValues(alpha: 0.4),
                               ),
                               const SizedBox(height: 10),
-                              Text(
-                                'Enter WiFi details\nto generate QR',
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                child: Text(
+                                l.wifiQrPlaceholder,
                                 textAlign: TextAlign.center,
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: theme.colorScheme.onSurfaceVariant,
                                 ),
+                              ),
                               ),
                             ],
                           ),
@@ -88,6 +103,7 @@ class WifiQrScreen extends ConsumerWidget {
                           ),
                           child: QrImageView(
                             data: qrString,
+                            semanticsLabel: l.wifiQrPreviewLabel,
                             version: QrVersions.auto,
                             size: 188,
                             backgroundColor: Colors.white,
@@ -107,13 +123,13 @@ class WifiQrScreen extends ConsumerWidget {
             const SizedBox(height: 28),
 
             // ── Form ─────────────────────────────────────────────────────
-            Text('Network details', style: theme.textTheme.labelLarge),
+            Text(l.wifiQrNetworkDetails, style: theme.textTheme.labelLarge),
             const SizedBox(height: 12),
 
             // SSID
             _WifiTextField(
-              label: 'Network Name (SSID)',
-              hint: 'My Home WiFi',
+              label: l.wifiQrSsidLabel,
+              hint: l.wifiQrSsidHint,
               icon: Icons.wifi_rounded,
               onChanged: (v) => ref.read(wifiSsidProvider.notifier).state = v,
             ),
@@ -122,13 +138,14 @@ class WifiQrScreen extends ConsumerWidget {
             // Password (hidden if nopass)
             if (encryption != WifiEncryption.none) ...[
               _WifiTextField(
-                label: 'Password',
-                hint: 'Enter password',
+                label: l.wifiQrPasswordLabel,
+                hint: l.wifiQrPasswordHint,
                 icon: Icons.lock_rounded,
                 obscure: !showPass,
                 onChanged: (v) =>
                     ref.read(wifiPasswordProvider.notifier).state = v,
                 suffix: IconButton(
+                  tooltip: showPass ? l.wifiQrHidePassword : l.wifiQrShowPassword,
                   icon: Icon(
                     showPass
                         ? Icons.visibility_off_rounded
@@ -143,15 +160,16 @@ class WifiQrScreen extends ConsumerWidget {
             ],
 
             // Encryption
-            Text('Security', style: theme.textTheme.labelLarge),
+            Text(l.wifiQrSecurity, style: theme.textTheme.labelLarge),
             const SizedBox(height: 10),
             Wrap(
               spacing: 8,
+              runSpacing: 8,
               children: WifiEncryption.values.map((e) {
                 final label = switch (e) {
                   WifiEncryption.wpa => 'WPA/WPA2',
                   WifiEncryption.wep => 'WEP',
-                  WifiEncryption.none => 'None (Open)',
+                  WifiEncryption.none => l.wifiQrSecurityNone,
                 };
                 return ChoiceChip(
                   label: Text(label),
@@ -170,8 +188,14 @@ class WifiQrScreen extends ConsumerWidget {
                         ? _accentColor.withValues(alpha: 0.5)
                         : theme.colorScheme.outline.withValues(alpha: 0.3),
                   ),
-                  onSelected: (_) =>
-                      ref.read(wifiEncryptionProvider.notifier).state = e,
+                  onSelected: (_) {
+                    ref.read(wifiEncryptionProvider.notifier).state = e;
+                    // The password field leaves the tree for open networks
+                    // and comes back empty; drop the old value with it.
+                    if (e == WifiEncryption.none) {
+                      ref.read(wifiPasswordProvider.notifier).state = '';
+                    }
+                  },
                 );
               }).toList(),
             ),
@@ -181,8 +205,8 @@ class WifiQrScreen extends ConsumerWidget {
             SwitchListTile.adaptive(
               value: hidden,
               onChanged: (v) => ref.read(wifiHiddenProvider.notifier).state = v,
-              title: const Text('Hidden network'),
-              subtitle: const Text('Enable if SSID is not broadcast'),
+              title: Text(l.wifiQrHidden),
+              subtitle: Text(l.wifiQrHiddenHint),
               activeThumbColor: _accentColor,
               activeTrackColor: _accentColor.withValues(alpha: 0.5),
               contentPadding: EdgeInsets.zero,
@@ -195,9 +219,9 @@ class WifiQrScreen extends ConsumerWidget {
                 children: [
                   Expanded(
                     child: PremiumOutlineButton(
-                      onPressed: () => _shareQr(),
+                      onPressed: _busy ? null : _shareQr,
                       icon: Icons.share_rounded,
-                      label: 'Share',
+                      label: l.commonShare,
                       accent: _accentColor,
                       dense: true,
                     ),
@@ -205,9 +229,9 @@ class WifiQrScreen extends ConsumerWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: PremiumButton(
-                      onPressed: () => _saveQr(),
+                      onPressed: _busy ? null : _saveQr,
                       icon: Icons.download_rounded,
-                      label: 'Save Image',
+                      label: l.wifiQrSaveImage,
                       gradient: const LinearGradient(
                           colors: [_accentColor, _accentGlow]),
                       dense: true,
@@ -236,7 +260,7 @@ class WifiQrScreen extends ConsumerWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Anyone who scans this QR code will automatically connect to your WiFi network.',
+                        l.wifiQrInfo,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: _accentColor,
                         ),
@@ -266,21 +290,49 @@ class WifiQrScreen extends ConsumerWidget {
   }
 
   Future<void> _shareQr() async {
-    final bytes = await _captureQr();
-    if (bytes == null) return;
-    final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/wifi_qr.png');
-    await file.writeAsBytes(bytes);
+    if (_busy) return;
+    final shareText = AppLocalizations.of(context).wifiQrShareText;
+    setState(() => _busy = true);
+    try {
+      final bytes = await _captureQr();
+      if (bytes == null) return;
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/wifi_qr.png');
+      await file.writeAsBytes(bytes);
 
-    // Updated syntax for share_plus package
-    await Share.shareXFiles([
-      XFile(file.path),
-    ], text: 'Scan this QR code to connect to my WiFi!');
+      // Updated syntax for share_plus package
+      await Share.shareXFiles([
+        XFile(file.path),
+      ], text: shareText);
+    } catch (e) {
+      debugPrint('WiFi QR share failed: $e');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
+  /// Saves to the gallery and My Files (it used to only open the share
+  /// sheet, so nothing was ever saved or listed in My Files).
   Future<void> _saveQr() async {
-    // Reuse share as the save mechanism (works cross-platform without gal).
-    await _shareQr();
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      final bytes = await _captureQr();
+      if (bytes == null || !mounted) return;
+      final ok = await FileUtils.saveImageToGallery(
+        bytes: bytes,
+        fileName: 'wifi_qr_${DateTime.now().millisecondsSinceEpoch}.png',
+        mimeType: 'image/png',
+        toolId: 'wifi_qr',
+      );
+      if (!mounted) return;
+      final l = AppLocalizations.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(ok ? l.commonSavedToGallery : l.commonSaveFailed)),
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 }
 

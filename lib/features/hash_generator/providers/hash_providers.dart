@@ -81,7 +81,8 @@ class FileHashNotifier extends StateNotifier<Result<String>> {
       state = Success(hash);
     } catch (e) {
       if (!mounted || gen != _generation) return;
-      state = ErrorResult('Failed to hash file: $e');
+      // Shown as a localized "couldn't read this file" message by the UI.
+      state = ErrorResult('$e');
     }
   }
 }

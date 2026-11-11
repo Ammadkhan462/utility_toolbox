@@ -11,7 +11,9 @@ final includeSymbolsProvider = StateProvider<bool>((ref) => true);
 
 // ── Generated password ─────────────────────────────────────────────────────
 
-final generatedPasswordProvider = StateProvider<String>((ref) {
+// autoDispose: don't keep the last password in memory after the screen is
+// closed, and show a fresh one (not an already-used one) on the next visit.
+final generatedPasswordProvider = StateProvider.autoDispose<String>((ref) {
   return _generate(
     length:  ref.watch(passwordLengthProvider).round(),
     upper:   ref.watch(includeUpperProvider),
@@ -25,7 +27,7 @@ final generatedPasswordProvider = StateProvider<String>((ref) {
 
 enum PasswordStrength { weak, fair, good, strong }
 
-final passwordStrengthProvider = Provider<PasswordStrength>((ref) {
+final passwordStrengthProvider = Provider.autoDispose<PasswordStrength>((ref) {
   final pw = ref.watch(generatedPasswordProvider);
   return _strength(pw);
 });
@@ -66,17 +68,21 @@ String _generate({
   return result.take(length).join();
 }
 
+/// Strength from entropy (length × log2(pool size)), so a long password from
+/// fewer character types is still rated by how hard it is to guess. The old
+/// class-count score called a 64-character lowercase password "Fair".
 PasswordStrength _strength(String pw) {
-  if (pw.length < 8)  return PasswordStrength.weak;
-  int score = 0;
-  if (pw.contains(RegExp(r'[A-Z]')))        score++;
-  if (pw.contains(RegExp(r'[a-z]')))        score++;
-  if (pw.contains(RegExp(r'[0-9]')))        score++;
-  if (pw.contains(RegExp(r'[^A-Za-z0-9]'))) score++;
-  if (pw.length >= 16) score++;
-  if (score <= 1) return PasswordStrength.weak;
-  if (score == 2) return PasswordStrength.fair;
-  if (score == 3) return PasswordStrength.good;
+  if (pw.isEmpty) return PasswordStrength.weak;
+  var pool = 0;
+  if (pw.contains(RegExp(r'[A-Z]')))        pool += _upper.length;
+  if (pw.contains(RegExp(r'[a-z]')))        pool += _lower.length;
+  if (pw.contains(RegExp(r'[0-9]')))        pool += _numbers.length;
+  if (pw.contains(RegExp(r'[^A-Za-z0-9]'))) pool += _symbols.length;
+  if (pool < 2) return PasswordStrength.weak;
+  final bits = pw.length * (log(pool) / ln2);
+  if (bits < 40) return PasswordStrength.weak;
+  if (bits < 60) return PasswordStrength.fair;
+  if (bits < 80) return PasswordStrength.good;
   return PasswordStrength.strong;
 }
 

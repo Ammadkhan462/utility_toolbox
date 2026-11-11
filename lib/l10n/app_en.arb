@@ -720,5 +720,2973 @@
   "commonClear": "Clear",
   "@commonClear": {
     "description": "Button"
-  }
+  },
+  "toolBgRemoverTitle": "Remove Background",
+  "toolBgRemoverDesc": "Cut out people and objects in one tap",
+  "toolBgRemoverKeywords": "remove background, background eraser, remove bg, cutout, transparent, png, sticker, passport photo, white background",
+  "toolBmiTitle": "BMI Calculator",
+  "toolBmiDesc": "Check your body mass index and healthy weight",
+  "toolBmiKeywords": "bmi, body mass index, weight, height, health, fitness, ideal weight, obesity",
+  "toolBubbleLevelTitle": "Bubble Level",
+  "toolBubbleLevelDesc": "Check that shelves and frames are straight",
+  "toolBubbleLevelKeywords": "level, spirit level, bubble level, straight, angle, inclinometer, tilt, ruler",
+  "toolCurrencyTitle": "Currency Converter",
+  "toolCurrencyDesc": "Live exchange rates for 150+ currencies",
+  "toolCurrencyKeywords": "currency, exchange rate, money, convert, dollar, euro, rupee, riyal, forex",
+  "toolDirectChatTitle": "Direct Chat",
+  "toolDirectChatDesc": "Message a number on WhatsApp without saving it",
+  "toolDirectChatKeywords": "whatsapp, direct chat, message, unsaved number, click to chat, wa.me, send message, chat",
+  "toolFlashlightTitle": "Flashlight",
+  "toolFlashlightDesc": "Bright torch with SOS and strobe",
+  "toolFlashlightKeywords": "flashlight, torch, light, led, sos, strobe, lamp, flash",
+  "toolOrganizePdfTitle": "Organize PDF",
+  "toolOrganizePdfDesc": "Reorder, rotate or delete pages",
+  "toolOrganizePdfKeywords": "organize, organise, reorder, rotate, delete pages, remove pages, arrange, sort, pdf",
+  "toolPdfToTextTitle": "PDF to Text",
+  "toolPdfToTextDesc": "Copy all the text out of a PDF",
+  "toolPdfToTextKeywords": "pdf to text, extract text, copy text, txt, read pdf, convert, pdf to word",
+  "toolPercentageTitle": "Percentage & Discount",
+  "toolPercentageDesc": "Percent, discount, tip split and tax in seconds",
+  "toolPercentageKeywords": "percentage, percent, discount, sale price, tip, split bill, tax, gst, vat, margin, increase, decrease",
+  "toolSignPdfTitle": "Sign PDF",
+  "toolSignPdfDesc": "Draw your signature and place it on any page",
+  "toolSignPdfKeywords": "sign, signature, e-sign, esign, fill and sign, autograph, pdf",
+  "toolStopwatchTitle": "Stopwatch & Timer",
+  "toolStopwatchDesc": "Lap stopwatch and countdown timer",
+  "toolStopwatchKeywords": "stopwatch, timer, countdown, lap, alarm, clock, kitchen timer, workout",
+  "toolWatermarkPdfTitle": "Watermark & Page Numbers",
+  "toolWatermarkPdfDesc": "Stamp text or page numbers on every page",
+  "toolWatermarkPdfKeywords": "watermark, stamp, page numbers, number pages, confidential, draft, footer, header, pdf",
+  "bmiMetric": "Metric (cm, kg)",
+  "@bmiMetric": {
+    "description": "Unit system toggle"
+  },
+  "bmiImperial": "Imperial (ft, lb)",
+  "@bmiImperial": {
+    "description": "Unit system toggle"
+  },
+  "bmiHeight": "Height",
+  "@bmiHeight": {
+    "description": "Card title and input label"
+  },
+  "bmiWeight": "Weight",
+  "@bmiWeight": {
+    "description": "Card title and input label"
+  },
+  "bmiFeet": "Feet",
+  "@bmiFeet": {
+    "description": "Input label: height in feet"
+  },
+  "bmiInches": "Inches",
+  "@bmiInches": {
+    "description": "Input label: extra inches of height"
+  },
+  "bmiUnitCm": "cm",
+  "@bmiUnitCm": {
+    "description": "Unit abbreviation: centimetres"
+  },
+  "bmiUnitKg": "kg",
+  "@bmiUnitKg": {
+    "description": "Unit abbreviation: kilograms"
+  },
+  "bmiUnitLb": "lb",
+  "@bmiUnitLb": {
+    "description": "Unit abbreviation: pounds"
+  },
+  "bmiUnitFt": "ft",
+  "@bmiUnitFt": {
+    "description": "Unit abbreviation: feet"
+  },
+  "bmiUnitIn": "in",
+  "@bmiUnitIn": {
+    "description": "Unit abbreviation: inches"
+  },
+  "bmiAge": "Age (optional)",
+  "@bmiAge": {
+    "description": "Input label"
+  },
+  "bmiSex": "Sex (optional)",
+  "@bmiSex": {
+    "description": "Label above the male/female choice"
+  },
+  "bmiMale": "Male",
+  "@bmiMale": {
+    "description": "Sex option"
+  },
+  "bmiFemale": "Female",
+  "@bmiFemale": {
+    "description": "Sex option"
+  },
+  "bmiYourBmi": "Your BMI",
+  "@bmiYourBmi": {
+    "description": "Label above the BMI value"
+  },
+  "bmiUnderweight": "Underweight",
+  "@bmiUnderweight": {
+    "description": "BMI category below 18.5"
+  },
+  "bmiNormal": "Healthy weight",
+  "@bmiNormal": {
+    "description": "BMI category 18.5 to 24.9"
+  },
+  "bmiOverweight": "Overweight",
+  "@bmiOverweight": {
+    "description": "BMI category 25 to 29.9"
+  },
+  "bmiObese": "Obese",
+  "@bmiObese": {
+    "description": "BMI category 30 and above"
+  },
+  "bmiHealthyRange": "Healthy weight for your height: {min} – {max}",
+  "@bmiHealthyRange": {
+    "description": "Weight range for a BMI of 18.5–24.9",
+    "placeholders": {
+      "min": {
+        "type": "String",
+        "example": "56.7 kg"
+      },
+      "max": {
+        "type": "String",
+        "example": "76.3 kg"
+      }
+    }
+  },
+  "bmiToLose": "About {amount} above the healthy range",
+  "@bmiToLose": {
+    "description": "How far the weight is above the healthy range",
+    "placeholders": {
+      "amount": {
+        "type": "String",
+        "example": "4.2 kg"
+      }
+    }
+  },
+  "bmiToGain": "About {amount} below the healthy range",
+  "@bmiToGain": {
+    "description": "How far the weight is below the healthy range",
+    "placeholders": {
+      "amount": {
+        "type": "String",
+        "example": "3 kg"
+      }
+    }
+  },
+  "bmiIdealWeight": "Estimated ideal weight: {weight}",
+  "@bmiIdealWeight": {
+    "description": "Ideal body weight from the Devine formula",
+    "placeholders": {
+      "weight": {
+        "type": "String",
+        "example": "64.5 kg"
+      }
+    }
+  },
+  "bmiChildNote": "For children and teens under 18, BMI is read with age-based growth charts. These results use adult ranges.",
+  "@bmiChildNote": {
+    "description": "Shown when the age entered is under 18"
+  },
+  "bmiDisclaimer": "BMI is a general guide, not a medical diagnosis.",
+  "@bmiDisclaimer": {
+    "description": "One-line disclaimer"
+  },
+  "bmiEnterValues": "Enter your height and weight",
+  "@bmiEnterValues": {
+    "description": "Placeholder before the inputs are filled"
+  },
+  "currencyAmount": "Amount",
+  "@currencyAmount": {
+    "description": "Currency converter: label of the amount field"
+  },
+  "currencyFrom": "From",
+  "@currencyFrom": {
+    "description": "Currency converter: card title for the currency you convert from"
+  },
+  "currencyTo": "To",
+  "@currencyTo": {
+    "description": "Currency converter: card title for the currency you convert to"
+  },
+  "currencySwap": "Swap currencies",
+  "@currencySwap": {
+    "description": "Currency converter: accessibility label of the swap button"
+  },
+  "currencyChoose": "Choose currency",
+  "@currencyChoose": {
+    "description": "Currency converter: accessibility label of the currency picker button"
+  },
+  "currencySearchHint": "Search currency or code",
+  "@currencySearchHint": {
+    "description": "Currency picker search hint"
+  },
+  "currencyAll": "All currencies",
+  "@currencyAll": {
+    "description": "Currency picker section header"
+  },
+  "currencyRatesFrom": "Rates from {date}",
+  "@currencyRatesFrom": {
+    "description": "Shows the date of the exchange rates in use",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Nov 10, 2026"
+      }
+    }
+  },
+  "currencyRefresh": "Refresh rates",
+  "@currencyRefresh": {
+    "description": "Currency converter: tooltip of the refresh button"
+  },
+  "currencyUpdating": "Updating rates…",
+  "@currencyUpdating": {
+    "description": "Shown while exchange rates download"
+  },
+  "currencyOfflineCached": "Couldn’t update. Showing saved rates.",
+  "@currencyOfflineCached": {
+    "description": "Banner when the rate download failed but older rates are available"
+  },
+  "currencyNoRatesTitle": "Rates not downloaded yet",
+  "@currencyNoRatesTitle": {
+    "description": "Empty state title when there is no internet and no saved rates"
+  },
+  "currencyNoRatesBody": "Connect to the internet once to download exchange rates. After that, the converter also works offline.",
+  "@currencyNoRatesBody": {
+    "description": "Empty state body when there is no internet and no saved rates"
+  },
+  "currencyRetry": "Try again",
+  "@currencyRetry": {
+    "description": "Button to retry downloading rates"
+  },
+  "currencyOtherFavorites": "Your favorite currencies",
+  "@currencyOtherFavorites": {
+    "description": "Section header: the amount converted into the user's favourite currencies"
+  },
+  "currencyFavoritesHint": "Tap ☆ next to a currency in the list to add it here.",
+  "@currencyFavoritesHint": {
+    "description": "Shown when the user has no other favourite currencies"
+  },
+  "currencyCopy": "Copy result",
+  "@currencyCopy": {
+    "description": "Tooltip of the copy button"
+  },
+  "currencyCopied": "Copied",
+  "@currencyCopied": {
+    "description": "Snackbar after copying the result"
+  },
+  "currencyNoMatch": "No currency found",
+  "@currencyNoMatch": {
+    "description": "Currency picker: search found nothing"
+  },
+  "currencyDisclaimer": "Rates are for reference only and may differ from your bank’s rate.",
+  "@currencyDisclaimer": {
+    "description": "Small print under the converter"
+  },
+  "directChatPhone": "Phone number",
+  "@directChatPhone": {
+    "description": "Input label"
+  },
+  "directChatCountryCode": "Country code",
+  "@directChatCountryCode": {
+    "description": "Accessibility label of the country calling-code button"
+  },
+  "directChatSearchCountry": "Search country or code",
+  "@directChatSearchCountry": {
+    "description": "Country picker search hint"
+  },
+  "directChatNoCountry": "No country found",
+  "@directChatNoCountry": {
+    "description": "Country picker: search found nothing"
+  },
+  "directChatMessage": "Message (optional)",
+  "@directChatMessage": {
+    "description": "Input label: text to pre-fill in the chat"
+  },
+  "directChatOpen": "Open in WhatsApp",
+  "@directChatOpen": {
+    "description": "Main button. Keep the name WhatsApp unchanged."
+  },
+  "directChatPaste": "Paste number",
+  "@directChatPaste": {
+    "description": "Tooltip of the paste button"
+  },
+  "directChatPasteNone": "No phone number found in the clipboard",
+  "@directChatPasteNone": {
+    "description": "Snackbar"
+  },
+  "directChatTooShort": "This number looks too short",
+  "@directChatTooShort": {
+    "description": "Validation error"
+  },
+  "directChatTooLong": "This number looks too long",
+  "@directChatTooLong": {
+    "description": "Validation error"
+  },
+  "directChatWillOpen": "Chat with {number}",
+  "@directChatWillOpen": {
+    "description": "Preview of the number the chat will open with",
+    "placeholders": {
+      "number": {
+        "type": "String",
+        "example": "+92 3001234567"
+      }
+    }
+  },
+  "directChatOpenFailed": "Couldn’t open the chat. Is WhatsApp installed?",
+  "@directChatOpenFailed": {
+    "description": "Snackbar when the chat link could not be opened. Keep the name WhatsApp unchanged."
+  },
+  "directChatHint": "Send a message to any number without saving it to your contacts.",
+  "@directChatHint": {
+    "description": "Intro line at the top of the screen"
+  },
+  "directChatNotAffiliated": "Independent tool. Not affiliated with WhatsApp or Meta.",
+  "@directChatNotAffiliated": {
+    "description": "Small print. Keep the names WhatsApp and Meta unchanged."
+  },
+  "percentageTabPercent": "Percent",
+  "@percentageTabPercent": {
+    "description": "Percentage tool tab"
+  },
+  "percentageTabDiscount": "Discount",
+  "@percentageTabDiscount": {
+    "description": "Percentage tool tab"
+  },
+  "percentageTabTip": "Tip & split",
+  "@percentageTabTip": {
+    "description": "Percentage tool tab: restaurant tip and splitting the bill"
+  },
+  "percentageTabTax": "Tax / VAT",
+  "@percentageTabTax": {
+    "description": "Percentage tool tab: sales tax, GST or VAT"
+  },
+  "percentageOfTitle": "Percentage of a number",
+  "@percentageOfTitle": {
+    "description": "Card title: e.g. what is 15% of 200"
+  },
+  "percentageFieldPercent": "Percentage",
+  "@percentageFieldPercent": {
+    "description": "Input label"
+  },
+  "percentageFieldNumber": "Number",
+  "@percentageFieldNumber": {
+    "description": "Input label"
+  },
+  "percentageOfResult": "{percent} of {number}",
+  "@percentageOfResult": {
+    "description": "Result label, e.g. '15% of 200' (the answer is shown next to it)",
+    "placeholders": {
+      "percent": {
+        "type": "String",
+        "example": "15%"
+      },
+      "number": {
+        "type": "String",
+        "example": "200"
+      }
+    }
+  },
+  "percentageWhatTitle": "What percent is it?",
+  "@percentageWhatTitle": {
+    "description": "Card title: e.g. 30 is what percent of 200"
+  },
+  "percentageFieldPart": "Value",
+  "@percentageFieldPart": {
+    "description": "Input label: the part"
+  },
+  "percentageFieldTotal": "Total",
+  "@percentageFieldTotal": {
+    "description": "Input label: the whole"
+  },
+  "percentageWhatResult": "{part} out of {total}",
+  "@percentageWhatResult": {
+    "description": "Result label, e.g. '30 out of 200' (the percent is shown next to it)",
+    "placeholders": {
+      "part": {
+        "type": "String",
+        "example": "30"
+      },
+      "total": {
+        "type": "String",
+        "example": "200"
+      }
+    }
+  },
+  "percentageChangeTitle": "Percentage change",
+  "@percentageChangeTitle": {
+    "description": "Card title: percent increase or decrease between two values"
+  },
+  "percentageFieldOld": "Old value",
+  "@percentageFieldOld": {
+    "description": "Input label"
+  },
+  "percentageFieldNew": "New value",
+  "@percentageFieldNew": {
+    "description": "Input label"
+  },
+  "percentageIncrease": "Increase of {percent}",
+  "@percentageIncrease": {
+    "description": "Result",
+    "placeholders": {
+      "percent": {
+        "type": "String",
+        "example": "25%"
+      }
+    }
+  },
+  "percentageDecrease": "Decrease of {percent}",
+  "@percentageDecrease": {
+    "description": "Result",
+    "placeholders": {
+      "percent": {
+        "type": "String",
+        "example": "20%"
+      }
+    }
+  },
+  "percentageNoChange": "No change",
+  "@percentageNoChange": {
+    "description": "Result when both values are equal"
+  },
+  "percentageDifference": "Difference",
+  "@percentageDifference": {
+    "description": "Result label: new value minus old value"
+  },
+  "percentagePrice": "Original price",
+  "@percentagePrice": {
+    "description": "Input label: price before discount"
+  },
+  "percentageDiscount": "Discount",
+  "@percentageDiscount": {
+    "description": "Input label: discount percent"
+  },
+  "percentageExtraDiscount": "Extra discount (optional)",
+  "@percentageExtraDiscount": {
+    "description": "Input label: a second discount applied on top"
+  },
+  "percentageYouPay": "You pay",
+  "@percentageYouPay": {
+    "description": "Result label: final price"
+  },
+  "percentageYouSave": "You save",
+  "@percentageYouSave": {
+    "description": "Result label: money saved"
+  },
+  "percentageTotalDiscount": "Total discount",
+  "@percentageTotalDiscount": {
+    "description": "Result label: combined discount percent"
+  },
+  "percentageBill": "Bill amount",
+  "@percentageBill": {
+    "description": "Input label: restaurant bill"
+  },
+  "percentageTip": "Tip",
+  "@percentageTip": {
+    "description": "Label: tip percent"
+  },
+  "percentageCustom": "Custom",
+  "@percentageCustom": {
+    "description": "Chip: enter your own tip percent"
+  },
+  "percentagePeople": "People",
+  "@percentagePeople": {
+    "description": "Label: how many people share the bill"
+  },
+  "percentageAddPerson": "Add a person",
+  "@percentageAddPerson": {
+    "description": "Accessibility label of the + button"
+  },
+  "percentageRemovePerson": "Remove a person",
+  "@percentageRemovePerson": {
+    "description": "Accessibility label of the - button"
+  },
+  "percentageTipAmount": "Tip amount",
+  "@percentageTipAmount": {
+    "description": "Result label"
+  },
+  "percentageTotal": "Total",
+  "@percentageTotal": {
+    "description": "Result label: bill plus tip"
+  },
+  "percentagePerPerson": "Each person pays",
+  "@percentagePerPerson": {
+    "description": "Result label"
+  },
+  "percentageTaxRate": "Tax rate",
+  "@percentageTaxRate": {
+    "description": "Input label: tax percent"
+  },
+  "percentageAddTax": "Add tax",
+  "@percentageAddTax": {
+    "description": "Mode: add tax to a price"
+  },
+  "percentageRemoveTax": "Remove tax",
+  "@percentageRemoveTax": {
+    "description": "Mode: take tax out of a tax-inclusive price"
+  },
+  "percentagePriceExclTax": "Price without tax",
+  "@percentagePriceExclTax": {
+    "description": "Input label"
+  },
+  "percentagePriceInclTax": "Price including tax",
+  "@percentagePriceInclTax": {
+    "description": "Input label"
+  },
+  "percentageBeforeTax": "Before tax",
+  "@percentageBeforeTax": {
+    "description": "Result label: net amount"
+  },
+  "percentageTaxAmount": "Tax",
+  "@percentageTaxAmount": {
+    "description": "Result label: tax amount"
+  },
+  "percentageAfterTax": "Total with tax",
+  "@percentageAfterTax": {
+    "description": "Result label: gross amount"
+  },
+  "percentageEnterValues": "Enter numbers to see the result",
+  "@percentageEnterValues": {
+    "description": "Placeholder before the inputs are filled"
+  },
+  "commonSave": "Save",
+  "commonShare": "Share",
+  "commonCopy": "Copy",
+  "commonCopied": "Copied",
+  "commonRetry": "Retry",
+  "commonDone": "Done",
+  "commonDelete": "Delete",
+  "commonUndo": "Undo",
+  "commonOpen": "Open",
+  "commonReset": "Reset",
+  "commonClose": "Close",
+  "commonOpenSettings": "Open settings",
+  "commonChoosePhoto": "Choose photo",
+  "commonChooseFile": "Choose file",
+  "commonCamera": "Camera",
+  "commonGallery": "Gallery",
+  "commonWorking": "Working…",
+  "commonSavedToGallery": "Saved to gallery",
+  "commonSavedToDownloads": "Saved to Downloads",
+  "commonSaveFailed": "Couldn't save the file",
+  "commonErrorGeneric": "Something went wrong. Please try again.",
+  "commonErrorOffline": "No internet connection",
+  "commonErrorTimeout": "The request timed out. Please try again.",
+  "commonPermissionNeeded": "Permission needed. Allow it in Settings.",
+  "commonResult": "Result",
+  "commonStart": "Start",
+  "commonStop": "Stop",
+  "commonClearAll": "Clear all",
+  "commonPaste": "Paste",
+  "commonSearch": "Search",
+  "organizePdfHint": "Tap pages to select them. Press and hold a page, then drag to move it.",
+  "organizePdfSelected": "{count} selected",
+  "@organizePdfSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "organizePdfRotateLeft": "Rotate left",
+  "organizePdfRotateRight": "Rotate right",
+  "organizePdfDelete": "Delete",
+  "organizePdfSelectAll": "Select all",
+  "organizePdfClearSelection": "Clear selection",
+  "organizePdfDeleted": "{count, plural, =1{1 page deleted} other{{count} pages deleted}}",
+  "@organizePdfDeleted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "organizePdfUndo": "Undo",
+  "organizePdfKeepOne": "A PDF needs at least one page.",
+  "organizePdfNoChanges": "No changes yet — move, rotate or delete pages first.",
+  "organizePdfReset": "Undo all changes",
+  "organizePdfMoveEarlier": "Move earlier",
+  "organizePdfMoveLater": "Move later",
+  "organizePdfSave": "Save PDF",
+  "organizePdfFailed": "Couldn’t save this PDF.",
+  "organizePdfResult": "Your organized PDF is ready",
+  "pdfToTextReading": "Reading page {current} of {total}…",
+  "@pdfToTextReading": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "pdfToTextWords": "{count, plural, =1{1 word} other{{count} words}}",
+  "@pdfToTextWords": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pdfToTextCopyAll": "Copy all",
+  "pdfToTextCopied": "Text copied",
+  "pdfToTextSaveTxt": "Save as .txt",
+  "pdfToTextEmptyPage": "No text on this page",
+  "pdfToTextScannedTitle": "No text found",
+  "pdfToTextScannedBody": "This PDF looks like a scan or photos, so there is no text to copy. We can read the words on page 1 from the image instead.",
+  "pdfToTextOpenOcr": "Read page 1 with {tool}",
+  "@pdfToTextOpenOcr": {
+    "placeholders": {
+      "tool": {
+        "type": "String"
+      }
+    }
+  },
+  "pdfToTextFailed": "Couldn’t read the text in this PDF.",
+  "pdfToTextPartlyScanned": "{count, plural, =1{1 page has no text (it may be scanned).} other{{count} pages have no text (they may be scanned).}}",
+  "@pdfToTextPartlyScanned": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pdfEditChoosePdf": "Choose a PDF",
+  "pdfEditChooseHint": "Or share a PDF to Utility Toolbox from any app",
+  "pdfEditChange": "Change",
+  "pdfEditReading": "Reading…",
+  "pdfEditPageCount": "{count, plural, =1{1 page} other{{count} pages}}",
+  "@pdfEditPageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pdfEditPageN": "Page {number}",
+  "@pdfEditPageN": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "pdfEditInvalidPdf": "This file doesn’t look like a valid PDF.",
+  "pdfEditLocked": "This PDF is password protected. Remove the password first, then try again.",
+  "pdfEditLockedShort": "Password protected",
+  "pdfEditPreviewFailed": "Couldn’t show this page.",
+  "pdfEditResultReady": "Your PDF is ready",
+  "pdfEditSaveDownloads": "Save to Downloads",
+  "pdfEditShare": "Share",
+  "pdfEditStartOver": "Start over",
+  "pdfEditSavedToDownloads": "Saved to Downloads — find it in My Files",
+  "pdfEditSharedInstead": "Opened the share sheet instead",
+  "pdfEditSaveFailed": "Couldn’t create the file. Please try again.",
+  "signPdfStepPdf": "Choose your PDF",
+  "signPdfStepSignature": "Create your signature",
+  "signPdfStepPlace": "Tap a page to place your signature",
+  "signPdfDraw": "Draw signature",
+  "signPdfDrawAgain": "Draw again",
+  "signPdfUseSaved": "Use saved signature",
+  "signPdfDeleteSaved": "Delete saved signature",
+  "signPdfSavedDeleted": "Saved signature deleted",
+  "signPdfDrawTitle": "Draw your signature",
+  "signPdfDrawHint": "Sign here with your finger",
+  "signPdfUndo": "Undo",
+  "signPdfInkBlack": "Black",
+  "signPdfInkBlue": "Blue",
+  "signPdfRemember": "Save signature for next time",
+  "signPdfDone": "Use this signature",
+  "signPdfEmpty": "Draw your signature first.",
+  "signPdfSignatureLabel": "Your signature",
+  "signPdfPlaceHint": "Drag to move, pinch or use the slider to resize. Tap the page to move the signature there.",
+  "signPdfSize": "Size",
+  "signPdfPlaceConfirm": "Place here",
+  "signPdfRemoveFromPage": "Remove from this page",
+  "signPdfAllPages": "Add to all pages",
+  "signPdfAllPagesDone": "{count, plural, =1{Signature added to 1 page} other{Signature added to all {count} pages}}",
+  "@signPdfAllPagesDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "signPdfClearAll": "Remove all",
+  "signPdfPlacedCount": "{count, plural, =0{No pages signed yet} =1{Signed on 1 page} other{Signed on {count} pages}}",
+  "@signPdfPlacedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "signPdfSave": "Save signed PDF",
+  "signPdfNoPlacement": "Tap a page to place your signature first.",
+  "signPdfFailed": "Couldn’t sign this PDF.",
+  "signPdfResult": "Your signed PDF is ready",
+  "watermarkPdfModeText": "Text watermark",
+  "watermarkPdfModeNumbers": "Page numbers",
+  "watermarkPdfText": "Watermark text",
+  "watermarkPdfDefaultText": "CONFIDENTIAL",
+  "watermarkPdfTextEmpty": "Type the watermark text first.",
+  "watermarkPdfSize": "Text size",
+  "watermarkPdfOpacity": "Opacity",
+  "watermarkPdfLayout": "Layout",
+  "watermarkPdfDiagonal": "Diagonal",
+  "watermarkPdfCenter": "Centre",
+  "watermarkPdfTiled": "Tiled",
+  "watermarkPdfColor": "Colour",
+  "watermarkPdfColorGrey": "Grey",
+  "watermarkPdfColorRed": "Red",
+  "watermarkPdfColorBlue": "Blue",
+  "watermarkPdfColorBlack": "Black",
+  "watermarkPdfColorGreen": "Green",
+  "watermarkPdfFormat": "Format",
+  "watermarkPdfPageLabel": "Page {number}",
+  "@watermarkPdfPageLabel": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "watermarkPdfPosition": "Position",
+  "watermarkPdfBottomCenter": "Bottom centre",
+  "watermarkPdfBottomRight": "Bottom right",
+  "watermarkPdfTopRight": "Top right",
+  "watermarkPdfStartAt": "Start at",
+  "watermarkPdfDecrease": "Decrease",
+  "watermarkPdfIncrease": "Increase",
+  "watermarkPdfPreview": "Preview (page 1)",
+  "watermarkPdfApplyText": "Add watermark",
+  "watermarkPdfApplyNumbers": "Add page numbers",
+  "watermarkPdfFailed": "Couldn’t update this PDF.",
+  "bgRemoverPickTitle": "Choose a photo",
+  "bgRemoverPickBody": "Works best with people, pets and objects. Your photo is processed on your phone.",
+  "bgRemoverGallery": "Choose from gallery",
+  "bgRemoverCamera": "Take a photo",
+  "bgRemoverPreparing": "Preparing photo…",
+  "bgRemoverWorking": "Removing background…",
+  "bgRemoverDownloading": "Getting the background remover ready. This happens only once and needs an internet connection…",
+  "bgRemoverDownloadFailed": "The background remover isn’t ready yet. Google Play services is still downloading it. Check your internet connection and try again in a minute.",
+  "bgRemoverNoSubject": "No person or object was found in this photo. Try a photo with a clear subject.",
+  "bgRemoverOpenFailed": "This photo couldn’t be opened. Try another one.",
+  "bgRemoverFailed": "Something went wrong while removing the background. Please try again.",
+  "bgRemoverRetry": "Try again",
+  "bgRemoverAnotherPhoto": "Choose another photo",
+  "bgRemoverNewPhoto": "New photo",
+  "bgRemoverBefore": "Before",
+  "bgRemoverAfter": "After",
+  "bgRemoverCompare": "Compare before and after",
+  "bgRemoverCompareHint": "Drag the slider to compare",
+  "bgRemoverBgTransparent": "Transparent",
+  "bgRemoverBgWhite": "White",
+  "bgRemoverBgBlack": "Black",
+  "bgRemoverBgBlue": "Blue",
+  "bgRemoverBgRed": "Red",
+  "bgRemoverBgYellow": "Yellow",
+  "bgRemoverBgBlur": "Blur",
+  "bgRemoverSave": "Save to gallery",
+  "bgRemoverSaved": "Saved to your gallery",
+  "bgRemoverSaveFailed": "Couldn’t save the image. Please try again.",
+  "bgRemoverPngHint": "PNG with a transparent background",
+  "bgRemoverJpgHint": "JPG with the chosen background",
+  "bubbleLevelSurfaceHint": "Lay the phone flat on the surface",
+  "bubbleLevelUprightHint": "Hold the phone’s edge against the surface",
+  "bubbleLevelLevel": "Level",
+  "bubbleLevelAngleLabel": "Tilt {angle} degrees",
+  "@bubbleLevelAngleLabel": {
+    "placeholders": {
+      "angle": {
+        "type": "String"
+      }
+    }
+  },
+  "bubbleLevelAxes": "Left–right {x}° · Front–back {y}°",
+  "@bubbleLevelAxes": {
+    "placeholders": {
+      "x": {
+        "type": "String"
+      },
+      "y": {
+        "type": "String"
+      }
+    }
+  },
+  "bubbleLevelCalibrate": "Calibrate",
+  "bubbleLevelReset": "Reset",
+  "bubbleLevelCalibrateTitle": "Calibrate the level?",
+  "bubbleLevelCalibrateBody": "Place the phone on a surface you know is level (or hold it against a straight edge), then tap Calibrate. The current position will read 0°.",
+  "bubbleLevelCalibrated": "Calibrated. This position now reads 0°.",
+  "bubbleLevelResetDone": "Calibration cleared",
+  "bubbleLevelUnavailable": "This phone has no motion sensor, so the level can’t work here.",
+  "flashlightOn": "Light is on",
+  "flashlightOff": "Light is off",
+  "flashlightTurnOn": "Turn the light on",
+  "flashlightTurnOff": "Turn the light off",
+  "flashlightModeSteady": "Steady",
+  "flashlightModeSos": "SOS",
+  "flashlightModeStrobe": "Strobe",
+  "flashlightSosHint": "Flashes the distress signal ··· ––– ··· again and again",
+  "flashlightStrobeSpeed": "{count, plural, =1{1 flash per second} other{{count} flashes per second}}",
+  "@flashlightStrobeSpeed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "flashlightUseScreen": "Use screen light",
+  "flashlightUseScreenHint": "Light up the screen instead of the flash",
+  "flashlightNoTorch": "No flash found on this phone, so the screen lights up instead.",
+  "flashlightTorchBusy": "The flash is busy (another app may be using the camera), so the screen lights up instead.",
+  "flashlightScreenColor": "Screen light color",
+  "flashlightColorWhite": "White",
+  "flashlightColorWarm": "Warm white",
+  "flashlightColorRed": "Red",
+  "flashlightColorGreen": "Green",
+  "flashlightColorBlue": "Blue",
+  "flashlightTapToTurnOff": "Tap anywhere to turn off",
+  "stopwatchTabStopwatch": "Stopwatch",
+  "stopwatchTabTimer": "Timer",
+  "stopwatchStart": "Start",
+  "stopwatchPause": "Pause",
+  "stopwatchResume": "Resume",
+  "stopwatchLap": "Lap",
+  "stopwatchReset": "Reset",
+  "stopwatchLapNumber": "Lap {number}",
+  "@stopwatchLapNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "stopwatchCurrentLap": "Lap {number}: {time}",
+  "@stopwatchCurrentLap": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "stopwatchBest": "Fastest",
+  "stopwatchWorst": "Slowest",
+  "stopwatchNoLaps": "Tap Lap while the stopwatch runs to record lap times.",
+  "stopwatchTimerQuickStart": "Quick start",
+  "stopwatchTimerMinutes": "{minutes} min",
+  "@stopwatchTimerMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "stopwatchTimerCustom": "Set your own time",
+  "stopwatchTimerPickTitle": "Set timer",
+  "stopwatchTimerHours": "hours",
+  "stopwatchTimerMinutesUnit": "min",
+  "stopwatchTimerSeconds": "sec",
+  "stopwatchTimerAddMinute": "+1 min",
+  "stopwatchTimerPaused": "Paused",
+  "stopwatchTimerRemaining": "{time} left",
+  "@stopwatchTimerRemaining": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "stopwatchTimerTimesUp": "Time’s up!",
+  "stopwatchTimerFinishedBody": "Your {duration} timer has finished.",
+  "@stopwatchTimerFinishedBody": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "stopwatchTimerRestart": "Restart",
+  "stopwatchTimerDone": "Done",
+  "stopwatchTimerKeepOpen": "Keep this screen open: the phone vibrates when the time is up.",
+  "translateHeroTitle": "Speak or type to translate",
+  "@translateHeroTitle": {
+    "description": "Translation screen header"
+  },
+  "translateBadgeOnDevice": "On-device AI",
+  "@translateBadgeOnDevice": {
+    "description": "Feature badge"
+  },
+  "translateBadgeOffline": "Works offline",
+  "@translateBadgeOffline": {
+    "description": "Feature badge"
+  },
+  "translateFrom": "From",
+  "@translateFrom": {
+    "description": "Source language dropdown label"
+  },
+  "translateTo": "To",
+  "@translateTo": {
+    "description": "Target language dropdown label"
+  },
+  "translateSwap": "Swap languages",
+  "@translateSwap": {
+    "description": "Tooltip of the swap-languages button"
+  },
+  "translateHint": "Enter text or tap the mic to speak…",
+  "@translateHint": {
+    "description": "Input hint (in the app language, whatever the source language)"
+  },
+  "translateHintListening": "Listening… speak naturally, tap the mic to stop",
+  "@translateHintListening": {
+    "description": "Input hint while the mic is listening"
+  },
+  "translateListeningIn": "Listening in {language}… tap the mic to stop and translate.",
+  "@translateListeningIn": {
+    "description": "Status under the input while listening; language = localized language name",
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "translateSameLanguage": "Source and target languages must be different.",
+  "translateButton": "Translate",
+  "@translateButton": {
+    "description": "Main button"
+  },
+  "translateTranslating": "Translating…",
+  "translateStopAndTranslate": "Stop & translate",
+  "translateDownloadingModel": "Downloading language model…",
+  "translateResultLabel": "Translation",
+  "@translateResultLabel": {
+    "description": "Heading of the result card"
+  },
+  "translatePlayAudio": "Play audio",
+  "translateGenerating": "Generating…",
+  "translateShareAudio": "Share audio file",
+  "translateGenerateAudio": "Generate audio file",
+  "translateAudioReady": "Audio file ready — share it to send or save it.",
+  "translateMicStop": "Stop listening & translate",
+  "@translateMicStop": {
+    "description": "Mic button tooltip while listening"
+  },
+  "translateMicStart": "Speak to translate",
+  "@translateMicStart": {
+    "description": "Mic button tooltip"
+  },
+  "translateMicBlocked": "Microphone access is blocked. Enable it in Settings to use voice input.",
+  "translateMicNeeded": "Microphone permission is needed for voice input.",
+  "translateSpeechUnavailable": "Speech recognition isn’t available on this device.",
+  "translateNoSpeech": "Didn’t catch that. Please try speaking again.",
+  "translateVoiceFailed": "Voice input stopped. Please try again.",
+  "translateDownloadFailed": "Couldn’t download the language models. Check your internet connection.",
+  "translateFailed": "Translation failed. Please try again.",
+  "translateAudioFailed": "Couldn’t create an audio file on this device.",
+  "translateLanguageName": "{code, select, af{Afrikaans} sq{Albanian} ar{Arabic} be{Belarusian} bn{Bengali} bg{Bulgarian} ca{Catalan} zh{Chinese (Simplified)} hr{Croatian} cs{Czech} da{Danish} nl{Dutch} en{English} eo{Esperanto} et{Estonian} fi{Finnish} fr{French} gl{Galician} ka{Georgian} de{German} el{Greek} gu{Gujarati} ht{Haitian Creole} he{Hebrew} hi{Hindi} hu{Hungarian} is{Icelandic} id{Indonesian} ga{Irish} it{Italian} ja{Japanese} kn{Kannada} ko{Korean} lv{Latvian} lt{Lithuanian} mk{Macedonian} ms{Malay} mt{Maltese} mr{Marathi} no{Norwegian} fa{Persian (Farsi)} pl{Polish} pt{Portuguese} ro{Romanian} ru{Russian} sk{Slovak} sl{Slovenian} es{Spanish} sw{Swahili} sv{Swedish} tl{Tagalog (Filipino)} ta{Tamil} te{Telugu} th{Thai} tr{Turkish} uk{Ukrainian} ur{Urdu} vi{Vietnamese} cy{Welsh} other{{code}}}",
+  "@translateLanguageName": {
+    "description": "Name of a translation language, selected by its ML Kit BCP-47 code",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "textUtilMode": "Mode",
+  "textUtilModeText": "Text",
+  "@textUtilModeText": {
+    "description": "Mode chip"
+  },
+  "textUtilHint": "Enter text here…",
+  "textUtilHintBase64": "Enter text or Base64 to convert…",
+  "textUtilWords": "{count, plural, =1{word} other{words}}",
+  "@textUtilWords": {
+    "description": "Label under the word count (the number is shown separately above it)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "textUtilCharacters": "{count, plural, =1{character} other{characters}}",
+  "@textUtilCharacters": {
+    "description": "Label under the character count (number shown separately)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "textUtilNoSpaces": "without spaces",
+  "@textUtilNoSpaces": {
+    "description": "Label under the character count that excludes spaces"
+  },
+  "textUtilUpper": "UPPERCASE",
+  "@textUtilUpper": {
+    "description": "Case converter option (styled in that case where the script has letter case)"
+  },
+  "textUtilLower": "lowercase",
+  "@textUtilLower": {
+    "description": "Case converter option"
+  },
+  "textUtilTitle": "Title Case",
+  "@textUtilTitle": {
+    "description": "Case converter option: capitalise every word"
+  },
+  "textUtilSentence": "Sentence case",
+  "@textUtilSentence": {
+    "description": "Case converter option: capitalise the first letter of each sentence"
+  },
+  "textUtilEncode": "Encode",
+  "@textUtilEncode": {
+    "description": "Base64 encode button"
+  },
+  "textUtilDecode": "Decode",
+  "@textUtilDecode": {
+    "description": "Base64 decode button"
+  },
+  "textUtilOutput": "Output",
+  "textUtilInvalidBase64": "That isn’t valid Base64.",
+  "clipEmptyClipboard": "Your clipboard is empty or has no text.",
+  "clipSaved": "Saved: {text}",
+  "@clipSaved": {
+    "description": "Snackbar after saving a clip; text = start of the clip",
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "clipAddManualTitle": "Add text manually",
+  "clipAddHint": "Type or paste text here…",
+  "clipClearUnpinned": "Clear unpinned",
+  "@clipClearUnpinned": {
+    "description": "Tooltip of the clear button"
+  },
+  "clipClearHistoryTitle": "Clear history?",
+  "clipClearHistoryBody": "Remove all unpinned items? Pinned items are kept.",
+  "clipSearchHint": "Search clips…",
+  "clipFilterAll": "All",
+  "@clipFilterAll": {
+    "description": "Filter chip"
+  },
+  "clipFilterPinned": "Pinned",
+  "@clipFilterPinned": {
+    "description": "Filter chip"
+  },
+  "clipFilterLinks": "Links",
+  "@clipFilterLinks": {
+    "description": "Filter chip"
+  },
+  "clipFilterText": "Text",
+  "@clipFilterText": {
+    "description": "Filter chip"
+  },
+  "clipFilterCode": "Code",
+  "@clipFilterCode": {
+    "description": "Filter chip"
+  },
+  "clipSavedCount": "{count, plural, other{{count} saved}}",
+  "@clipSavedCount": {
+    "description": "Stats bar",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "clipPinnedCount": "{count, plural, other{{count} pinned}}",
+  "@clipPinnedCount": {
+    "description": "Stats bar",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "clipAddText": "Add text",
+  "clipLabel": "Label",
+  "@clipLabel": {
+    "description": "Action button on a clip"
+  },
+  "clipAddLabelTitle": "Add label",
+  "clipLabelHint": "e.g. Work email",
+  "clipEmptyTitle": "No clips yet",
+  "clipEmptyMessage": "Copy any text on your phone, then tap Paste to save it here permanently.",
+  "clipPasteFromClipboard": "Paste from clipboard",
+  "clipTypeLink": "Link",
+  "@clipTypeLink": {
+    "description": "Clip type badge"
+  },
+  "clipTypeEmail": "Email",
+  "@clipTypeEmail": {
+    "description": "Clip type badge"
+  },
+  "clipTypePhone": "Phone",
+  "@clipTypePhone": {
+    "description": "Clip type badge"
+  },
+  "clipTypeCode": "Code",
+  "@clipTypeCode": {
+    "description": "Clip type badge"
+  },
+  "clipTypeText": "Text",
+  "@clipTypeText": {
+    "description": "Clip type badge"
+  },
+  "clipJustNow": "just now",
+  "clipMinutesAgo": "{count, plural, =1{1 min ago} other{{count} min ago}}",
+  "@clipMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "clipHoursAgo": "{count, plural, other{{count} h ago}}",
+  "@clipHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "clipDaysAgo": "{count, plural, =1{1 day ago} other{{count} days ago}}",
+  "@clipDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "clipPin": "Pin",
+  "@clipPin": {
+    "description": "Tooltip"
+  },
+  "clipUnpin": "Unpin",
+  "@clipUnpin": {
+    "description": "Tooltip"
+  },
+  "calcDivideByZero": "Can’t divide by zero",
+  "calcCheckExpression": "Check the expression",
+  "calcCopyResult": "Copy result",
+  "@calcCopyResult": {
+    "description": "Tooltip of the copy button"
+  },
+  "calcPlus": "Plus",
+  "@calcPlus": {
+    "description": "Screen-reader label of the + key"
+  },
+  "calcMinus": "Minus",
+  "@calcMinus": {
+    "description": "Screen-reader label of the − key"
+  },
+  "calcTimes": "Multiply",
+  "@calcTimes": {
+    "description": "Screen-reader label of the × key"
+  },
+  "calcDivide": "Divide",
+  "@calcDivide": {
+    "description": "Screen-reader label of the ÷ key"
+  },
+  "calcPercent": "Percent",
+  "@calcPercent": {
+    "description": "Screen-reader label of the % key"
+  },
+  "calcParentheses": "Parentheses",
+  "@calcParentheses": {
+    "description": "Screen-reader label of the () key"
+  },
+  "calcEquals": "Equals",
+  "@calcEquals": {
+    "description": "Screen-reader label of the = key"
+  },
+  "calcDecimalPoint": "Decimal point",
+  "@calcDecimalPoint": {
+    "description": "Screen-reader label of the . key"
+  },
+  "ageTabAge": "Age",
+  "ageTabBetween": "Between dates",
+  "ageDateOfBirth": "Date of birth",
+  "ageFrom": "From",
+  "@ageFrom": {
+    "description": "Start date field"
+  },
+  "ageTo": "To",
+  "@ageTo": {
+    "description": "End date field"
+  },
+  "ageFutureDate": "That date is in the future.",
+  "ageYearsUnit": "{count, plural, =1{year} other{years}}",
+  "@ageYearsUnit": {
+    "description": "Unit shown next to the big age number (number shown separately)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ageDaysUnit": "{count, plural, =1{day} other{days}}",
+  "@ageDaysUnit": {
+    "description": "Unit shown next to the big day count (number shown separately)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ageYears": "{count, plural, =1{1 year} other{{count} years}}",
+  "@ageYears": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "ageMonths": "{count, plural, =1{1 month} other{{count} months}}",
+  "@ageMonths": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "ageDays": "{count, plural, =1{1 day} other{{count} days}}",
+  "@ageDays": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "ageWeeks": "{count, plural, =1{1 week} other{{count} weeks}}",
+  "@ageWeeks": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "ageInDays": "{count, plural, =1{in 1 day} other{in {count} days}}",
+  "@ageInDays": {
+    "description": "Time until the next birthday",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "ageList2": "{first}, {second}",
+  "@ageList2": {
+    "description": "Joins two durations, e.g. '3 months, 2 days'",
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
+  },
+  "ageList3": "{first}, {second}, {third}",
+  "@ageList3": {
+    "description": "Joins three durations, e.g. '1 year, 3 months, 2 days'",
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      },
+      "third": {
+        "type": "String"
+      }
+    }
+  },
+  "ageNextBirthday": "Next birthday",
+  "ageBirthdayToday": "Today 🎉",
+  "ageTotalMonths": "Total months",
+  "ageTotalWeeks": "Total weeks",
+  "ageTotalDays": "Total days",
+  "ageWeeksLabel": "Weeks",
+  "@ageWeeksLabel": {
+    "description": "Stat label"
+  },
+  "ageWeekdays": "Weekdays (Mon–Fri)",
+  "@ageWeekdays": {
+    "description": "Stat label; counts Monday to Friday"
+  },
+  "ageHours": "Hours",
+  "@ageHours": {
+    "description": "Stat label"
+  },
+  "ageIncludingEnd": "Including end date",
+  "@ageIncludingEnd": {
+    "description": "Stat label: day count when the end date is counted too"
+  },
+  "unitFrom": "From",
+  "@unitFrom": {
+    "description": "Card label: unit to convert from"
+  },
+  "unitTo": "To",
+  "@unitTo": {
+    "description": "Card label: unit to convert to"
+  },
+  "unitEnterValue": "Enter value",
+  "unitSwap": "Swap units",
+  "@unitSwap": {
+    "description": "Tooltip of the swap button"
+  },
+  "unitCategoryName": "{id, select, length{Length} weight{Weight} temperature{Temperature} area{Area} volume{Volume} other{{id}}}",
+  "@unitCategoryName": {
+    "description": "Unit category chip, selected by category id",
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "unitName": "{id, select, millimeter{Millimeter} centimeter{Centimeter} meter{Meter} kilometer{Kilometer} inch{Inch} foot{Foot} mile{Mile} gram{Gram} kilogram{Kilogram} ounce{Ounce} pound{Pound} celsius{Celsius} fahrenheit{Fahrenheit} kelvin{Kelvin} squareMeter{Square meter} squareFoot{Square foot} acre{Acre} hectare{Hectare} milliliter{Milliliter} liter{Liter} gallonUs{Gallon (US)} fluidOunce{Fluid ounce} other{{id}}}",
+  "@unitName": {
+    "description": "Unit name, selected by unit id (the symbol is shown separately)",
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "loanAmount": "Loan amount",
+  "loanInterestRate": "Annual interest rate",
+  "loanTenure": "Tenure",
+  "loanTenureMonths": "Tenure (months)",
+  "loanTenureYears": "Tenure (years)",
+  "loanToggleMonths": "Months",
+  "@loanToggleMonths": {
+    "description": "Tenure unit toggle"
+  },
+  "loanToggleYears": "Years",
+  "@loanToggleYears": {
+    "description": "Tenure unit toggle"
+  },
+  "loanEmpty": "Enter valid loan details above to calculate your EMI",
+  "loanMonthlyEmi": "Monthly EMI",
+  "loanPrincipal": "Principal",
+  "loanTotalInterest": "Total interest",
+  "loanTotalPayment": "Total payment",
+  "loanBreakdown": "Breakdown",
+  "loanInterest": "Interest",
+  "loanInterestShare": "{percent} interest",
+  "@loanInterestShare": {
+    "description": "Share of the total that is interest; percent is already formatted, e.g. '12.5%'",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "loanSchedule": "Amortization schedule",
+  "loanMonths": "{count, plural, =1{1 month} other{{count} months}}",
+  "@loanMonths": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "loanColMonth": "Mo.",
+  "@loanColMonth": {
+    "description": "Short table header: month number"
+  },
+  "loanColBalance": "Balance",
+  "@loanColBalance": {
+    "description": "Table header: remaining balance"
+  },
+  "loanShowAll": "Show all months",
+  "loanShowLess": "Show less",
+  "clockSearchHint": "Search city or country…",
+  "clockPinned": "Pinned",
+  "@clockPinned": {
+    "description": "Section header"
+  },
+  "clockAllCities": "All cities",
+  "@clockAllCities": {
+    "description": "Section header"
+  },
+  "clockOnWidget": "On widget: {shown} of {total}",
+  "@clockOnWidget": {
+    "description": "How many pinned cities the home-screen widget shows",
+    "placeholders": {
+      "shown": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "total": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "clockOnWidgetMore": "On widget: {shown} of up to {max} (resize to show more)",
+  "@clockOnWidgetMore": {
+    "placeholders": {
+      "shown": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "max": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "clockWidgetHint": "The home-screen widget shows the first {defaultRows} by default — drag its bottom edge down to show up to {maxRows}.",
+  "@clockWidgetHint": {
+    "placeholders": {
+      "defaultRows": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "maxRows": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "clockPin": "Pin",
+  "@clockPin": {
+    "description": "Tooltip"
+  },
+  "clockUnpin": "Unpin",
+  "@clockUnpin": {
+    "description": "Tooltip"
+  },
+  "clockNoResults": "No matching cities",
+  "speedSelectingServer": "Selecting server…",
+  "speedPhasePing": "Measuring ping",
+  "@speedPhasePing": {
+    "description": "Speed test phase; animated dots are appended"
+  },
+  "speedPhaseDownload": "Testing download speed",
+  "speedPhaseUpload": "Testing upload speed",
+  "speedDownloadSpeed": "Download speed",
+  "speedUploadSpeed": "Upload speed",
+  "speedRunAgain": "Run again",
+  "@speedRunAgain": {
+    "description": "Short label inside the round start button"
+  },
+  "speedGo": "GO",
+  "@speedGo": {
+    "description": "Very short label inside the round start button"
+  },
+  "speedMeasuredVia": "Measured via {server}",
+  "@speedMeasuredVia": {
+    "placeholders": {
+      "server": {
+        "type": "String"
+      }
+    }
+  },
+  "speedPoweredBy": "Uses Cloudflare speed test servers",
+  "speedIdleHint": "Tap the button to measure ping, download and upload speed.",
+  "speedPing": "Ping",
+  "@speedPing": {
+    "description": "Latency result label (value in ms follows)"
+  },
+  "speedResultsTitle": "Speed test results",
+  "speedDownload": "Download",
+  "@speedDownload": {
+    "description": "Short result column label"
+  },
+  "speedUpload": "Upload",
+  "@speedUpload": {
+    "description": "Short result column label"
+  },
+  "speedConnectedIp": "Your IP: {ip}",
+  "@speedConnectedIp": {
+    "placeholders": {
+      "ip": {
+        "type": "String"
+      }
+    }
+  },
+  "speedErrorOffline": "No internet connection. Check your Wi-Fi or mobile data.",
+  "speedErrorTimeout": "The test timed out. Your connection may be unstable.",
+  "speedErrorFailed": "The test failed. Please try again.",
+  "pingErrorHostNotFound": "Host not found. Check the address and your internet connection.",
+  "pingErrorNoData": "No information is available for this address.",
+  "pingTabMyIp": "My IP",
+  "@pingTabMyIp": {
+    "description": "Tab label"
+  },
+  "pingTabLookup": "Lookup",
+  "@pingTabLookup": {
+    "description": "Tab label: look up info about an IP address or host"
+  },
+  "pingTabPing": "Ping",
+  "@pingTabPing": {
+    "description": "Tab label"
+  },
+  "pingYourPublicIp": "Your public IP address",
+  "pingFieldCity": "City",
+  "pingFieldRegion": "Region",
+  "pingFieldCountry": "Country",
+  "pingFieldIsp": "ISP / Org",
+  "@pingFieldIsp": {
+    "description": "Internet provider or organization that owns the IP"
+  },
+  "pingFieldTimezone": "Time zone",
+  "pingFieldLocation": "Coordinates",
+  "pingFieldIp": "IP address",
+  "pingIpCopied": "IP address copied",
+  "pingCopyIp": "Copy IP",
+  "pingLookupHint": "IP address or hostname",
+  "pingLookupButton": "Look up",
+  "@pingLookupButton": {
+    "description": "Button"
+  },
+  "pingHostHint": "Hostname (e.g. google.com)",
+  "pingStartButton": "Ping",
+  "@pingStartButton": {
+    "description": "Button that starts pinging (verb)"
+  },
+  "pingHeader": "Ping {host} ({ip}) via TCP port 443",
+  "@pingHeader": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      },
+      "ip": {
+        "type": "String"
+      }
+    }
+  },
+  "pingStatAvg": "Average",
+  "@pingStatAvg": {
+    "description": "Average round-trip time"
+  },
+  "pingStatLoss": "Loss",
+  "@pingStatLoss": {
+    "description": "Packet loss percentage"
+  },
+  "pingStatSent": "Sent",
+  "@pingStatSent": {
+    "description": "Number of pings sent"
+  },
+  "pingTimeout": "Timeout",
+  "@pingTimeout": {
+    "description": "A ping that got no reply"
+  },
+  "compassN": "N",
+  "@compassN": {
+    "description": "Compass abbreviation (1–3 letters; must fit a small badge)"
+  },
+  "compassNE": "NE",
+  "@compassNE": {
+    "description": "Compass abbreviation (1–3 letters; must fit a small badge)"
+  },
+  "compassE": "E",
+  "@compassE": {
+    "description": "Compass abbreviation (1–3 letters; must fit a small badge)"
+  },
+  "compassSE": "SE",
+  "@compassSE": {
+    "description": "Compass abbreviation (1–3 letters; must fit a small badge)"
+  },
+  "compassS": "S",
+  "@compassS": {
+    "description": "Compass abbreviation (1–3 letters; must fit a small badge)"
+  },
+  "compassSW": "SW",
+  "@compassSW": {
+    "description": "Compass abbreviation (1–3 letters; must fit a small badge)"
+  },
+  "compassW": "W",
+  "@compassW": {
+    "description": "Compass abbreviation (1–3 letters; must fit a small badge)"
+  },
+  "compassNW": "NW",
+  "@compassNW": {
+    "description": "Compass abbreviation (1–3 letters; must fit a small badge)"
+  },
+  "compassNorth": "North",
+  "@compassNorth": {
+    "description": "Compass direction, read aloud by screen readers"
+  },
+  "compassNortheast": "Northeast",
+  "@compassNortheast": {
+    "description": "Compass direction, read aloud by screen readers"
+  },
+  "compassEast": "East",
+  "@compassEast": {
+    "description": "Compass direction, read aloud by screen readers"
+  },
+  "compassSoutheast": "Southeast",
+  "@compassSoutheast": {
+    "description": "Compass direction, read aloud by screen readers"
+  },
+  "compassSouth": "South",
+  "@compassSouth": {
+    "description": "Compass direction, read aloud by screen readers"
+  },
+  "compassSouthwest": "Southwest",
+  "@compassSouthwest": {
+    "description": "Compass direction, read aloud by screen readers"
+  },
+  "compassWest": "West",
+  "@compassWest": {
+    "description": "Compass direction, read aloud by screen readers"
+  },
+  "compassNorthwest": "Northwest",
+  "@compassNorthwest": {
+    "description": "Compass direction, read aloud by screen readers"
+  },
+  "compassSemantics": "Heading {degrees}°, {direction}",
+  "@compassSemantics": {
+    "description": "Screen-reader label for the compass dial",
+    "placeholders": {
+      "degrees": {
+        "type": "String"
+      },
+      "direction": {
+        "type": "String"
+      }
+    }
+  },
+  "compassHeadingMagnetic": "Magnetic heading",
+  "compassUnavailable": "This device has no magnetometer, so the compass can't work.",
+  "locationSavedHeader": "Saved locations",
+  "locationSavedCount": "{count, plural, =0{None yet} =1{1 saved} other{{count} saved}}",
+  "@locationSavedCount": {
+    "description": "Count shown next to the Saved locations header",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "locationEmpty": "No saved locations yet.\nTap {save} to bookmark where you are.",
+  "@locationEmpty": {
+    "description": "{save} is the Save button label",
+    "placeholders": {
+      "save": {
+        "type": "String"
+      }
+    }
+  },
+  "locationDeleted": "“{name}” deleted",
+  "@locationDeleted": {
+    "description": "Snackbar with an Undo action",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "locationSaveDialogTitle": "Save location",
+  "locationNameLabel": "Name",
+  "locationNameHint": "e.g. Home, Office…",
+  "locationNoteLabel": "Note (optional)",
+  "locationCurrent": "Current location",
+  "locationRefresh": "Update location",
+  "@locationRefresh": {
+    "description": "Tooltip"
+  },
+  "locationLocating": "Finding your location…",
+  "locationServicesOff": "Location is turned off. Turn it on to see where you are.",
+  "locationPermissionDenied": "Allow location access to see where you are.",
+  "locationPermissionDeniedForever": "Location access is blocked. Allow it in Settings to use this tool.",
+  "locationErrorTimeout": "Couldn't get a GPS fix. Move near a window or outside and try again.",
+  "locationAllow": "Allow access",
+  "@locationAllow": {
+    "description": "Button that asks for the location permission again"
+  },
+  "locationAccuracy": "Accuracy: ±{meters} m",
+  "@locationAccuracy": {
+    "description": "{meters} is an already formatted number",
+    "placeholders": {
+      "meters": {
+        "type": "String"
+      }
+    }
+  },
+  "locationCoordsCopied": "Coordinates copied",
+  "locationCopyCoords": "Copy coordinates",
+  "@locationCopyCoords": {
+    "description": "Tooltip"
+  },
+  "locationOpenInMaps": "Open in Maps",
+  "@locationOpenInMaps": {
+    "description": "Tooltip"
+  },
+  "passwordYours": "Your password",
+  "passwordSelectType": "Select at least one character type",
+  "passwordStrength": "Strength",
+  "passwordWeak": "Weak",
+  "@passwordWeak": {
+    "description": "Password strength"
+  },
+  "passwordFair": "Fair",
+  "@passwordFair": {
+    "description": "Password strength"
+  },
+  "passwordGood": "Good",
+  "@passwordGood": {
+    "description": "Password strength"
+  },
+  "passwordStrong": "Strong",
+  "@passwordStrong": {
+    "description": "Password strength"
+  },
+  "passwordLength": "Length",
+  "passwordChars": "{count, plural, =1{1 character} other{{count} characters}}",
+  "@passwordChars": {
+    "description": "Password length",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "passwordInclude": "Include",
+  "@passwordInclude": {
+    "description": "Header above the character-type toggles"
+  },
+  "passwordUppercase": "Uppercase",
+  "passwordLowercase": "Lowercase",
+  "passwordNumbers": "Numbers",
+  "passwordSymbols": "Symbols",
+  "passwordCopied": "Password copied",
+  "passwordGenerate": "Generate new",
+  "@passwordGenerate": {
+    "description": "Button: create another password"
+  },
+  "hashModeText": "Text",
+  "hashModeFile": "File",
+  "hashAlgorithm": "Algorithm",
+  "hashInputHint": "Enter text to hash…",
+  "hashPickFile": "Tap to choose a file",
+  "hashChange": "Change",
+  "@hashChange": {
+    "description": "Button: pick a different file"
+  },
+  "hashHashing": "Calculating…",
+  "hashGenerate": "Generate hash",
+  "hashFileError": "Couldn't read this file. Try another one.",
+  "hashCopied": "Hash copied",
+  "hashCopy": "Copy hash",
+  "@hashCopy": {
+    "description": "Tooltip"
+  },
+  "colorPickerFormats": "Color formats",
+  "@colorPickerFormats": {
+    "description": "Tool screen string (colorPickerFormats)"
+  },
+  "colorPickerHexLabel": "HEX color",
+  "@colorPickerHexLabel": {
+    "description": "Tool screen string (colorPickerHexLabel)"
+  },
+  "colorPickerHexInvalid": "Enter 6 hex digits (0–9, A–F)",
+  "@colorPickerHexInvalid": {
+    "description": "Tool screen string (colorPickerHexInvalid)"
+  },
+  "colorPickerApply": "Apply color",
+  "@colorPickerApply": {
+    "description": "Tool screen string (colorPickerApply)"
+  },
+  "colorPickerCopied": "{format} copied",
+  "@colorPickerCopied": {
+    "description": "Tool screen string (colorPickerCopied)",
+    "placeholders": {
+      "format": {
+        "type": "String"
+      }
+    }
+  },
+  "colorPickerPalette": "Quick palette",
+  "@colorPickerPalette": {
+    "description": "Tool screen string (colorPickerPalette)"
+  },
+  "colorPickerSwatch": "Color {hex}",
+  "@colorPickerSwatch": {
+    "description": "Tool screen string (colorPickerSwatch)",
+    "placeholders": {
+      "hex": {
+        "type": "String"
+      }
+    }
+  },
+  "imgCompressPickHint": "Tap to choose or take a photo",
+  "@imgCompressPickHint": {
+    "description": "Tool screen string (imgCompressPickHint)"
+  },
+  "imgCompressSupported": "Supports {formats}",
+  "@imgCompressSupported": {
+    "description": "Tool screen string (imgCompressSupported)",
+    "placeholders": {
+      "formats": {
+        "type": "String"
+      }
+    }
+  },
+  "imgCompressChange": "Change photo",
+  "@imgCompressChange": {
+    "description": "Tool screen string (imgCompressChange)"
+  },
+  "imgCompressModeQuality": "By quality",
+  "@imgCompressModeQuality": {
+    "description": "Tool screen string (imgCompressModeQuality)"
+  },
+  "imgCompressModeTarget": "Target size",
+  "@imgCompressModeTarget": {
+    "description": "Tool screen string (imgCompressModeTarget)"
+  },
+  "imgCompressQuality": "Quality",
+  "@imgCompressQuality": {
+    "description": "Tool screen string (imgCompressQuality)"
+  },
+  "imgCompressSmallest": "Smallest file",
+  "@imgCompressSmallest": {
+    "description": "Tool screen string (imgCompressSmallest)"
+  },
+  "imgCompressBestQuality": "Best quality",
+  "@imgCompressBestQuality": {
+    "description": "Tool screen string (imgCompressBestQuality)"
+  },
+  "imgCompressQualityNote": "Large photos are also resized to about 1920×1080.",
+  "@imgCompressQualityNote": {
+    "description": "Tool screen string (imgCompressQualityNote)"
+  },
+  "imgCompressTargetUnder": "Under {size}",
+  "@imgCompressTargetUnder": {
+    "description": "Tool screen string (imgCompressTargetUnder)",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "imgCompressTargetHint": "Keeps the best quality that fits the limit — handy for job and government form uploads.",
+  "@imgCompressTargetHint": {
+    "description": "Tool screen string (imgCompressTargetHint)"
+  },
+  "imgCompressButton": "Compress photo",
+  "@imgCompressButton": {
+    "description": "Tool screen string (imgCompressButton)"
+  },
+  "imgCompressCompressing": "Compressing…",
+  "@imgCompressCompressing": {
+    "description": "Tool screen string (imgCompressCompressing)"
+  },
+  "imgCompressSuccess": "Compressed successfully!",
+  "@imgCompressSuccess": {
+    "description": "Tool screen string (imgCompressSuccess)"
+  },
+  "imgCompressFitsTarget": "Done — fits under {size}",
+  "@imgCompressFitsTarget": {
+    "description": "Tool screen string (imgCompressFitsTarget)",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "imgCompressMissedTarget": "Couldn't get under {size}. This is the smallest version we could make.",
+  "@imgCompressMissedTarget": {
+    "description": "Tool screen string (imgCompressMissedTarget)",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "imgCompressStatOriginal": "Original",
+  "@imgCompressStatOriginal": {
+    "description": "Tool screen string (imgCompressStatOriginal)"
+  },
+  "imgCompressStatCompressed": "Compressed",
+  "@imgCompressStatCompressed": {
+    "description": "Tool screen string (imgCompressStatCompressed)"
+  },
+  "imgCompressStatSaved": "Saved",
+  "@imgCompressStatSaved": {
+    "description": "Tool screen string (imgCompressStatSaved)"
+  },
+  "imgCompressFailed": "Couldn't compress this photo. Try another one.",
+  "@imgCompressFailed": {
+    "description": "Tool screen string (imgCompressFailed)"
+  },
+  "imgResizePresetPassport": "Passport 35×45 mm",
+  "@imgResizePresetPassport": {
+    "description": "Tool screen string (imgResizePresetPassport)"
+  },
+  "imgResizePresetSquare": "Square {size}",
+  "@imgResizePresetSquare": {
+    "description": "Tool screen string (imgResizePresetSquare)",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "imgResizePresetStory": "Story {size}",
+  "@imgResizePresetStory": {
+    "description": "Tool screen string (imgResizePresetStory)",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "imgResizePresetMax": "{name} (max {px})",
+  "@imgResizePresetMax": {
+    "description": "Tool screen string (imgResizePresetMax)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "px": {
+        "type": "String"
+      }
+    }
+  },
+  "imgResizeChoosePhotos": "Choose photos",
+  "@imgResizeChoosePhotos": {
+    "description": "Tool screen string (imgResizeChoosePhotos)"
+  },
+  "imgResizeSelected": "{count, plural, =1{1 photo selected} other{{count} photos selected}}",
+  "@imgResizeSelected": {
+    "description": "Tool screen string (imgResizeSelected)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "imgResizePickHint": "Pick one or many — or share them to the app",
+  "@imgResizePickHint": {
+    "description": "Tool screen string (imgResizePickHint)"
+  },
+  "imgResizeChoose": "Choose",
+  "@imgResizeChoose": {
+    "description": "Tool screen string (imgResizeChoose)"
+  },
+  "imgResizeChange": "Change",
+  "@imgResizeChange": {
+    "description": "Tool screen string (imgResizeChange)"
+  },
+  "imgResizePresets": "Presets",
+  "@imgResizePresets": {
+    "description": "Tool screen string (imgResizePresets)"
+  },
+  "imgResizeModePercent": "Percent",
+  "@imgResizeModePercent": {
+    "description": "Tool screen string (imgResizeModePercent)"
+  },
+  "imgResizeModeMaxSide": "Max side",
+  "@imgResizeModeMaxSide": {
+    "description": "Tool screen string (imgResizeModeMaxSide)"
+  },
+  "imgResizeModeExact": "Exact",
+  "@imgResizeModeExact": {
+    "description": "Tool screen string (imgResizeModeExact)"
+  },
+  "imgResizeWidth": "Width (px)",
+  "@imgResizeWidth": {
+    "description": "Tool screen string (imgResizeWidth)"
+  },
+  "imgResizeHeight": "Height (px)",
+  "@imgResizeHeight": {
+    "description": "Tool screen string (imgResizeHeight)"
+  },
+  "imgResizeCrop": "Crop to fit (no stretching)",
+  "@imgResizeCrop": {
+    "description": "Tool screen string (imgResizeCrop)"
+  },
+  "imgResizeFormat": "Format",
+  "@imgResizeFormat": {
+    "description": "Tool screen string (imgResizeFormat)"
+  },
+  "imgResizeQuality": "Quality",
+  "@imgResizeQuality": {
+    "description": "Tool screen string (imgResizeQuality)"
+  },
+  "imgResizeButton": "Resize",
+  "@imgResizeButton": {
+    "description": "Tool screen string (imgResizeButton)"
+  },
+  "imgResizeSaveAll": "{count, plural, =1{Save 1 photo to gallery} other{Save {count} photos to gallery}}",
+  "@imgResizeSaveAll": {
+    "description": "Tool screen string (imgResizeSaveAll)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "imgResizeChangeSettings": "Change settings",
+  "@imgResizeChangeSettings": {
+    "description": "Tool screen string (imgResizeChangeSettings)"
+  },
+  "imgResizeInvalidSize": "Enter a width and height between {min} and {max}.",
+  "@imgResizeInvalidSize": {
+    "description": "Tool screen string (imgResizeInvalidSize)",
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "imgResizeFailedCount": "{count, plural, =1{1 photo couldn't be read.} other{{count} photos couldn't be read.}}",
+  "@imgResizeFailedCount": {
+    "description": "Tool screen string (imgResizeFailedCount)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "imgResizeSavedCount": "{count, plural, =1{Saved 1 photo to your gallery} other{Saved {count} photos to your gallery}}",
+  "@imgResizeSavedCount": {
+    "description": "Tool screen string (imgResizeSavedCount)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "imgEnhanceEmptyTitle": "Edit your photos",
+  "@imgEnhanceEmptyTitle": {
+    "description": "Tool screen string (imgEnhanceEmptyTitle)"
+  },
+  "imgEnhanceEmptyBody": "Adjust brightness, contrast, saturation and sharpness, apply presets, rotate and flip — all on your device.",
+  "@imgEnhanceEmptyBody": {
+    "description": "Tool screen string (imgEnhanceEmptyBody)"
+  },
+  "imgEnhanceFineControls": "Fine controls",
+  "@imgEnhanceFineControls": {
+    "description": "Tool screen string (imgEnhanceFineControls)"
+  },
+  "imgEnhanceApplying": "Applying…",
+  "@imgEnhanceApplying": {
+    "description": "Tool screen string (imgEnhanceApplying)"
+  },
+  "imgEnhanceChange": "Change",
+  "@imgEnhanceChange": {
+    "description": "Tool screen string (imgEnhanceChange)"
+  },
+  "imgEnhancePresets": "Presets",
+  "@imgEnhancePresets": {
+    "description": "Tool screen string (imgEnhancePresets)"
+  },
+  "imgEnhanceTransform": "Transform",
+  "@imgEnhanceTransform": {
+    "description": "Tool screen string (imgEnhanceTransform)"
+  },
+  "imgEnhanceAdjustments": "Adjustments",
+  "@imgEnhanceAdjustments": {
+    "description": "Tool screen string (imgEnhanceAdjustments)"
+  },
+  "imgEnhanceRotate": "Rotate",
+  "@imgEnhanceRotate": {
+    "description": "Tool screen string (imgEnhanceRotate)"
+  },
+  "imgEnhanceFlipH": "Flip horizontal",
+  "@imgEnhanceFlipH": {
+    "description": "Tool screen string (imgEnhanceFlipH)"
+  },
+  "imgEnhanceFlipV": "Flip vertical",
+  "@imgEnhanceFlipV": {
+    "description": "Tool screen string (imgEnhanceFlipV)"
+  },
+  "imgEnhanceBrightness": "Brightness",
+  "@imgEnhanceBrightness": {
+    "description": "Tool screen string (imgEnhanceBrightness)"
+  },
+  "imgEnhanceContrast": "Contrast",
+  "@imgEnhanceContrast": {
+    "description": "Tool screen string (imgEnhanceContrast)"
+  },
+  "imgEnhanceSaturation": "Saturation",
+  "@imgEnhanceSaturation": {
+    "description": "Tool screen string (imgEnhanceSaturation)"
+  },
+  "imgEnhanceSharpen": "Sharpen",
+  "@imgEnhanceSharpen": {
+    "description": "Tool screen string (imgEnhanceSharpen)"
+  },
+  "imgEnhanceBlur": "Blur",
+  "@imgEnhanceBlur": {
+    "description": "Tool screen string (imgEnhanceBlur)"
+  },
+  "imgEnhanceQuality": "Quality",
+  "@imgEnhanceQuality": {
+    "description": "Tool screen string (imgEnhanceQuality)"
+  },
+  "imgEnhanceApply": "Apply",
+  "@imgEnhanceApply": {
+    "description": "Tool screen string (imgEnhanceApply)"
+  },
+  "imgEnhanceFailed": "Couldn't apply the edits. Try another photo.",
+  "@imgEnhanceFailed": {
+    "description": "Tool screen string (imgEnhanceFailed)"
+  },
+  "imgEnhanceResult": "Done! {before} → {after} ({change})",
+  "@imgEnhanceResult": {
+    "description": "Tool screen string (imgEnhanceResult)",
+    "placeholders": {
+      "before": {
+        "type": "String"
+      },
+      "after": {
+        "type": "String"
+      },
+      "change": {
+        "type": "String"
+      }
+    }
+  },
+  "imgEnhancePresetOriginal": "Original",
+  "@imgEnhancePresetOriginal": {
+    "description": "Tool screen string (imgEnhancePresetOriginal)"
+  },
+  "imgEnhancePresetVivid": "Vivid",
+  "@imgEnhancePresetVivid": {
+    "description": "Tool screen string (imgEnhancePresetVivid)"
+  },
+  "imgEnhancePresetCool": "Cool",
+  "@imgEnhancePresetCool": {
+    "description": "Tool screen string (imgEnhancePresetCool)"
+  },
+  "imgEnhancePresetWarm": "Warm",
+  "@imgEnhancePresetWarm": {
+    "description": "Tool screen string (imgEnhancePresetWarm)"
+  },
+  "imgEnhancePresetDramatic": "Dramatic",
+  "@imgEnhancePresetDramatic": {
+    "description": "Tool screen string (imgEnhancePresetDramatic)"
+  },
+  "imgEnhancePresetFade": "Fade",
+  "@imgEnhancePresetFade": {
+    "description": "Tool screen string (imgEnhancePresetFade)"
+  },
+  "imgEnhancePresetVintage": "Vintage",
+  "@imgEnhancePresetVintage": {
+    "description": "Tool screen string (imgEnhancePresetVintage)"
+  },
+  "imgEnhancePresetNoir": "Noir",
+  "@imgEnhancePresetNoir": {
+    "description": "Tool screen string (imgEnhancePresetNoir)"
+  },
+  "upscalerNewImage": "New photo",
+  "@upscalerNewImage": {
+    "description": "Tool screen string (upscalerNewImage)"
+  },
+  "upscalerIntro": "Enlarge photos up to 4× with on-device AI. Works offline after a one-time model download — optional cloud mode for faces.",
+  "@upscalerIntro": {
+    "description": "Tool screen string (upscalerIntro)"
+  },
+  "upscalerBadgeOnDevice": "On-device AI",
+  "@upscalerBadgeOnDevice": {
+    "description": "Tool screen string (upscalerBadgeOnDevice)"
+  },
+  "upscalerBadgeOffline": "Works offline",
+  "@upscalerBadgeOffline": {
+    "description": "Tool screen string (upscalerBadgeOffline)"
+  },
+  "upscalerBadgeUpTo4x": "Up to 4× bigger",
+  "@upscalerBadgeUpTo4x": {
+    "description": "Tool screen string (upscalerBadgeUpTo4x)"
+  },
+  "upscalerBadgeGpu": "GPU accelerated",
+  "@upscalerBadgeGpu": {
+    "description": "Tool screen string (upscalerBadgeGpu)"
+  },
+  "upscalerBestResults": "Best results: low-res photos, old scans, thumbnails and compressed JPEGs.",
+  "@upscalerBestResults": {
+    "description": "Tool screen string (upscalerBestResults)"
+  },
+  "upscalerChangeImage": "Change photo",
+  "@upscalerChangeImage": {
+    "description": "Tool screen string (upscalerChangeImage)"
+  },
+  "upscalerTabOriginal": "Original",
+  "@upscalerTabOriginal": {
+    "description": "Tool screen string (upscalerTabOriginal)"
+  },
+  "upscalerTabUpscaled": "AI upscaled",
+  "@upscalerTabUpscaled": {
+    "description": "Tool screen string (upscalerTabUpscaled)"
+  },
+  "upscalerStageStarting": "Starting…",
+  "@upscalerStageStarting": {
+    "description": "Tool screen string (upscaler)"
+  },
+  "upscalerStageConnecting": "Connecting to the AI server…",
+  "@upscalerStageConnecting": {
+    "description": "Tool screen string (upscaler)"
+  },
+  "upscalerStageOnDevice": "Processing on this device…",
+  "@upscalerStageOnDevice": {
+    "description": "Tool screen string (upscaler)"
+  },
+  "upscalerStageCloudUnavailable": "Cloud unavailable — processing on this device…",
+  "@upscalerStageCloudUnavailable": {
+    "description": "Tool screen string (upscaler)"
+  },
+  "upscalerStageUploading": "Uploading photo…",
+  "@upscalerStageUploading": {
+    "description": "Tool screen string (upscaler)"
+  },
+  "upscalerStageRestoringFaces": "AI is restoring faces and detail…",
+  "@upscalerStageRestoringFaces": {
+    "description": "Tool screen string (upscaler)"
+  },
+  "upscalerStagePreparing": "Preparing photo…",
+  "@upscalerStagePreparing": {
+    "description": "Tool screen string (upscaler)"
+  },
+  "upscalerStageLoadingModel": "Loading AI model…",
+  "@upscalerStageLoadingModel": {
+    "description": "Tool screen string (upscaler)"
+  },
+  "upscalerStageDownloadingModel": "Downloading AI model (one time)…",
+  "@upscalerStageDownloadingModel": {
+    "description": "Tool screen string (upscaler)"
+  },
+  "upscalerStageFallback": "Using standard upscaling…",
+  "@upscalerStageFallback": {
+    "description": "Tool screen string (upscaler)"
+  },
+  "upscalerStageDecoding": "Reading photo…",
+  "@upscalerStageDecoding": {
+    "description": "Tool screen string (upscaler)"
+  },
+  "upscalerStageResizing": "Resizing input ({from} → {to})…",
+  "@upscalerStageResizing": {
+    "description": "Tool screen string (upscaler)",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "upscalerStageDenoising": "Reducing noise…",
+  "@upscalerStageDenoising": {
+    "description": "Tool screen string (upscaler)"
+  },
+  "upscalerStageUpscaling": "Upscaling ({factor}×)…",
+  "@upscalerStageUpscaling": {
+    "description": "Tool screen string (upscaler)",
+    "placeholders": {
+      "factor": {
+        "type": "String"
+      }
+    }
+  },
+  "upscalerStageAiTiles": "AI upscaling… ({done}/{total})",
+  "@upscalerStageAiTiles": {
+    "description": "Tool screen string (upscaler)",
+    "placeholders": {
+      "done": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "upscalerStageSharpening": "Sharpening…",
+  "@upscalerStageSharpening": {
+    "description": "Tool screen string (upscaler)"
+  },
+  "upscalerStageColour": "Adjusting colours…",
+  "@upscalerStageColour": {
+    "description": "Tool screen string (upscaler)"
+  },
+  "upscalerStageSaving": "Saving…",
+  "@upscalerStageSaving": {
+    "description": "Tool screen string (upscaler)"
+  },
+  "upscalerStageDone": "Done!",
+  "@upscalerStageDone": {
+    "description": "Tool screen string (upscaler)"
+  },
+  "upscalerLoadingModelHint": "Loading the AI model (first time only)",
+  "@upscalerLoadingModelHint": {
+    "description": "Tool screen string (upscalerLoadingModelHint)"
+  },
+  "upscalerTime4x": "4× upscaling can take 15–60 s depending on photo size.",
+  "@upscalerTime4x": {
+    "description": "Tool screen string (upscalerTime4x)"
+  },
+  "upscalerTime2x": "2× upscaling usually takes 5–20 s.",
+  "@upscalerTime2x": {
+    "description": "Tool screen string (upscalerTime2x)"
+  },
+  "upscalerDoneIn": "Upscaled in {seconds} s",
+  "@upscalerDoneIn": {
+    "description": "Tool screen string (upscalerDoneIn)",
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "upscalerStatResolution": "Resolution",
+  "@upscalerStatResolution": {
+    "description": "Tool screen string (upscalerStatResolution)"
+  },
+  "upscalerStatFileSize": "File size",
+  "@upscalerStatFileSize": {
+    "description": "Tool screen string (upscalerStatFileSize)"
+  },
+  "upscalerStatScale": "Scale",
+  "@upscalerStatScale": {
+    "description": "Tool screen string (upscalerStatScale)"
+  },
+  "upscalerShareSubject": "AI upscaled photo",
+  "@upscalerShareSubject": {
+    "description": "Tool screen string (upscalerShareSubject)"
+  },
+  "upscalerFallbackModelUnavailable": "AI model needs internet once — used standard upscaling",
+  "@upscalerFallbackModelUnavailable": {
+    "description": "Tool screen string (upscalerFallbackModelUnavailable)"
+  },
+  "upscalerFallbackModelFailed": "The AI model couldn't run on this device — used standard upscaling",
+  "@upscalerFallbackModelFailed": {
+    "description": "Tool screen string (upscalerFallbackModelFailed)"
+  },
+  "upscalerFallbackCloud": "Cloud server unavailable — processed on this device",
+  "@upscalerFallbackCloud": {
+    "description": "Tool screen string (upscalerFallbackCloud)"
+  },
+  "upscalerSettings": "AI settings",
+  "@upscalerSettings": {
+    "description": "Tool screen string (upscalerSettings)"
+  },
+  "upscalerFactorLabel": "Upscale factor",
+  "@upscalerFactorLabel": {
+    "description": "Tool screen string (upscalerFactorLabel)"
+  },
+  "upscalerFactor2xDesc": "Fast — great for most photos",
+  "@upscalerFactor2xDesc": {
+    "description": "Tool screen string (upscalerFactor2xDesc)"
+  },
+  "upscalerFactor4xDesc": "Best quality — slower",
+  "@upscalerFactor4xDesc": {
+    "description": "Tool screen string (upscalerFactor4xDesc)"
+  },
+  "upscalerOptimiseFor": "Optimise for",
+  "@upscalerOptimiseFor": {
+    "description": "Tool screen string (upscalerOptimiseFor)"
+  },
+  "upscalerModeAuto": "Auto",
+  "@upscalerModeAuto": {
+    "description": "Tool screen string (upscalerModeAuto)"
+  },
+  "upscalerModePhoto": "Photo",
+  "@upscalerModePhoto": {
+    "description": "Tool screen string (upscalerModePhoto)"
+  },
+  "upscalerModeIllustration": "Illustration",
+  "@upscalerModeIllustration": {
+    "description": "Tool screen string (upscalerModeIllustration)"
+  },
+  "upscalerModeFace": "Face detail",
+  "@upscalerModeFace": {
+    "description": "Tool screen string (upscalerModeFace)"
+  },
+  "upscalerDenoise": "Pre-denoise",
+  "@upscalerDenoise": {
+    "description": "Tool screen string (upscalerDenoise)"
+  },
+  "upscalerDenoiseTip": "Reduces JPEG noise before upscaling",
+  "@upscalerDenoiseTip": {
+    "description": "Tool screen string (upscalerDenoiseTip)"
+  },
+  "upscalerSharpen": "Post-sharpen",
+  "@upscalerSharpen": {
+    "description": "Tool screen string (upscalerSharpen)"
+  },
+  "upscalerSharpenTip": "Adds crispness after upscaling",
+  "@upscalerSharpenTip": {
+    "description": "Tool screen string (upscalerSharpenTip)"
+  },
+  "upscalerCloudTitle": "Cloud face enhancement",
+  "@upscalerCloudTitle": {
+    "description": "Tool screen string (upscalerCloudTitle)"
+  },
+  "upscalerCloudOn": "Your photo is uploaded to our server for processing.",
+  "@upscalerCloudOn": {
+    "description": "Tool screen string (upscalerCloudOn)"
+  },
+  "upscalerCloudOff": "Off — photos stay on this device.",
+  "@upscalerCloudOff": {
+    "description": "Tool screen string (upscalerCloudOff)"
+  },
+  "upscalerCloudDialogTitle": "Send photos to the cloud?",
+  "@upscalerCloudDialogTitle": {
+    "description": "Tool screen string (upscalerCloudDialogTitle)"
+  },
+  "upscalerCloudDialogBody": "Cloud mode uploads the photo you selected to our upscaling server over an encrypted connection so it can be processed with a larger AI model (GFPGAN + Real-ESRGAN).\n\n• Only the photo you choose to upscale is sent.\n• The photo is processed in memory and is not kept after the result is returned.\n• No account or personal details are sent with it.\n\nYou can turn this off at any time. On-device mode works fully offline.",
+  "@upscalerCloudDialogBody": {
+    "description": "Tool screen string (upscalerCloudDialogBody)"
+  },
+  "upscalerCloudKeepLocal": "Keep on-device",
+  "@upscalerCloudKeepLocal": {
+    "description": "Tool screen string (upscalerCloudKeepLocal)"
+  },
+  "upscalerCloudEnable": "Enable cloud",
+  "@upscalerCloudEnable": {
+    "description": "Tool screen string (upscalerCloudEnable)"
+  },
+  "upscalerUpscale": "Upscale with AI",
+  "@upscalerUpscale": {
+    "description": "Tool screen string (upscalerUpscale)"
+  },
+  "upscalerUpscaleAgain": "Upscale again with new settings",
+  "@upscalerUpscaleAgain": {
+    "description": "Tool screen string (upscalerUpscaleAgain)"
+  },
+  "upscalerFailed": "Upscale failed",
+  "@upscalerFailed": {
+    "description": "Tool screen string (upscalerFailed)"
+  },
+  "upscalerErrorTooLarge": "The photo is too large. Try a smaller photo or 2× upscaling.",
+  "@upscalerErrorTooLarge": {
+    "description": "Tool screen string (upscalerErrorTooLarge)"
+  },
+  "upscalerErrorUnreadable": "Couldn't read this photo. Use a JPG or PNG file.",
+  "@upscalerErrorUnreadable": {
+    "description": "Tool screen string (upscalerErrorUnreadable)"
+  },
+  "upscalerErrorNetwork": "Network timeout. Check your connection or turn off cloud mode.",
+  "@upscalerErrorNetwork": {
+    "description": "Tool screen string (upscalerErrorNetwork)"
+  },
+  "videoPickHint": "Tap to pick a video",
+  "@videoPickHint": {
+    "description": "Tool screen string (videoPickHint)"
+  },
+  "videoProbeInfo": "Format: {format} · Duration: {duration}",
+  "@videoProbeInfo": {
+    "description": "Tool screen string (videoProbeInfo)",
+    "placeholders": {
+      "format": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "videoOutputFormat": "Output format",
+  "@videoOutputFormat": {
+    "description": "Tool screen string (videoOutputFormat)"
+  },
+  "videoFmtMostCompatible": "Most compatible",
+  "@videoFmtMostCompatible": {
+    "description": "Tool screen string (videoFmtMostCompatible)"
+  },
+  "videoFmtApple": "Apple / QuickTime",
+  "@videoFmtApple": {
+    "description": "Tool screen string (videoFmtApple)"
+  },
+  "videoFmtFlexible": "Flexible container",
+  "@videoFmtFlexible": {
+    "description": "Tool screen string (videoFmtFlexible)"
+  },
+  "videoFmtLegacy": "Older format",
+  "@videoFmtLegacy": {
+    "description": "Tool screen string (videoFmtLegacy)"
+  },
+  "videoFmtGif": "Animated (no audio)",
+  "@videoFmtGif": {
+    "description": "Tool screen string (videoFmtGif)"
+  },
+  "videoFmtAudioOnly": "Audio only",
+  "@videoFmtAudioOnly": {
+    "description": "Tool screen string (videoFmtAudioOnly)"
+  },
+  "videoFmtAudioAac": "Audio only (AAC)",
+  "@videoFmtAudioAac": {
+    "description": "Tool screen string (videoFmtAudioAac)"
+  },
+  "videoFmtAudioRaw": "Audio only (raw)",
+  "@videoFmtAudioRaw": {
+    "description": "Tool screen string (videoFmtAudioRaw)"
+  },
+  "videoFmtWav": "Uncompressed audio",
+  "@videoFmtWav": {
+    "description": "Tool screen string (videoFmtWav)"
+  },
+  "videoConvertingPercent": "Converting… {percent}%",
+  "@videoConvertingPercent": {
+    "description": "Tool screen string (videoConvertingPercent)",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "videoConvertingWait": "Converting… this may take a while",
+  "@videoConvertingWait": {
+    "description": "Tool screen string (videoConvertingWait)"
+  },
+  "videoDone": "Conversion complete!",
+  "@videoDone": {
+    "description": "Tool screen string (videoDone)"
+  },
+  "videoErrorUnsupported": "Conversion failed. This format may not be supported on your device.",
+  "@videoErrorUnsupported": {
+    "description": "Tool screen string (videoErrorUnsupported)"
+  },
+  "videoConvertAnother": "Convert another",
+  "@videoConvertAnother": {
+    "description": "Tool screen string (videoConvertAnother)"
+  },
+  "videoPickButton": "Pick video file",
+  "@videoPickButton": {
+    "description": "Tool screen string (videoPickButton)"
+  },
+  "videoConvertTo": "Convert to {format}",
+  "@videoConvertTo": {
+    "description": "Tool screen string (videoConvertTo)",
+    "placeholders": {
+      "format": {
+        "type": "String"
+      }
+    }
+  },
+  "docScanAndroidOnly": "The document scanner is available on Android.",
+  "docScanNeedsPlayServices": "The scanner couldn’t start. It needs Google Play services — make sure they are up to date. ({details})",
+  "@docScanNeedsPlayServices": {
+    "placeholders": {
+      "details": {
+        "type": "String"
+      }
+    }
+  },
+  "docScanStartFailed": "The scanner couldn’t start. Please try again.",
+  "docScanPdfSaved": "PDF saved to Downloads — find it in My Files",
+  "docScanPagesSaved": "{count, plural, =1{Saved 1 page to your gallery} other{Saved {count} pages to your gallery}}",
+  "@docScanPagesSaved": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "docScanHeadline": "Scan paper into a clean PDF",
+  "docScanIntro": "Edges are found automatically. Add as many pages as you like, crop, rotate and apply filters before saving.",
+  "docScanScanning": "Scanning…",
+  "docScanStart": "Start scanning",
+  "docScanScannedPages": "Scanned pages",
+  "docScanPageCount": "{count, plural, =1{1 page} other{{count} pages}}",
+  "@docScanPageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "docScanSavePdf": "Save PDF",
+  "docScanSharePdf": "Share PDF",
+  "docScanCopyText": "Copy text",
+  "docScanSaveJpg": "Save as JPG",
+  "docScanAnother": "Scan another document",
+  "pdfToolsChoosePdf": "Choose a PDF",
+  "pdfToolsChooseHint": "Or share a PDF to Utility Toolbox from any app",
+  "pdfToolsReading": "Reading…",
+  "pdfToolsLockedShort": "Password protected",
+  "pdfToolsPageCount": "{count, plural, =1{1 page} other{{count} pages}}",
+  "@pdfToolsPageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pdfToolsChange": "Change",
+  "pdfToolsResultReady": "Your PDF is ready",
+  "pdfToolsSaveDownloads": "Save to Downloads",
+  "pdfToolsStartOver": "Start over",
+  "pdfToolsSavedToDownloads": "Saved to Downloads — find it in My Files",
+  "pdfToolsSharedInstead": "Opened the share sheet instead",
+  "pdfToolsRangeEmpty": "Enter at least one page.",
+  "pdfToolsRangeInvalid": "“{part}” isn’t a page or range (e.g. 1-3, 5).",
+  "@pdfToolsRangeInvalid": {
+    "placeholders": {
+      "part": {
+        "type": "String"
+      }
+    }
+  },
+  "pdfToolsRangeOutside": "“{part}” is outside 1–{count}.",
+  "@pdfToolsRangeOutside": {
+    "placeholders": {
+      "part": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pdfToolsInvalidPdf": "This file doesn’t look like a valid PDF.",
+  "pdfToolsLockedUnlockFirst": "This PDF is password protected. Unlock it first with {tool}.",
+  "@pdfToolsLockedUnlockFirst": {
+    "placeholders": {
+      "tool": {
+        "type": "String"
+      }
+    }
+  },
+  "pdfToolsPagesLabel": "Pages (1–{count})",
+  "@pdfToolsPagesLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pdfToolsPagesHint": "e.g. {example}",
+  "@pdfToolsPagesHint": {
+    "placeholders": {
+      "example": {
+        "type": "String"
+      }
+    }
+  },
+  "pdfToolsPageN": "Page {number}",
+  "@pdfToolsPageN": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "pdfToolsDownload": "Download",
+  "pdfToolsSavedNotification": "Saved to Downloads — check your notification to open it.",
+  "pdfToolsShareToSave": "Opened share sheet — choose where to save the file.",
+  "pdfToolsSelectedFile": "Selected: {name}",
+  "@pdfToolsSelectedFile": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pdfToolsSize": "Size: {size}",
+  "@pdfToolsSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "pdfToolsDragToReorder": "Drag to reorder",
+  "pdfHomeTitle": "PDF Toolkit",
+  "pdfHomeSection": "PDF Tools",
+  "pdfHomeSubtitle": "Create, combine, and optimize your documents",
+  "pdfPasswordEnter": "Enter a password.",
+  "pdfPasswordTooShort": "Use at least {count} characters.",
+  "@pdfPasswordTooShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pdfPasswordMismatch": "The passwords don’t match.",
+  "pdfPasswordWrong": "That password is not correct.",
+  "pdfPasswordLockFailed": "Couldn’t lock this PDF.",
+  "pdfPasswordUnlockFailed": "Couldn’t unlock this PDF.",
+  "pdfPasswordLockedDone": "Your PDF is locked",
+  "pdfPasswordRemovedDone": "Password removed",
+  "pdfPasswordAlreadyLocked": "This PDF already has a password. Unlock it first.",
+  "pdfPasswordNotLocked": "This PDF has no password — nothing to unlock.",
+  "pdfPasswordNew": "New password",
+  "pdfPasswordCurrent": "Current password",
+  "pdfPasswordRepeat": "Repeat password",
+  "pdfPasswordShow": "Show password",
+  "pdfPasswordHide": "Hide password",
+  "pdfPasswordWarning": "Keep this password safe — it can’t be recovered. Encrypted with AES-256.",
+  "pdfSplitExtract": "Extract pages",
+  "pdfSplitRemove": "Remove pages",
+  "pdfSplitPagesHelp": "Use commas and ranges. “8-” means page 8 to the end.",
+  "pdfSplitRemovesAll": "That would remove every page.",
+  "pdfSplitFailed": "Couldn’t split this PDF.",
+  "pdfToImagesFailed": "Couldn’t render this PDF.",
+  "pdfToImagesSaved": "Saved {saved} of {total} images to your gallery",
+  "@pdfToImagesSaved": {
+    "placeholders": {
+      "saved": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "pdfToImagesAllPages": "All pages",
+  "pdfToImagesConvert": "Convert to JPG",
+  "pdfToImagesRendered": "{count, plural, =1{Rendered 1 page…} other{Rendered {count} pages…}}",
+  "@pdfToImagesRendered": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pdfToImagesRenderedOf": "Rendered {count} of {total} pages…",
+  "@pdfToImagesRenderedOf": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "pdfToImagesSaveAll": "{count, plural, =1{Save 1 image to gallery} other{Save {count} images to gallery}}",
+  "@pdfToImagesSaveAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pdfCompressButton": "Compress",
+  "pdfCompressWorking": "Compressing PDF…",
+  "pdfCompressOriginalSize": "Original size: {size}",
+  "@pdfCompressOriginalSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "pdfCompressIntro": "Choose a PDF file. Compression works best on image-heavy documents.",
+  "pdfCompressLow": "Low",
+  "pdfCompressMedium": "Medium",
+  "pdfCompressHigh": "High",
+  "pdfCompressFailed": "Could not compress this PDF.",
+  "pdfCompressBefore": "Before: {size}",
+  "@pdfCompressBefore": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "pdfCompressAfter": "After: {size}",
+  "@pdfCompressAfter": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "pdfMergeButton": "Merge",
+  "pdfMergeWorking": "Merging PDFs…",
+  "pdfMergePick": "Pick PDF files",
+  "pdfMergeIntro": "Select at least two PDF files to merge.",
+  "pdfMergeFailed": "Could not merge PDFs. One of the files may be unreadable.",
+  "pdfMergeResult": "{count, plural, =1{Merged PDF (1 page)} other{Merged PDF ({count} pages)}}",
+  "@pdfMergeResult": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "imageToPdfCreate": "Create PDF",
+  "imageToPdfWorking": "Creating PDF…",
+  "imageToPdfPick": "Pick images",
+  "imageToPdfIntro": "Select one or more images to convert.",
+  "imageToPdfFailed": "Could not create PDF. Please try different images.",
+  "imageToPdfReady": "{count, plural, =1{PDF ready (1 page)} other{PDF ready ({count} pages)}}",
+  "@imageToPdfReady": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "qrScanNoCodeInPhoto": "No QR code or barcode found in this photo.",
+  "qrScanPhotoFailed": "Couldn’t read this photo.",
+  "qrScanResultTitle": "Scanned ({type})",
+  "@qrScanResultTitle": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "qrScanFromPhoto": "Scan from photo",
+  "qrScanCameraNeeded": "Camera access is needed to scan QR codes and barcodes.",
+  "qrScanCameraError": "The camera couldn’t start. Close other camera apps and try again.",
+  "qrScanTorchOn": "Turn on flashlight",
+  "qrScanTorchOff": "Turn off flashlight",
+  "qrScanTypeLink": "Link",
+  "qrScanTypeWifi": "Wi‑Fi",
+  "qrScanTypeContact": "Contact",
+  "qrScanTypeText": "Text",
+  "qrGenInputLabel": "Text or URL",
+  "qrGenInputHint": "Enter content to encode",
+  "qrGenPreviewLabel": "QR code preview",
+  "qrGenEmpty": "Enter text above to preview your QR code.",
+  "qrGenSaveGallery": "Save to Gallery",
+  "qrHomeTitle": "QR & Barcode",
+  "qrHomeTabScan": "Scan",
+  "qrHomeTabCreate": "Create",
+  "qrHomeScanTitle": "Scan a code",
+  "qrHomeScanBody": "Point your camera at a QR code or barcode to scan it instantly.",
+  "qrHomeBadgeInstant": "Instant",
+  "qrHomeBadgeHistory": "Saved history",
+  "qrHomeStartScan": "Start scanning",
+  "qrHomeCreateTitle": "Create a code",
+  "qrHomeCreateBody": "Create a QR code from text or a URL, then save or share it.",
+  "qrHomeBadgeShare": "Share anywhere",
+  "qrHomeBadgeImage": "Save as image",
+  "qrHomeOpenGenerator": "Open generator",
+  "qrHistoryTitle": "Scan history",
+  "qrHistoryMore": "More options",
+  "qrHistoryEmpty": "Scanned codes will appear here.",
+  "wifiQrPlaceholder": "Enter WiFi details\nto generate QR",
+  "wifiQrPreviewLabel": "WiFi QR code",
+  "wifiQrNetworkDetails": "Network details",
+  "wifiQrSsidLabel": "Network name (SSID)",
+  "wifiQrSsidHint": "My Home WiFi",
+  "wifiQrPasswordLabel": "Password",
+  "wifiQrPasswordHint": "Enter password",
+  "wifiQrShowPassword": "Show password",
+  "wifiQrHidePassword": "Hide password",
+  "wifiQrSecurity": "Security",
+  "wifiQrSecurityNone": "None (open)",
+  "wifiQrHidden": "Hidden network",
+  "wifiQrHiddenHint": "Turn on if the network name isn’t broadcast",
+  "wifiQrSaveImage": "Save image",
+  "wifiQrInfo": "Anyone who scans this QR code will automatically connect to your WiFi network.",
+  "wifiQrShareText": "Scan this QR code to connect to my WiFi!",
+  "ocrCameraDenied": "Camera permission denied. Open Settings to allow access.",
+  "ocrCameraRequired": "Camera permission is required to take a photo.",
+  "ocrTimeout": "Reading took too long — the text model may still be downloading. Connect to Wi‑Fi once, or try again.",
+  "ocrFailed": "Could not read text from this image. Try a clearer photo.",
+  "ocrPreparing": "Preparing image…",
+  "ocrScanning": "Reading text…",
+  "ocrScriptLabel": "Text script",
+  "ocrScriptHint": "Pick the alphabet your text is written in. Arabic, Urdu and Bengali can’t be read yet.",
+  "ocrScriptLatin": "Latin (English, Spanish…)",
+  "ocrScriptDevanagari": "Devanagari (Hindi, Marathi…)",
+  "ocrScriptChinese": "Chinese",
+  "ocrScriptJapanese": "Japanese",
+  "ocrScriptKorean": "Korean",
+  "ocrIdleTitle": "Extract text from any image",
+  "ocrIdleBody": "Point your camera or choose a photo — text is extracted instantly, on-device.",
+  "ocrBadgeOnDevice": "On-device AI",
+  "ocrBadgeLocal": "Processed locally",
+  "ocrBadgeBlocks": "Block-level copy",
+  "ocrUseCamera": "Use camera",
+  "ocrChooseGallery": "Choose from gallery",
+  "ocrOnDeviceNote": "On-device · no upload needed",
+  "ocrTabImage": "Image",
+  "ocrTabText": "Text",
+  "ocrTapBlockHint": "Tap a highlighted block to copy it",
+  "ocrBlockTitle": "Block text",
+  "ocrBlockLines": "{count, plural, =1{1 line · tap to copy} other{{count} lines · tap to copy}}",
+  "@ocrBlockLines": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ocrCopyBlock": "Copy block",
+  "ocrBlockCopied": "Block copied",
+  "ocrCopyEntireBlock": "Copy entire block",
+  "ocrCopyLine": "Copy line",
+  "ocrNoText": "No text detected — try a clearer photo.",
+  "ocrQuickCopy": "Quick copy by section",
+  "ocrBlockNCopied": "Copied block {number}",
+  "@ocrBlockNCopied": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "ocrDoneEditing": "Done editing",
+  "ocrEditText": "Edit text",
+  "ocrAllCopied": "All text copied",
+  "ocrCopyAll": "Copy all",
+  "ocrScanAgain": "Scan",
+  "ocrStatLines": "{count, plural, =1{1 line} other{{count} lines}}",
+  "@ocrStatLines": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ocrStatWords": "{count, plural, =1{1 word} other{{count} words}}",
+  "@ocrStatWords": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ocrStatChars": "{count, plural, =1{1 character} other{{count} characters}}",
+  "@ocrStatChars": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wordPdfNoText": "No extractable text found in this document.",
+  "wordPdfInfo": "Converts .docx files to PDF. The text is kept; complex layouts (tables, images) may look different.",
+  "wordPdfOpeningPicker": "Opening file picker…",
+  "wordPdfConverting": "Converting… {percent}%",
+  "@wordPdfConverting": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "wordPdfDone": "Conversion complete",
+  "wordPdfTapToPick": "Tap to pick a .docx file",
+  "wordPdfSupports": "Supports .docx format",
+  "wordPdfFailed": "Conversion failed. The file may be damaged or not a .docx document.",
+  "wordPdfFontsOffline": "Some text (e.g. Arabic, Urdu, Hindi, Bengali or Cyrillic) is missing from this PDF. Its font is downloaded once — connect to the internet and convert again.",
+  "wordPdfConvertAnother": "Convert another",
+  "wordPdfPick": "Pick .docx file",
+  "wordPdfStep1Title": "Pick your Word file",
+  "wordPdfStep1Desc": "Select a .docx file from your device storage.",
+  "wordPdfStep2Title": "Automatic conversion",
+  "wordPdfStep2Desc": "Text is extracted and laid out as A4 PDF pages.",
+  "wordPdfStep3Title": "Share or save",
+  "wordPdfStep3Desc": "Share the PDF to any app, email, or cloud storage.",
+  "wordPdfReady": "PDF ready"
 }

@@ -8,16 +8,17 @@ import 'package:syncfusion_flutter_pdf/pdf.dart' as sf;
 
 /// Parses page selections like `1-3, 5, 8-` (1-based, inclusive; an open
 /// end means "to the last page") into sorted, de-duplicated 0-based
-/// indices. Throws [FormatException] with a user-readable message.
+/// indices. Throws [PageRangeException] (a [FormatException]); the UI turns
+/// its [PageRangeException.kind] into a message in the app language.
 List<int> parsePageRanges(String input, int pageCount) {
   final cleaned = input.replaceAll(' ', '');
-  if (cleaned.isEmpty) throw const FormatException('Enter at least one page.');
+  if (cleaned.isEmpty) throw PageRangeException(PageRangeError.empty, pageCount: pageCount);
   final pages = <int>{};
   for (final part in cleaned.split(',')) {
     if (part.isEmpty) continue;
     final match = RegExp(r'^(\d+)(?:-(\d*))?$').firstMatch(part);
     if (match == null) {
-      throw FormatException('“$part” isn’t a page or range (e.g. 1-3, 5).');
+      throw PageRangeException(PageRangeError.invalid, part: part, pageCount: pageCount);
     }
     final start = int.parse(match.group(1)!);
     final hasDash = part.contains('-');
@@ -28,16 +29,32 @@ List<int> parsePageRanges(String input, int pageCount) {
         ? pageCount
         : int.parse(endText);
     if (start < 1 || end > pageCount || start > end) {
-      throw FormatException(
-        '“$part” is outside 1–$pageCount.',
-      );
+      throw PageRangeException(PageRangeError.outOfRange, part: part, pageCount: pageCount);
     }
     for (var i = start; i <= end; i++) {
       pages.add(i - 1);
     }
   }
-  if (pages.isEmpty) throw const FormatException('Enter at least one page.');
+  if (pages.isEmpty) throw PageRangeException(PageRangeError.empty, pageCount: pageCount);
   return pages.toList()..sort();
+}
+
+enum PageRangeError { empty, invalid, outOfRange }
+
+/// Why a page selection couldn't be parsed. [message] stays English for
+/// logs; screens show a translated text built from [kind], [part] and
+/// [pageCount].
+class PageRangeException extends FormatException {
+  PageRangeException(this.kind, {this.part = '', required this.pageCount})
+    : super(switch (kind) {
+        PageRangeError.empty => 'Enter at least one page.',
+        PageRangeError.invalid => '“$part” isn’t a page or range (e.g. 1-3, 5).',
+        PageRangeError.outOfRange => '“$part” is outside 1–$pageCount.',
+      });
+
+  final PageRangeError kind;
+  final String part;
+  final int pageCount;
 }
 
 class PdfInfo {
@@ -56,30 +73,26 @@ class PdfPasswordException implements Exception {
 /// `printing` platform channel so it stays on the main isolate (the heavy
 /// lifting happens natively anyway).
 class PdfExtraService {
-  Future<PdfInfo> inspect(String path) async {
-    final bytes = await File(path).readAsBytes();
-    return compute(_inspect, bytes);
-  }
+  // The file is read inside the isolate: reading it here and handing the
+  // bytes to compute() kept two full copies of a large PDF in memory.
+  Future<PdfInfo> inspect(String path) => compute(_inspect, path);
 
   /// Writes a PDF that keeps only [keepIndices] (0-based).
   Future<File> keepPages(String path, List<int> keepIndices, {String? password}) async {
-    final bytes = await File(path).readAsBytes();
     final out = await compute(
       _keepPages,
-      (bytes: bytes, keep: keepIndices, password: password),
+      (path: path, keep: keepIndices, password: password),
     );
     return _write(out, path, 'pages');
   }
 
   Future<File> protect(String path, String password) async {
-    final bytes = await File(path).readAsBytes();
-    final out = await compute(_protect, (bytes: bytes, password: password));
+    final out = await compute(_protect, (path: path, password: password));
     return _write(out, path, 'locked');
   }
 
   Future<File> unlock(String path, String password) async {
-    final bytes = await File(path).readAsBytes();
-    final out = await compute(_unlock, (bytes: bytes, password: password));
+    final out = await compute(_unlock, (path: path, password: password));
     return _write(out, path, 'unlocked');
   }
 
@@ -126,7 +139,8 @@ sf.PdfDocument _open(Uint8List bytes, String? password) {
   }
 }
 
-PdfInfo _inspect(Uint8List bytes) {
+PdfInfo _inspect(String path) {
+  final bytes = File(path).readAsBytesSync();
   try {
     final doc = sf.PdfDocument(inputBytes: bytes);
     final info = PdfInfo(pageCount: doc.pages.count, isEncrypted: false);
@@ -141,9 +155,9 @@ PdfInfo _inspect(Uint8List bytes) {
 }
 
 Future<List<int>> _keepPages(
-  ({Uint8List bytes, List<int> keep, String? password}) args,
+  ({String path, List<int> keep, String? password}) args,
 ) async {
-  final doc = _open(args.bytes, args.password);
+  final doc = _open(File(args.path).readAsBytesSync(), args.password);
   final keep = args.keep.toSet();
   // Removing (rather than copying templates into a new document) keeps
   // page sizes, rotation, links, bookmarks and fonts intact.
@@ -155,8 +169,8 @@ Future<List<int>> _keepPages(
   return out;
 }
 
-Future<List<int>> _protect(({Uint8List bytes, String password}) args) async {
-  final doc = _open(args.bytes, null);
+Future<List<int>> _protect(({String path, String password}) args) async {
+  final doc = _open(File(args.path).readAsBytesSync(), null);
   doc.security
     ..algorithm = sf.PdfEncryptionAlgorithm.aesx256Bit
     ..userPassword = args.password
@@ -166,8 +180,8 @@ Future<List<int>> _protect(({Uint8List bytes, String password}) args) async {
   return out;
 }
 
-Future<List<int>> _unlock(({Uint8List bytes, String password}) args) async {
-  final doc = _open(args.bytes, args.password);
+Future<List<int>> _unlock(({String path, String password}) args) async {
+  final doc = _open(File(args.path).readAsBytesSync(), args.password);
   doc.security
     ..userPassword = ''
     ..ownerPassword = '';

@@ -24,17 +24,23 @@ class AppRoutes {
   static const pdfProtect = '/pdf-toolkit/protect';
   static const pdfUnlock = '/pdf-toolkit/unlock';
   static const wordToPdf = '/word-to-pdf';
+  static const pdfSign = '/pdf-toolkit/sign';
+  static const pdfOrganize = '/pdf-toolkit/organize';
+  static const pdfWatermark = '/pdf-toolkit/watermark';
+  static const pdfToText = '/pdf-toolkit/to-text';
 
   // Image
   static const imageCompressor = '/image-compressor';
   static const imageResizer = '/image-resizer';
   static const imageEnhancer = '/image-enhancer';
   static const aiUpscaler = '/ai-upscaler';
+  static const bgRemover = '/background-remover';
 
   // Text
   static const translation = '/translation';
   static const textUtilities = '/text-utilities';
   static const smartClipboard = '/smart-clipboard';
+  static const directChat = '/direct-chat';
 
   // Calculate & convert
   static const calculator = '/calculator';
@@ -43,6 +49,9 @@ class AppRoutes {
   static const loanCalculator = '/loan-calculator';
   static const timezone = '/timezone';
   static const colorPicker = '/color-picker';
+  static const currencyConverter = '/currency-converter';
+  static const percentageCalculator = '/percentage-calculator';
+  static const bmiCalculator = '/bmi-calculator';
 
   // Network
   static const wifiSpeedTest = '/wifi-speed-test';
@@ -51,6 +60,9 @@ class AppRoutes {
   // Device
   static const compass = '/compass';
   static const locationSaver = '/location-saver';
+  static const flashlight = '/flashlight';
+  static const bubbleLevel = '/bubble-level';
+  static const stopwatchTimer = '/stopwatch-timer';
 
   // Security
   static const passwordGenerator = '/password-generator';

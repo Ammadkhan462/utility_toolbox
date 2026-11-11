@@ -13,6 +13,8 @@ import 'package:utility_toolbox/core/theme/app_colors.dart';
 import 'package:utility_toolbox/core/widgets/premium_button.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/translation/providers/translation_providers.dart';
+import 'package:utility_toolbox/features/translation/services/translation_voice_service.dart';
+import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 
 class TranslationScreen extends ConsumerStatefulWidget {
   const TranslationScreen({super.key, this.initialText});
@@ -34,10 +36,12 @@ class _TranslationScreenState extends ConsumerState<TranslationScreen> {
   // *translation* ever appeared, never the transcribed speech. A
   // controller kept here and synced to the provider fixes that.
   late final TextEditingController _inputCtrl;
+  late final TranslationActions _actions;
 
   @override
   void initState() {
     super.initState();
+    _actions = ref.read(translationActionsProvider);
     final initial = widget.initialText;
     _inputCtrl = TextEditingController(
       text: initial ?? ref.read(translationInputProvider),
@@ -53,13 +57,24 @@ class _TranslationScreenState extends ConsumerState<TranslationScreen> {
 
   @override
   void dispose() {
+    // The voice providers are app-wide, so leaving the screen would
+    // otherwise keep the mic open (up to 5 min) and the TTS talking. Both
+    // calls await the engine before touching provider state, so nothing is
+    // modified synchronously during unmount (both are no-ops when idle).
+    _actions.cancelVoiceInput();
+    _actions.stopSpeaking();
     _inputCtrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final languages = ref.watch(supportedLanguagesProvider);
+    final l = AppLocalizations.of(context);
+    // Sorted by the name the user actually sees, in the app language.
+    final languages = [...ref.watch(supportedLanguagesProvider)]
+      ..sort((a, b) => l
+          .translateLanguageName(a.bcpCode)
+          .compareTo(l.translateLanguageName(b.bcpCode)));
     final source = ref.watch(sourceLanguageProvider);
     final target = ref.watch(targetLanguageProvider);
     final input = ref.watch(translationInputProvider);
@@ -88,7 +103,7 @@ class _TranslationScreenState extends ConsumerState<TranslationScreen> {
     }
 
     return ToolScaffold(
-      title: 'Translation',
+      title: l.toolTranslationTitle,
       accentColor: accent,
       // Let the scaffold shrink for the keyboard — content is scrollable
       resizeToAvoidBottomInset: true,
@@ -120,7 +135,7 @@ class _TranslationScreenState extends ConsumerState<TranslationScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Speak or type to translate',
+                        l.translateHeroTitle,
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
@@ -132,12 +147,12 @@ class _TranslationScreenState extends ConsumerState<TranslationScreen> {
                         children: [
                           FeatureBadge(
                             icon: Icons.offline_bolt_rounded,
-                            label: 'On-device AI',
+                            label: l.translateBadgeOnDevice,
                             accent: accent,
                           ),
                           FeatureBadge(
                             icon: Icons.lock_outline_rounded,
-                            label: 'Works offline',
+                            label: l.translateBadgeOffline,
                             accent: accent,
                           ),
                         ],
@@ -157,7 +172,7 @@ class _TranslationScreenState extends ConsumerState<TranslationScreen> {
                 children: [
                   Expanded(
                     child: _LanguageDropdown(
-                      label: 'From',
+                      label: l.translateFrom,
                       value: source,
                       languages: languages,
                       onChanged: (lang) =>
@@ -167,7 +182,9 @@ class _TranslationScreenState extends ConsumerState<TranslationScreen> {
                   ),
                   const SizedBox(width: 4),
                   // Swap button
-                  InkWell(
+                  Tooltip(
+                    message: l.translateSwap,
+                    child: InkWell(
                     onTap: () {
                       ref.read(sourceLanguageProvider.notifier).state = target;
                       ref.read(targetLanguageProvider.notifier).state = source;
@@ -193,10 +210,11 @@ class _TranslationScreenState extends ConsumerState<TranslationScreen> {
                       ),
                     ),
                   ),
+                  ),
                   const SizedBox(width: 4),
                   Expanded(
                     child: _LanguageDropdown(
-                      label: 'To',
+                      label: l.translateTo,
                       value: target,
                       languages: languages,
                       onChanged: (lang) =>
@@ -233,13 +251,12 @@ class _TranslationScreenState extends ConsumerState<TranslationScreen> {
                       fillColor: theme.brightness == Brightness.dark
                           ? Colors.white.withValues(alpha: 0.05)
                           : Colors.black.withValues(alpha: 0.02),
+                      // In the app language (not the source language), so an
+                      // Arabic/Hebrew/Persian source no longer shows Urdu.
                       hintText: isListening
-                          ? (_isRtl(source)
-                              ? 'سن رہا ہے… بولیں اور روکنے کے لیے مائیک دبائیں'
-                              : 'Listening… speak naturally, tap the mic to stop')
-                          : (_isRtl(source)
-                              ? 'متن درج کریں یا بولنے کے لیے مائیک دبائیں…'
-                              : 'Enter text or tap the mic to speak…'),
+                          ? l.translateHintListening
+                          : l.translateHint,
+                      hintMaxLines: 2,
                       hintStyle: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                       ),
@@ -269,6 +286,7 @@ class _TranslationScreenState extends ConsumerState<TranslationScreen> {
                           if (input.isNotEmpty)
                             IconButton(
                               icon: const Icon(Icons.clear_rounded, size: 18),
+                              tooltip: l.commonClear,
                               onPressed: () {
                                 ref
                                         .read(translationInputProvider.notifier)
@@ -317,8 +335,9 @@ class _TranslationScreenState extends ConsumerState<TranslationScreen> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'Listening in ${translateLanguageDisplayName(source)}… '
-                              'tap the mic to stop and translate.',
+                              l.translateListeningIn(
+                                l.translateLanguageName(source.bcpCode),
+                              ),
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: accent,
                               ),
@@ -332,7 +351,7 @@ class _TranslationScreenState extends ConsumerState<TranslationScreen> {
                     Padding(
                       padding: const EdgeInsets.only(top: 10),
                       child: Text(
-                        voiceError,
+                        _errorText(l, voiceError),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.error,
                         ),
@@ -343,7 +362,7 @@ class _TranslationScreenState extends ConsumerState<TranslationScreen> {
                     Padding(
                       padding: const EdgeInsets.only(top: 10),
                       child: Text(
-                        'Source and target languages must be different.',
+                        l.translateSameLanguage,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.error,
                         ),
@@ -366,25 +385,25 @@ class _TranslationScreenState extends ConsumerState<TranslationScreen> {
                   ? null
                   : Icons.translate_rounded,
               label: resultState is Loading<String>
-                  ? 'Translating…'
+                  ? l.translateTranslating
                   : isListening
-                  ? 'Stop & Translate'
-                  : 'Translate',
+                  ? l.translateStopAndTranslate
+                  : l.translateButton,
               gradient: gradient,
             ),
             const SizedBox(height: 16),
 
             // States
             if (downloadState is Loading<void>)
-              const LoadingIndicator(message: 'Downloading language model…'),
+              LoadingIndicator(message: l.translateDownloadingModel),
             if (downloadState is ErrorResult<void>)
               ErrorState(
-                message: (downloadState).message,
+                message: _errorText(l, downloadState.message),
                 onRetry: actions.translate,
               ),
             if (resultState is ErrorResult<String>)
               ErrorState(
-                message: (resultState).message,
+                message: _errorText(l, resultState.message),
                 onRetry: actions.translate,
               ),
 
@@ -405,7 +424,7 @@ class _TranslationScreenState extends ConsumerState<TranslationScreen> {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          'Translation',
+                          l.translateResultLabel,
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: accent,
                             fontWeight: FontWeight.w700,
@@ -439,15 +458,15 @@ class _TranslationScreenState extends ConsumerState<TranslationScreen> {
                               );
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Copied!'),
-                                    duration: Duration(seconds: 2),
+                                  SnackBar(
+                                    content: Text(l.commonCopied),
+                                    duration: const Duration(seconds: 2),
                                   ),
                                 );
                               }
                             },
                             icon: Icons.copy_rounded,
-                            label: 'Copy',
+                            label: l.commonCopy,
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -457,7 +476,7 @@ class _TranslationScreenState extends ConsumerState<TranslationScreen> {
                             dense: true,
                             onPressed: () => Share.share((resultState).data),
                             icon: Icons.share_rounded,
-                            label: 'Share',
+                            label: l.commonShare,
                           ),
                         ),
                       ],
@@ -475,7 +494,7 @@ class _TranslationScreenState extends ConsumerState<TranslationScreen> {
                             icon: isSpeaking
                                 ? Icons.stop_circle_rounded
                                 : Icons.volume_up_rounded,
-                            label: isSpeaking ? 'Stop' : 'Play audio',
+                            label: isSpeaking ? l.commonStop : l.translatePlayAudio,
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -494,10 +513,10 @@ class _TranslationScreenState extends ConsumerState<TranslationScreen> {
                                 ? Icons.ios_share_rounded
                                 : Icons.graphic_eq_rounded,
                             label: audioState is Loading<String>
-                                ? 'Generating…'
+                                ? l.translateGenerating
                                 : audioState is Success<String>
-                                ? 'Share audio file'
-                                : 'Generate audio file',
+                                ? l.translateShareAudio
+                                : l.translateGenerateAudio,
                           ),
                         ),
                       ],
@@ -506,7 +525,7 @@ class _TranslationScreenState extends ConsumerState<TranslationScreen> {
                       Padding(
                         padding: const EdgeInsets.only(top: 8),
                         child: Text(
-                          (audioState).message,
+                          _errorText(l, audioState.message),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.error,
                           ),
@@ -516,7 +535,7 @@ class _TranslationScreenState extends ConsumerState<TranslationScreen> {
                       Padding(
                         padding: const EdgeInsets.only(top: 8),
                         child: Text(
-                          'Audio saved · tap "Share audio file" to send or save it.',
+                          l.translateAudioReady,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -573,7 +592,7 @@ class _LanguageDropdown extends StatelessWidget {
         return DropdownMenuItem(
           value: lang,
           child: Text(
-            translateLanguageDisplayName(lang),
+            AppLocalizations.of(context).translateLanguageName(lang.bcpCode),
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 13,
@@ -597,9 +616,25 @@ bool _isRtl(TranslateLanguage lang) {
       lang == TranslateLanguage.persian;
 }
 
-/// Shared display name for a [TranslateLanguage] lives in
-/// translation_providers.dart (translateLanguageDisplayName) so both this
-/// dropdown and the provider's alphabetical sort use the same names.
+/// Localized text for a [TranslateErrorCode] or a speech-engine `error_*`
+/// code stored by the providers.
+String _errorText(AppLocalizations l, String code) => switch (code) {
+  TranslateErrorCode.micBlocked => l.translateMicBlocked,
+  TranslateErrorCode.micNeeded ||
+  'error_permission' ||
+  'error_insufficient_permissions' => l.translateMicNeeded,
+  TranslateErrorCode.speechUnavailable ||
+  'error_language_not_supported' ||
+  'error_language_unavailable' => l.translateSpeechUnavailable,
+  TranslateErrorCode.downloadFailed => l.translateDownloadFailed,
+  TranslateErrorCode.translateFailed => l.translateFailed,
+  TranslateErrorCode.audioFailed => l.translateAudioFailed,
+  'error_no_match' || 'error_speech_timeout' => l.translateNoSpeech,
+  'error_network' ||
+  'error_network_timeout' ||
+  'error_server_disconnected' => l.commonErrorOffline,
+  _ => l.translateVoiceFailed,
+};
 
 /// Mic toggle shown inside the input field's suffix area. Solid gradient
 /// glow + pulsing ring while recording makes it obvious the mic is "live"
@@ -623,10 +658,29 @@ class _MicButton extends StatefulWidget {
 
 class _MicButtonState extends State<_MicButton>
     with SingleTickerProviderStateMixin {
+  // Only animate while listening: a forever-repeating controller keeps the
+  // engine rendering 60 fps on this screen even when the mic is idle.
   late final AnimationController _pulseCtrl = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 900),
-  )..repeat(reverse: true);
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.isListening) _pulseCtrl.repeat(reverse: true);
+  }
+
+  @override
+  void didUpdateWidget(_MicButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isListening == oldWidget.isListening) return;
+    if (widget.isListening) {
+      _pulseCtrl.repeat(reverse: true);
+    } else {
+      _pulseCtrl.stop();
+    }
+  }
 
   @override
   void dispose() {
@@ -636,10 +690,9 @@ class _MicButtonState extends State<_MicButton>
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Tooltip(
-      message: widget.isListening
-          ? 'Stop listening & translate'
-          : 'Speak to translate',
+      message: widget.isListening ? l.translateMicStop : l.translateMicStart,
       child: InkWell(
         onTap: widget.onTap,
         borderRadius: BorderRadius.circular(24),

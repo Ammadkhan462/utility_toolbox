@@ -95,10 +95,23 @@ class OcrService {
   // instead of leaving the UI stuck on the loading screen forever.
   static const Duration _scanTimeout = Duration(seconds: 15);
 
-  // Singleton recognizer — kept alive between scans.
+  // Singleton recognizer — kept alive between scans (one script at a time).
   TextRecognizer? _recognizer;
-  TextRecognizer get _rec =>
-      _recognizer ??= TextRecognizer(script: TextRecognitionScript.latin);
+  TextRecognitionScript _script = TextRecognitionScript.latin;
+  TextRecognizer get _rec => _recognizer ??= TextRecognizer(script: _script);
+
+  TextRecognitionScript get script => _script;
+
+  /// Switches the writing system the recognizer reads. Each script has its
+  /// own Play-services model, so the old recognizer is closed and the next
+  /// scan (or [warmUp]) loads the new one.
+  void setScript(TextRecognitionScript script) {
+    if (script == _script) return;
+    _script = script;
+    final old = _recognizer;
+    _recognizer = null;
+    old?.close();
+  }
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
 
@@ -106,7 +119,7 @@ class OcrService {
   /// initState / postFrameCallback so the model is hot before first scan.
   Future<void> warmUp() async {
     try {
-      _recognizer ??= TextRecognizer(script: TextRecognitionScript.latin);
+      _recognizer ??= TextRecognizer(script: _script);
     } catch (_) {}
   }
 
@@ -195,24 +208,30 @@ class OcrService {
   /// which is why it doesn't block the UI even on large files.
   Future<_CompressedImage> _compress(String sourcePath) async {
     // Read dimensions from the JPEG/PNG header bytes — fast, no full decode.
-    final headerSize = await compute(_headerSize, sourcePath);
-    final srcW = headerSize.$1;
-    final srcH = headerSize.$2;
+    final header = await compute(_headerSize, sourcePath);
+    final srcW = header.$1;
+    final srcH = header.$2;
+    final known = header.$3;
     final long = srcW > srcH ? srcW : srcH;
 
-    // Already small enough — pass through with no work at all.
-    if (long <= _maxLongEdge) {
+    // Already small enough — pass through with no work at all. ML Kit and
+    // Image.file both apply the EXIF rotation, so report the upright size.
+    if (known && long <= _maxLongEdge) {
+      final swap = header.$4;
       return _CompressedImage(
         path: sourcePath,
-        width: srcW,
-        height: srcH,
+        width: swap ? srcH : srcW,
+        height: swap ? srcW : srcH,
         isTemp: false,
       );
     }
 
+    // Unknown format (e.g. HEIC): the old 9999×9999 guess shrank photos to
+    // ~200 px and wrecked recognition. A square long-edge budget makes the
+    // plugin scale the short edge to it instead.
     final scale = _maxLongEdge / long;
-    final tgtW = (srcW * scale).round();
-    final tgtH = (srcH * scale).round();
+    final tgtW = known ? (srcW * scale).round() : _maxLongEdge;
+    final tgtH = known ? (srcH * scale).round() : _maxLongEdge;
 
     final tmp = await getTemporaryDirectory();
     final outPath =
@@ -230,18 +249,23 @@ class OcrService {
 
     if (xfile == null) {
       // Compression failed — fall back to original (slower ML Kit, but safe).
+      final swap = header.$4;
       return _CompressedImage(
         path: sourcePath,
-        width: srcW,
-        height: srcH,
+        width: swap ? srcH : srcW,
+        height: swap ? srcW : srcH,
         isTemp: false,
       );
     }
 
+    // The plugin rotates by EXIF and has its own rounding, so the requested
+    // size isn't the real one — read it back (a 64 KB header read) so the
+    // block rectangles are normalised against the image that was scanned.
+    final out = _headerSize(xfile.path);
     return _CompressedImage(
       path: xfile.path,
-      width: tgtW,
-      height: tgtH,
+      width: out.$3 ? out.$1 : tgtW,
+      height: out.$3 ? out.$2 : tgtH,
       isTemp: true,
     );
   }
@@ -252,9 +276,12 @@ class OcrService {
 //
 //  Reads image dimensions by inspecting only the file header bytes.
 //  For a typical 8 MB camera JPEG this reads < 10 KB and returns instantly.
+//  Returns (width, height, known, exifSwapsAxes) — width/height are the
+//  stored (pre-rotation) size; exifSwapsAxes is true when the JPEG's EXIF
+//  orientation turns it by 90° for display.
 // ─────────────────────────────────────────────────────────────────────────────
 
-(int, int) _headerSize(String path) {
+(int, int, bool, bool) _headerSize(String path) {
   // Read first 64 KB — more than enough for any JPEG/PNG/WebP header.
   final raf = File(path).openSync();
   final bytes = raf.readSync(65536);
@@ -262,11 +289,13 @@ class OcrService {
 
   // ── JPEG (FFD8 magic) ─────────────────────────────────────────────────────
   if (bytes.length > 4 && bytes[0] == 0xFF && bytes[1] == 0xD8) {
+    var swap = false;
     int i = 2;
     while (i + 8 < bytes.length) {
       if (bytes[i] != 0xFF) break;
       final marker = bytes[i + 1];
       final segLen = (bytes[i + 2] << 8) | bytes[i + 3];
+      if (marker == 0xE1) swap = _exifSwapsAxes(bytes, i + 4, segLen - 2) || swap;
       // SOF0–SOF15 markers carry height then width
       if ((marker >= 0xC0 && marker <= 0xC3) ||
           (marker >= 0xC5 && marker <= 0xC7) ||
@@ -274,7 +303,7 @@ class OcrService {
           (marker >= 0xCD && marker <= 0xCF)) {
         final h = (bytes[i + 5] << 8) | bytes[i + 6];
         final w = (bytes[i + 7] << 8) | bytes[i + 8];
-        if (w > 0 && h > 0) return (w, h);
+        if (w > 0 && h > 0) return (w, h, true, swap);
       }
       i += 2 + segLen;
     }
@@ -290,7 +319,7 @@ class OcrService {
         (bytes[16] << 24) | (bytes[17] << 16) | (bytes[18] << 8) | bytes[19];
     final h =
         (bytes[20] << 24) | (bytes[21] << 16) | (bytes[22] << 8) | bytes[23];
-    if (w > 0 && h > 0) return (w, h);
+    if (w > 0 && h > 0) return (w, h, true, false);
   }
 
   // ── WebP (RIFF????WEBP magic) ─────────────────────────────────────────────
@@ -309,12 +338,41 @@ class OcrService {
         bytes[15] == 0x20) {
       final w = ((bytes[26] | (bytes[27] << 8)) & 0x3FFF) + 1;
       final h = ((bytes[28] | (bytes[29] << 8)) & 0x3FFF) + 1;
-      if (w > 0 && h > 0) return (w, h);
+      if (w > 0 && h > 0) return (w, h, true, false);
     }
   }
 
-  // ── Unknown format — return a large sentinel so compress always runs ───────
-  // This means ML Kit will at least compress before processing even if we
-  // can't read the exact size upfront.
-  return (9999, 9999);
+  // ── Unknown format — a large sentinel so compress always runs ─────────────
+  return (9999, 9999, false, false);
+}
+
+/// True when the APP1 segment at [start] holds EXIF orientation 5–8
+/// (rotated 90° or 270°).
+bool _exifSwapsAxes(List<int> b, int start, int length) {
+  // The APP1 segment (with its thumbnail) may run past the 64 KB we read;
+  // IFD0 sits at its start, so a truncated segment is still fine.
+  final end = start + length < b.length ? start + length : b.length;
+  if (length < 14 || start + 14 > end) return false;
+  // "Exif" header
+  if (b[start] != 0x45 || b[start + 1] != 0x78 || b[start + 2] != 0x69 || b[start + 3] != 0x66) {
+    return false;
+  }
+  final tiff = start + 6;
+  final little = b[tiff] == 0x49; // "II" = little-endian, "MM" = big-endian
+  int u16(int o) => little ? b[o] | (b[o + 1] << 8) : (b[o] << 8) | b[o + 1];
+  int u32(int o) => little
+      ? b[o] | (b[o + 1] << 8) | (b[o + 2] << 16) | (b[o + 3] << 24)
+      : (b[o] << 24) | (b[o + 1] << 16) | (b[o + 2] << 8) | b[o + 3];
+  final ifd = tiff + u32(tiff + 4);
+  if (ifd + 2 > end) return false;
+  final count = u16(ifd);
+  for (var n = 0; n < count; n++) {
+    final entry = ifd + 2 + n * 12;
+    if (entry + 12 > end) return false;
+    if (u16(entry) == 0x0112) {
+      final orientation = u16(entry + 8);
+      return orientation >= 5 && orientation <= 8;
+    }
+  }
+  return false;
 }

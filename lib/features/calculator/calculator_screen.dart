@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/calculator/calc_engine.dart';
+import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 
 /// Everyday calculator: live result while typing, percent, parentheses,
 /// tap a history line to reuse it, long-press the result to copy.
@@ -17,7 +18,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   static const _ops = {'+', '−', '×', '÷'};
 
   String _expr = '';
-  String? _error;
+  _CalcError? _error;
   final List<(String, String)> _history = [];
 
   String get _preview {
@@ -47,10 +48,15 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           if (_ops.contains(key)) {
             if (_expr.isEmpty && key != '−') return;
             final last = _expr.isEmpty ? '' : _expr[_expr.length - 1];
-            // Replace a trailing operator instead of stacking them.
-            if (_ops.contains(last)) {
+            // Replace trailing operators instead of stacking them, but let a
+            // minus follow × or ÷ so negative operands (5×−2) can be typed.
+            final negativeOperand = key == '−' && (last == '×' || last == '÷');
+            while (!negativeOperand &&
+                _expr.isNotEmpty &&
+                _ops.contains(_expr[_expr.length - 1])) {
               _expr = _expr.substring(0, _expr.length - 1);
             }
+            if (_expr.isEmpty && key != '−') return;
           }
           if (key == '.') {
             final lastNumber = RegExp(r'[0-9.]*$').stringMatch(_expr) ?? '';
@@ -73,16 +79,41 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       if (_history.length > 30) _history.removeLast();
       _expr = result.replaceAll('-', '−');
     } on UnsupportedError {
-      _error = 'Can’t divide by zero';
+      _error = _CalcError.divideByZero;
     } catch (_) {
-      _error = 'Check the expression';
+      _error = _CalcError.badExpression;
     }
+  }
+
+  /// The value worth copying: the live result, else the shown expression.
+  String get _copyValue {
+    final preview = _preview;
+    return preview.isNotEmpty ? preview : _expr.replaceAll('−', '-');
+  }
+
+  Future<void> _copy() async {
+    final value = _copyValue;
+    if (value.isEmpty) return;
+    await Clipboard.setData(ClipboardData(text: value));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context).commonCopied)),
+      );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context);
+    final uiDirection = Directionality.of(context);
     final preview = _preview;
+    final errorText = switch (_error) {
+      _CalcError.divideByZero => l.calcDivideByZero,
+      _CalcError.badExpression => l.calcCheckExpression,
+      null => null,
+    };
     const keys = [
       ['C', '()', '%', '÷'],
       ['7', '8', '9', '×'],
@@ -92,9 +123,20 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     ];
 
     return ToolScaffold(
-      title: 'Calculator',
+      title: l.toolCalculatorTitle,
       accentColor: _accent,
-      body: Column(
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.copy_rounded),
+          tooltip: l.calcCopyResult,
+          onPressed: _copyValue.isEmpty ? null : _copy,
+        ),
+      ],
+      // Expressions, results and the keypad stay left-to-right (the usual
+      // calculator convention), also in Arabic and Urdu.
+      body: Directionality(
+        textDirection: TextDirection.ltr,
+        child: Column(
         children: [
           Expanded(
             child: ListView.builder(
@@ -134,17 +176,12 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   ),
                 ),
                 GestureDetector(
-                  onLongPress: () {
-                    if (preview.isEmpty) return;
-                    Clipboard.setData(ClipboardData(text: preview));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Result copied')),
-                    );
-                  },
+                  onLongPress: preview.isEmpty ? null : _copy,
                   child: Text(
-                    _error ?? (preview.isEmpty || preview == _expr ? ' ' : '= $preview'),
+                    errorText ?? (preview.isEmpty || preview == _expr ? ' ' : '= $preview'),
+                    textDirection: errorText != null ? uiDirection : null,
                     style: theme.textTheme.titleLarge?.copyWith(
-                      color: _error != null ? theme.colorScheme.error : _accent,
+                      color: errorText != null ? theme.colorScheme.error : _accent,
                     ),
                   ),
                 ),
@@ -183,10 +220,13 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             ),
           ),
         ],
+        ),
       ),
     );
   }
 }
+
+enum _CalcError { divideByZero, badExpression }
 
 enum _KeyKind { digit, op, clear, equals }
 
@@ -201,6 +241,7 @@ class _Key extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context);
     const accent = Color(0xFFFFA726);
     final (bg, fg) = switch (kind) {
       _KeyKind.equals => (accent, Colors.white),
@@ -211,12 +252,16 @@ class _Key extends StatelessWidget {
     return Semantics(
       button: true,
       label: switch (label) {
-        '⌫' => 'Delete',
-        '−' => 'Minus',
-        '×' => 'Times',
-        '÷' => 'Divide',
-        'C' => 'Clear',
-        '()' => 'Parentheses',
+        '⌫' => l.commonDelete,
+        '+' => l.calcPlus,
+        '−' => l.calcMinus,
+        '×' => l.calcTimes,
+        '÷' => l.calcDivide,
+        '%' => l.calcPercent,
+        '=' => l.calcEquals,
+        '.' => l.calcDecimalPoint,
+        'C' => l.commonClear,
+        '()' => l.calcParentheses,
         _ => label,
       },
       excludeSemantics: true,

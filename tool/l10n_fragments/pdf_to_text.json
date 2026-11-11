@@ -1,0 +1,225 @@
+{
+  "en": {
+    "toolPdfToTextTitle": "PDF to Text",
+    "toolPdfToTextDesc": "Copy all the text out of a PDF",
+    "toolPdfToTextKeywords": "pdf to text, extract text, copy text, txt, read pdf, convert, pdf to word",
+    "pdfToTextReading": "Reading page {current} of {total}…",
+    "@pdfToTextReading": {
+      "placeholders": {
+        "current": {
+          "type": "int"
+        },
+        "total": {
+          "type": "int"
+        }
+      }
+    },
+    "pdfToTextWords": "{count, plural, =1{1 word} other{{count} words}}",
+    "@pdfToTextWords": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "pdfToTextCopyAll": "Copy all",
+    "pdfToTextCopied": "Text copied",
+    "pdfToTextSaveTxt": "Save as .txt",
+    "pdfToTextEmptyPage": "No text on this page",
+    "pdfToTextScannedTitle": "No text found",
+    "pdfToTextScannedBody": "This PDF looks like a scan or photos, so there is no text to copy. We can read the words on page 1 from the image instead.",
+    "pdfToTextOpenOcr": "Read page 1 with {tool}",
+    "@pdfToTextOpenOcr": {
+      "placeholders": {
+        "tool": {
+          "type": "String"
+        }
+      }
+    },
+    "pdfToTextFailed": "Couldn’t read the text in this PDF.",
+    "pdfToTextPartlyScanned": "{count, plural, =1{1 page has no text (it may be scanned).} other{{count} pages have no text (they may be scanned).}}",
+    "@pdfToTextPartlyScanned": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    }
+  },
+  "ar": {
+    "toolPdfToTextTitle": "PDF إلى نص",
+    "toolPdfToTextDesc": "انسخ كل النص من ملف PDF",
+    "toolPdfToTextKeywords": "استخراج النص, نسخ النص, تحويل PDF إلى نص, قراءة PDF, pdf to text, extract text, copy text, txt, read pdf, convert, pdf to word",
+    "pdfToTextReading": "جارٍ قراءة الصفحة {current} من {total}…",
+    "pdfToTextWords": "{count, plural, =0{لا كلمات} =1{كلمة واحدة} =2{كلمتان} few{{count} كلمات} many{{count} كلمة} other{{count} كلمة}}",
+    "pdfToTextCopyAll": "نسخ الكل",
+    "pdfToTextCopied": "تم نسخ النص",
+    "pdfToTextSaveTxt": "حفظ كملف ‎.txt",
+    "pdfToTextEmptyPage": "لا يوجد نص في هذه الصفحة",
+    "pdfToTextScannedTitle": "لم يتم العثور على نص",
+    "pdfToTextScannedBody": "يبدو أن ملف PDF هذا صور ممسوحة ضوئيًا، لذا لا يوجد نص لنسخه. يمكننا بدلًا من ذلك قراءة كلمات الصفحة 1 من الصورة.",
+    "pdfToTextOpenOcr": "اقرأ الصفحة 1 باستخدام {tool}",
+    "pdfToTextFailed": "تعذّرت قراءة النص في ملف PDF هذا.",
+    "pdfToTextPartlyScanned": "{count, plural, =1{صفحة واحدة بلا نص (قد تكون ممسوحة ضوئيًا).} =2{صفحتان بلا نص (قد تكونان ممسوحتين ضوئيًا).} few{{count} صفحات بلا نص (قد تكون ممسوحة ضوئيًا).} many{{count} صفحة بلا نص (قد تكون ممسوحة ضوئيًا).} other{{count} صفحة بلا نص (قد تكون ممسوحة ضوئيًا).}}"
+  },
+  "bn": {
+    "toolPdfToTextTitle": "PDF থেকে টেক্সট",
+    "toolPdfToTextDesc": "PDF থেকে সব লেখা কপি করুন",
+    "toolPdfToTextKeywords": "টেক্সট বের করুন, লেখা কপি, PDF থেকে লেখা, রূপান্তর, pdf to text, extract text, copy text, txt, read pdf, convert, pdf to word",
+    "pdfToTextReading": "{total}টির মধ্যে {current} নম্বর পৃষ্ঠা পড়া হচ্ছে…",
+    "pdfToTextWords": "{count, plural, other{{count}টি শব্দ}}",
+    "pdfToTextCopyAll": "সব কপি করুন",
+    "pdfToTextCopied": "লেখা কপি হয়েছে",
+    "pdfToTextSaveTxt": ".txt হিসেবে সংরক্ষণ",
+    "pdfToTextEmptyPage": "এই পৃষ্ঠায় কোনো লেখা নেই",
+    "pdfToTextScannedTitle": "কোনো লেখা পাওয়া যায়নি",
+    "pdfToTextScannedBody": "এই PDF স্ক্যান বা ছবির মতো দেখাচ্ছে, তাই কপি করার মতো লেখা নেই। এর বদলে আমরা ছবি থেকে ১ নম্বর পৃষ্ঠার লেখা পড়তে পারি।",
+    "pdfToTextOpenOcr": "{tool} দিয়ে ১ নম্বর পৃষ্ঠা পড়ুন",
+    "pdfToTextFailed": "এই PDF-এর লেখা পড়া যায়নি।",
+    "pdfToTextPartlyScanned": "{count, plural, other{{count}টি পৃষ্ঠায় কোনো লেখা নেই (হয়তো স্ক্যান করা)।}}"
+  },
+  "de": {
+    "toolPdfToTextTitle": "PDF zu Text",
+    "toolPdfToTextDesc": "Den gesamten Text aus einer PDF kopieren",
+    "toolPdfToTextKeywords": "text extrahieren, text kopieren, pdf in text, umwandeln, pdf lesen, pdf to text, extract text, copy text, txt, read pdf, convert, pdf to word",
+    "pdfToTextReading": "Seite {current} von {total} wird gelesen…",
+    "pdfToTextWords": "{count, plural, =1{1 Wort} other{{count} Wörter}}",
+    "pdfToTextCopyAll": "Alles kopieren",
+    "pdfToTextCopied": "Text kopiert",
+    "pdfToTextSaveTxt": "Als .txt speichern",
+    "pdfToTextEmptyPage": "Kein Text auf dieser Seite",
+    "pdfToTextScannedTitle": "Kein Text gefunden",
+    "pdfToTextScannedBody": "Diese PDF besteht offenbar aus Scans oder Fotos, daher gibt es keinen Text zum Kopieren. Wir können stattdessen die Wörter auf Seite 1 aus dem Bild lesen.",
+    "pdfToTextOpenOcr": "Seite 1 mit „{tool}“ lesen",
+    "pdfToTextFailed": "Der Text dieser PDF konnte nicht gelesen werden.",
+    "pdfToTextPartlyScanned": "{count, plural, =1{1 Seite enthält keinen Text (vielleicht gescannt).} other{{count} Seiten enthalten keinen Text (vielleicht gescannt).}}"
+  },
+  "es": {
+    "toolPdfToTextTitle": "PDF a texto",
+    "toolPdfToTextDesc": "Copia todo el texto de un PDF",
+    "toolPdfToTextKeywords": "extraer texto, copiar texto, pdf a txt, convertir, leer pdf, pdf to text, extract text, copy text, txt, read pdf, convert, pdf to word",
+    "pdfToTextReading": "Leyendo la página {current} de {total}…",
+    "pdfToTextWords": "{count, plural, =1{1 palabra} other{{count} palabras}}",
+    "pdfToTextCopyAll": "Copiar todo",
+    "pdfToTextCopied": "Texto copiado",
+    "pdfToTextSaveTxt": "Guardar como .txt",
+    "pdfToTextEmptyPage": "No hay texto en esta página",
+    "pdfToTextScannedTitle": "No se encontró texto",
+    "pdfToTextScannedBody": "Este PDF parece un escaneo o fotos, así que no hay texto que copiar. En su lugar, podemos leer las palabras de la página 1 a partir de la imagen.",
+    "pdfToTextOpenOcr": "Leer la página 1 con {tool}",
+    "pdfToTextFailed": "No se pudo leer el texto de este PDF.",
+    "pdfToTextPartlyScanned": "{count, plural, =1{1 página no tiene texto (puede estar escaneada).} other{{count} páginas no tienen texto (pueden estar escaneadas).}}"
+  },
+  "fr": {
+    "toolPdfToTextTitle": "PDF en texte",
+    "toolPdfToTextDesc": "Copiez tout le texte d’un PDF",
+    "toolPdfToTextKeywords": "extraire le texte, copier le texte, pdf en txt, convertir, lire pdf, pdf to text, extract text, copy text, txt, read pdf, convert, pdf to word",
+    "pdfToTextReading": "Lecture de la page {current} sur {total}…",
+    "pdfToTextWords": "{count, plural, =1{1 mot} other{{count} mots}}",
+    "pdfToTextCopyAll": "Tout copier",
+    "pdfToTextCopied": "Texte copié",
+    "pdfToTextSaveTxt": "Enregistrer en .txt",
+    "pdfToTextEmptyPage": "Aucun texte sur cette page",
+    "pdfToTextScannedTitle": "Aucun texte trouvé",
+    "pdfToTextScannedBody": "Ce PDF semble être un scan ou des photos : il n’y a pas de texte à copier. Nous pouvons plutôt lire les mots de la page 1 à partir de l’image.",
+    "pdfToTextOpenOcr": "Lire la page 1 avec {tool}",
+    "pdfToTextFailed": "Impossible de lire le texte de ce PDF.",
+    "pdfToTextPartlyScanned": "{count, plural, =1{1 page ne contient pas de texte (elle est peut-être scannée).} other{{count} pages ne contiennent pas de texte (elles sont peut-être scannées).}}"
+  },
+  "hi": {
+    "toolPdfToTextTitle": "PDF से टेक्स्ट",
+    "toolPdfToTextDesc": "PDF का सारा टेक्स्ट कॉपी करें",
+    "toolPdfToTextKeywords": "टेक्स्ट निकालें, टेक्स्ट कॉपी, PDF से टेक्स्ट, बदलें, pdf to text, extract text, copy text, txt, read pdf, convert, pdf to word",
+    "pdfToTextReading": "{total} में से पेज {current} पढ़ा जा रहा है…",
+    "pdfToTextWords": "{count, plural, other{{count} शब्द}}",
+    "pdfToTextCopyAll": "सब कॉपी करें",
+    "pdfToTextCopied": "टेक्स्ट कॉपी हो गया",
+    "pdfToTextSaveTxt": ".txt के रूप में सेव करें",
+    "pdfToTextEmptyPage": "इस पेज पर कोई टेक्स्ट नहीं",
+    "pdfToTextScannedTitle": "कोई टेक्स्ट नहीं मिला",
+    "pdfToTextScannedBody": "यह PDF स्कैन या फ़ोटो जैसी लगती है, इसलिए इसमें कॉपी करने लायक टेक्स्ट नहीं है। इसके बजाय हम पेज 1 की तस्वीर से शब्द पढ़ सकते हैं।",
+    "pdfToTextOpenOcr": "{tool} से पेज 1 पढ़ें",
+    "pdfToTextFailed": "इस PDF का टेक्स्ट पढ़ा नहीं जा सका।",
+    "pdfToTextPartlyScanned": "{count, plural, other{{count} पेज पर कोई टेक्स्ट नहीं है (शायद स्कैन किए गए हैं)।}}"
+  },
+  "id": {
+    "toolPdfToTextTitle": "PDF ke Teks",
+    "toolPdfToTextDesc": "Salin semua teks dari PDF",
+    "toolPdfToTextKeywords": "ekstrak teks, salin teks, pdf ke txt, konversi, baca pdf, pdf to text, extract text, copy text, txt, read pdf, convert, pdf to word",
+    "pdfToTextReading": "Membaca halaman {current} dari {total}…",
+    "pdfToTextWords": "{count, plural, other{{count} kata}}",
+    "pdfToTextCopyAll": "Salin semua",
+    "pdfToTextCopied": "Teks disalin",
+    "pdfToTextSaveTxt": "Simpan sebagai .txt",
+    "pdfToTextEmptyPage": "Tidak ada teks di halaman ini",
+    "pdfToTextScannedTitle": "Teks tidak ditemukan",
+    "pdfToTextScannedBody": "PDF ini tampaknya hasil pindaian atau foto, jadi tidak ada teks untuk disalin. Sebagai gantinya, kami bisa membaca kata-kata di halaman 1 dari gambarnya.",
+    "pdfToTextOpenOcr": "Baca halaman 1 dengan {tool}",
+    "pdfToTextFailed": "Teks dalam PDF ini tidak dapat dibaca.",
+    "pdfToTextPartlyScanned": "{count, plural, other{{count} halaman tidak berisi teks (mungkin hasil pindaian).}}"
+  },
+  "pt": {
+    "toolPdfToTextTitle": "PDF para texto",
+    "toolPdfToTextDesc": "Copie todo o texto de um PDF",
+    "toolPdfToTextKeywords": "extrair texto, copiar texto, pdf para txt, converter, ler pdf, pdf to text, extract text, copy text, txt, read pdf, convert, pdf to word",
+    "pdfToTextReading": "Lendo a página {current} de {total}…",
+    "pdfToTextWords": "{count, plural, =1{1 palavra} other{{count} palavras}}",
+    "pdfToTextCopyAll": "Copiar tudo",
+    "pdfToTextCopied": "Texto copiado",
+    "pdfToTextSaveTxt": "Salvar como .txt",
+    "pdfToTextEmptyPage": "Não há texto nesta página",
+    "pdfToTextScannedTitle": "Nenhum texto encontrado",
+    "pdfToTextScannedBody": "Este PDF parece ser uma digitalização ou fotos, então não há texto para copiar. Em vez disso, podemos ler as palavras da página 1 a partir da imagem.",
+    "pdfToTextOpenOcr": "Ler a página 1 com {tool}",
+    "pdfToTextFailed": "Não foi possível ler o texto deste PDF.",
+    "pdfToTextPartlyScanned": "{count, plural, =1{1 página não tem texto (pode estar digitalizada).} other{{count} páginas não têm texto (podem estar digitalizadas).}}"
+  },
+  "ru": {
+    "toolPdfToTextTitle": "PDF в текст",
+    "toolPdfToTextDesc": "Скопируйте весь текст из PDF",
+    "toolPdfToTextKeywords": "извлечь текст, скопировать текст, pdf в txt, конвертировать, прочитать pdf, pdf to text, extract text, copy text, txt, read pdf, convert, pdf to word",
+    "pdfToTextReading": "Чтение страницы {current} из {total}…",
+    "pdfToTextWords": "{count, plural, one{{count} слово} few{{count} слова} many{{count} слов} other{{count} слова}}",
+    "pdfToTextCopyAll": "Копировать всё",
+    "pdfToTextCopied": "Текст скопирован",
+    "pdfToTextSaveTxt": "Сохранить как .txt",
+    "pdfToTextEmptyPage": "На этой странице нет текста",
+    "pdfToTextScannedTitle": "Текст не найден",
+    "pdfToTextScannedBody": "Похоже, этот PDF состоит из сканов или фото, поэтому копировать нечего. Вместо этого можно распознать слова на странице 1 по изображению.",
+    "pdfToTextOpenOcr": "Распознать страницу 1: {tool}",
+    "pdfToTextFailed": "Не удалось прочитать текст этого PDF.",
+    "pdfToTextPartlyScanned": "{count, plural, one{На {count} странице нет текста (возможно, это скан).} few{На {count} страницах нет текста (возможно, это сканы).} many{На {count} страницах нет текста (возможно, это сканы).} other{На {count} страницах нет текста (возможно, это сканы).}}"
+  },
+  "tr": {
+    "toolPdfToTextTitle": "PDF’den Metne",
+    "toolPdfToTextDesc": "PDF’deki tüm metni kopyalayın",
+    "toolPdfToTextKeywords": "metin çıkar, metni kopyala, pdf'den txt, dönüştür, pdf oku, pdf to text, extract text, copy text, txt, read pdf, convert, pdf to word",
+    "pdfToTextReading": "{total} sayfadan {current}. sayfa okunuyor…",
+    "pdfToTextWords": "{count, plural, other{{count} kelime}}",
+    "pdfToTextCopyAll": "Tümünü kopyala",
+    "pdfToTextCopied": "Metin kopyalandı",
+    "pdfToTextSaveTxt": ".txt olarak kaydet",
+    "pdfToTextEmptyPage": "Bu sayfada metin yok",
+    "pdfToTextScannedTitle": "Metin bulunamadı",
+    "pdfToTextScannedBody": "Bu PDF taranmış belge veya fotoğraf gibi görünüyor, bu yüzden kopyalanacak metin yok. Bunun yerine 1. sayfadaki kelimeleri görüntüden okuyabiliriz.",
+    "pdfToTextOpenOcr": "1. sayfayı {tool} ile oku",
+    "pdfToTextFailed": "Bu PDF’deki metin okunamadı.",
+    "pdfToTextPartlyScanned": "{count, plural, other{{count} sayfada metin yok (taranmış olabilir).}}"
+  },
+  "ur": {
+    "toolPdfToTextTitle": "PDF سے متن",
+    "toolPdfToTextDesc": "PDF سے سارا متن کاپی کریں",
+    "toolPdfToTextKeywords": "متن نکالیں, متن کاپی, PDF سے متن, تبدیل کریں, pdf to text, extract text, copy text, txt, read pdf, convert, pdf to word",
+    "pdfToTextReading": "{total} میں سے صفحہ {current} پڑھا جا رہا ہے…",
+    "pdfToTextWords": "{count, plural, =1{1 لفظ} other{{count} الفاظ}}",
+    "pdfToTextCopyAll": "سب کاپی کریں",
+    "pdfToTextCopied": "متن کاپی ہو گیا",
+    "pdfToTextSaveTxt": "‎.txt کے طور پر محفوظ کریں",
+    "pdfToTextEmptyPage": "اس صفحے پر کوئی متن نہیں",
+    "pdfToTextScannedTitle": "کوئی متن نہیں ملا",
+    "pdfToTextScannedBody": "یہ PDF اسکین یا تصاویر لگتی ہے، اس لیے اس میں کاپی کرنے کے لیے متن نہیں ہے۔ اس کے بجائے ہم صفحہ 1 کی تصویر سے الفاظ پڑھ سکتے ہیں۔",
+    "pdfToTextOpenOcr": "{tool} سے صفحہ 1 پڑھیں",
+    "pdfToTextFailed": "اس PDF کا متن پڑھا نہیں جا سکا۔",
+    "pdfToTextPartlyScanned": "{count, plural, =1{1 صفحے پر کوئی متن نہیں (شاید اسکین شدہ ہے)۔} other{{count} صفحات پر کوئی متن نہیں (شاید اسکین شدہ ہیں)۔}}"
+  }
+}

@@ -7,6 +7,7 @@ import 'package:utility_toolbox/core/utils/result.dart';
 import 'package:utility_toolbox/core/widgets/premium_button.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/hash_generator/providers/hash_providers.dart';
+import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 
 const _accentColor = Color(0xFF3B82F6);
 const _accentGlow  = Color(0xFF60A5FA);
@@ -18,9 +19,10 @@ class HashGeneratorScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final algo       = ref.watch(selectedAlgoProvider);
     final isFileMode = ref.watch(isFileHashModeProvider);
+    final l          = AppLocalizations.of(context);
 
     return ToolScaffold(
-      title: 'Hash Generator',
+      title: l.toolHashGeneratorTitle,
       accentColor: _accentColor,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -39,13 +41,13 @@ class HashGeneratorScreen extends ConsumerWidget {
               child: Row(
                 children: [
                   _ModeTab(
-                    label: 'Text',
+                    label: l.hashModeText,
                     selected: !isFileMode,
                     onTap: () =>
                         ref.read(isFileHashModeProvider.notifier).state = false,
                   ),
                   _ModeTab(
-                    label: 'File',
+                    label: l.hashModeFile,
                     selected: isFileMode,
                     onTap: () =>
                         ref.read(isFileHashModeProvider.notifier).state = true,
@@ -87,26 +89,32 @@ class _ModeTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          margin: const EdgeInsets.all(4),
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: selected
-                ? _accentColor
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            label,
-            style: TextStyle(
+      child: Semantics(
+        button: true,
+        selected: selected,
+        child: GestureDetector(
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            margin: const EdgeInsets.all(4),
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
               color: selected
-                  ? Colors.white
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
-              fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                  ? _accentColor
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: selected
+                    ? Colors.white
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+              ),
             ),
           ),
         ),
@@ -128,10 +136,12 @@ class _AlgorithmSelector extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Algorithm', style: Theme.of(context).textTheme.labelLarge),
+        Text(AppLocalizations.of(context).hashAlgorithm,
+            style: Theme.of(context).textTheme.labelLarge),
         const SizedBox(height: 10),
         Wrap(
           spacing: 8,
+          runSpacing: 4,
           children: HashAlgorithm.values.map((a) {
             final selected = a == algo;
             return ChoiceChip(
@@ -149,8 +159,13 @@ class _AlgorithmSelector extends StatelessWidget {
                     ? _accentColor.withValues(alpha: 0.5)
                     : Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
               ),
-              onSelected: (_) =>
-                  ref.read(selectedAlgoProvider.notifier).state = a,
+              onSelected: (_) {
+                if (a == algo) return;
+                ref.read(selectedAlgoProvider.notifier).state = a;
+                // A file hash computed with the old algorithm would otherwise
+                // be shown under the new algorithm's label.
+                ref.read(fileHashResultProvider.notifier).reset();
+              },
             );
           }).toList(),
         ),
@@ -173,11 +188,15 @@ class _TextHashSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        TextField(
+        // TextFormField + initialValue: hashInputProvider outlives this widget
+        // (mode switch / leaving the screen), so the field must start from
+        // it, or an empty box would show the hash of the old text.
+        TextFormField(
+          initialValue: ref.read(hashInputProvider),
           minLines: 4,
           maxLines: 6,
           decoration: InputDecoration(
-            hintText: 'Enter text to hash…',
+            hintText: AppLocalizations.of(context).hashInputHint,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
             filled: true,
           ),
@@ -203,58 +222,63 @@ class _FileHashSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef watchRef) {
     final file   = watchRef.watch(hashFileProvider);
     final result = watchRef.watch(fileHashResultProvider);
+    final l      = AppLocalizations.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        GestureDetector(
-          onTap: () => _pickFile(context, watchRef),
-          child: Container(
-            height: 100,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: _accentColor.withValues(alpha: 0.4),
-                width: 1.5,
+        Semantics(
+          button: true,
+          child: GestureDetector(
+            onTap: () => _pickFile(context, watchRef),
+            child: Container(
+              height: 100,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: _accentColor.withValues(alpha: 0.4),
+                  width: 1.5,
+                ),
               ),
-            ),
-            child: file == null
-                ? Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.upload_file_rounded,
-                          color: _accentColor, size: 32),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Tap to pick a file',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                      ),
-                    ],
-                  )
-                : Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
+              child: file == null
+                  ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.insert_drive_file_rounded,
-                            color: _accentColor),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            file.path.split('/').last,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () => _pickFile(context, watchRef),
-                          child: const Text('Change'),
+                        const Icon(Icons.upload_file_rounded,
+                            color: _accentColor, size: 32),
+                        const SizedBox(height: 8),
+                        Text(
+                          l.hashPickFile,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
                         ),
                       ],
+                    )
+                  : Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.insert_drive_file_rounded,
+                              color: _accentColor),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              file.path.split(Platform.pathSeparator).last,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () => _pickFile(context, watchRef),
+                            child: Text(l.hashChange),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+            ),
           ),
         ),
         const SizedBox(height: 16),
@@ -266,7 +290,7 @@ class _FileHashSection extends ConsumerWidget {
                       .read(fileHashResultProvider.notifier)
                       .hash(file, algo),
             icon: result is Loading ? null : Icons.tag_rounded,
-            label: result is Loading ? 'Hashing…' : 'Generate Hash',
+            label: result is Loading ? l.hashHashing : l.hashGenerate,
             gradient: const LinearGradient(colors: [_accentColor, _accentGlow]),
           ),
         const SizedBox(height: 16),
@@ -274,15 +298,27 @@ class _FileHashSection extends ConsumerWidget {
           _HashOutput(hash: result.data, algo: algo),
         if (result is ErrorResult<String>)
           Text(
-            result.message,
+            l.hashFileError,
             style: const TextStyle(color: Color(0xFFEF4444)),
           ),
       ],
     );
   }
 
+  static bool _picking = false;
+
   Future<void> _pickFile(BuildContext context, WidgetRef ref) async {
-    final result = await FilePicker.platform.pickFiles();
+    // A second tap while the picker is open throws "already_active".
+    if (_picking) return;
+    _picking = true;
+    final FilePickerResult? result;
+    try {
+      result = await FilePicker.platform.pickFiles();
+    } catch (_) {
+      return;
+    } finally {
+      _picking = false;
+    }
     // The screen may have been closed while the picker was open; `ref` must
     // not be used after the widget is disposed.
     if (!context.mounted) return;
@@ -305,6 +341,7 @@ class _HashOutput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -330,14 +367,14 @@ class _HashOutput extends StatelessWidget {
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: hash));
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Hash copied!'),
-                      duration: Duration(seconds: 2),
+                    SnackBar(
+                      content: Text(l.hashCopied),
+                      duration: const Duration(seconds: 2),
                     ),
                   );
                 },
                 icon: const Icon(Icons.copy_rounded, size: 18),
-                tooltip: 'Copy hash',
+                tooltip: l.hashCopy,
                 color: _accentColor,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
@@ -347,6 +384,7 @@ class _HashOutput extends StatelessWidget {
           const SizedBox(height: 8),
           SelectableText(
             hash,
+            textDirection: TextDirection.ltr,
             style: theme.textTheme.bodySmall?.copyWith(
               fontFamily: 'monospace',
               letterSpacing: 0.5,

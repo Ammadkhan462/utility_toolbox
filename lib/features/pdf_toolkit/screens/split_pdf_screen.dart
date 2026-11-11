@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/pdf_toolkit/services/pdf_extra_service.dart';
 import 'package:utility_toolbox/features/pdf_toolkit/widgets/pdf_tool_widgets.dart';
+import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 
 enum _SplitMode { keep, remove }
 
@@ -25,7 +26,8 @@ class _SplitPdfScreenState extends ConsumerState<SplitPdfScreen> {
   PdfInfo? _info;
   bool _inspecting = false;
   bool _working = false;
-  String? _error;
+  /// Built at render time so it follows the app language.
+  String Function(AppLocalizations l)? _error;
   File? _result;
   _SplitMode _mode = _SplitMode.keep;
   final _ranges = TextEditingController();
@@ -43,8 +45,9 @@ class _SplitPdfScreenState extends ConsumerState<SplitPdfScreen> {
   }
 
   Future<void> _pick() async {
+    if (_working) return;
     final path = await pickPdfPath();
-    if (path != null) await _load(path);
+    if (path != null && mounted) await _load(path);
   }
 
   Future<void> _load(String path) async {
@@ -61,7 +64,7 @@ class _SplitPdfScreenState extends ConsumerState<SplitPdfScreen> {
       setState(() => _info = info);
     } catch (_) {
       if (!mounted) return;
-      setState(() => _error = 'This file doesn’t look like a valid PDF.');
+      setState(() => _error = (l) => l.pdfToolsInvalidPdf);
     } finally {
       if (mounted) setState(() => _inspecting = false);
     }
@@ -70,20 +73,22 @@ class _SplitPdfScreenState extends ConsumerState<SplitPdfScreen> {
   Future<void> _run() async {
     final info = _info;
     final path = _path;
-    if (info == null || path == null) return;
+    // The keyboard's submit action stays live while a split is running.
+    if (info == null || path == null || _working) return;
     final count = info.pageCount;
     List<int> selected;
     try {
       selected = parsePageRanges(_ranges.text, count);
-    } on FormatException catch (e) {
-      setState(() => _error = e.message);
+    } on PageRangeException catch (e) {
+      setState(() => _error = (l) => pageRangeErrorText(l, e));
       return;
     }
+    final selectedSet = selected.toSet();
     final keep = _mode == _SplitMode.keep
         ? selected
-        : [for (var i = 0; i < count; i++) if (!selected.contains(i)) i];
+        : [for (var i = 0; i < count; i++) if (!selectedSet.contains(i)) i];
     if (keep.isEmpty) {
-      setState(() => _error = 'That would remove every page.');
+      setState(() => _error = (l) => l.pdfSplitRemovesAll);
       return;
     }
     setState(() {
@@ -96,7 +101,7 @@ class _SplitPdfScreenState extends ConsumerState<SplitPdfScreen> {
       setState(() => _result = file);
     } catch (_) {
       if (!mounted) return;
-      setState(() => _error = 'Couldn’t split this PDF.');
+      setState(() => _error = (l) => l.pdfSplitFailed);
     } finally {
       if (mounted) setState(() => _working = false);
     }
@@ -105,8 +110,9 @@ class _SplitPdfScreenState extends ConsumerState<SplitPdfScreen> {
   @override
   Widget build(BuildContext context) {
     final info = _info;
+    final l = AppLocalizations.of(context);
     return ToolScaffold(
-      title: 'Split PDF',
+      title: l.toolSplitPdfTitle,
       accentColor: _accent,
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -127,22 +133,28 @@ class _SplitPdfScreenState extends ConsumerState<SplitPdfScreen> {
               accent: _accent,
             ),
             if (info != null && info.isEncrypted)
-              const InlineError(
-                message: 'This PDF is password protected. Unlock it first with Unlock PDF.',
-              ),
+              InlineError(message: l.pdfToolsLockedUnlockFirst(l.toolUnlockPdfTitle)),
             if (info != null && !info.isEncrypted) ...[
               const SizedBox(height: 16),
               SegmentedButton<_SplitMode>(
-                segments: const [
+                segments: [
                   ButtonSegment(
                     value: _SplitMode.keep,
-                    icon: Icon(Icons.content_cut_rounded),
-                    label: Text('Extract pages'),
+                    icon: const Icon(Icons.content_cut_rounded),
+                    label: Text(
+                      l.pdfSplitExtract,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                   ButtonSegment(
                     value: _SplitMode.remove,
-                    icon: Icon(Icons.delete_outline_rounded),
-                    label: Text('Remove pages'),
+                    icon: const Icon(Icons.delete_outline_rounded),
+                    label: Text(
+                      l.pdfSplitRemove,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ],
                 selected: {_mode},
@@ -153,9 +165,10 @@ class _SplitPdfScreenState extends ConsumerState<SplitPdfScreen> {
                 controller: _ranges,
                 keyboardType: TextInputType.text,
                 decoration: InputDecoration(
-                  labelText: 'Pages (1–${info.pageCount})',
-                  hintText: 'e.g. 1-3, 5, 8-',
-                  helperText: 'Use commas and ranges. “8-” means page 8 to the end.',
+                  labelText: l.pdfToolsPagesLabel(info.pageCount),
+                  hintText: l.pdfToolsPagesHint('1-3, 5, 8-'),
+                  helperText: l.pdfSplitPagesHelp,
+                  helperMaxLines: 3,
                   border: const OutlineInputBorder(),
                 ),
                 onSubmitted: (_) => _run(),
@@ -170,10 +183,10 @@ class _SplitPdfScreenState extends ConsumerState<SplitPdfScreen> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.call_split_rounded),
-                label: Text(_mode == _SplitMode.keep ? 'Extract pages' : 'Remove pages'),
+                label: Text(_mode == _SplitMode.keep ? l.pdfSplitExtract : l.pdfSplitRemove),
               ),
             ],
-            if (_error != null) InlineError(message: _error!),
+            if (_error != null) InlineError(message: _error!(l)),
           ],
         ],
       ),

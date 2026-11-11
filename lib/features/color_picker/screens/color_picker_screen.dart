@@ -4,6 +4,7 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/color_picker/providers/color_picker_providers.dart';
+import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 
 const _accentColor = Color(0xFFEC4899);
 
@@ -15,9 +16,10 @@ class ColorPickerScreen extends ConsumerWidget {
     final color   = ref.watch(selectedColorProvider);
     final formats = ref.watch(colorFormatsProvider);
     final theme   = Theme.of(context);
+    final l       = AppLocalizations.of(context);
 
     return ToolScaffold(
-      title: 'Color Picker',
+      title: l.toolColorPickerTitle,
       accentColor: _accentColor,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -55,15 +57,7 @@ class ColorPickerScreen extends ConsumerWidget {
             const SizedBox(height: 24),
 
             // Picker wheel
-            ColorPicker(
-              pickerColor: color,
-              onColorChanged: (c) =>
-                  ref.read(selectedColorProvider.notifier).state = c,
-              labelTypes: const [],
-              pickerAreaBorderRadius: BorderRadius.circular(16),
-              displayThumbColor: true,
-              enableAlpha: false,
-            ),
+            _Wheel(color: color),
             const SizedBox(height: 24),
 
             // Hex input
@@ -71,7 +65,7 @@ class ColorPickerScreen extends ConsumerWidget {
             const SizedBox(height: 24),
 
             // Format cards
-            Text('Color formats', style: theme.textTheme.labelLarge),
+            Text(l.colorPickerFormats, style: theme.textTheme.labelLarge),
             const SizedBox(height: 12),
             _FormatCard(label: 'HEX',  value: formats.hex),
             const SizedBox(height: 8),
@@ -91,6 +85,45 @@ class ColorPickerScreen extends ConsumerWidget {
   }
 }
 
+// ── Picker wheel ───────────────────────────────────────────────────────────
+
+/// Keeps the picker's HSV value between rebuilds. ColorPicker re-derives HSV
+/// from the RGB colour on every rebuild, and RGB loses the hue at zero
+/// saturation/brightness: dragging into the black or white edge made the hue
+/// slider jump back to red.
+class _Wheel extends ConsumerStatefulWidget {
+  const _Wheel({required this.color});
+
+  final Color color;
+
+  @override
+  ConsumerState<_Wheel> createState() => _WheelState();
+}
+
+class _WheelState extends ConsumerState<_Wheel> {
+  HSVColor? _hsv;
+
+  @override
+  Widget build(BuildContext context) {
+    final hsv = _hsv;
+    // Changed from outside (palette, hex field): start from the new colour.
+    if (hsv == null || hsv.toColor().toARGB32() != widget.color.toARGB32()) {
+      _hsv = HSVColor.fromColor(widget.color);
+    }
+    return ColorPicker(
+      pickerColor: widget.color,
+      pickerHsvColor: _hsv,
+      onColorChanged: (c) =>
+          ref.read(selectedColorProvider.notifier).state = c,
+      onHsvColorChanged: (h) => _hsv = h,
+      labelTypes: const [],
+      pickerAreaBorderRadius: BorderRadius.circular(16),
+      displayThumbColor: true,
+      enableAlpha: false,
+    );
+  }
+}
+
 // ── Hex input ──────────────────────────────────────────────────────────────
 
 class _HexInput extends StatefulWidget {
@@ -105,6 +138,7 @@ class _HexInput extends StatefulWidget {
 
 class _HexInputState extends State<_HexInput> {
   late TextEditingController _ctrl;
+  bool _invalid = false;
 
   @override
   void initState() {
@@ -118,24 +152,33 @@ class _HexInputState extends State<_HexInput> {
     final newHex = _toHex(widget.color);
     if (_ctrl.text.toUpperCase() != newHex) {
       _ctrl.text = newHex;
+      _invalid = false;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return TextField(
       controller: _ctrl,
+      // Hex codes read left-to-right in every language.
+      textDirection: TextDirection.ltr,
       decoration: InputDecoration(
         prefixText: '#',
-        labelText: 'HEX color',
+        labelText: l.colorPickerHexLabel,
         hintText: '6366F1',
+        errorText: _invalid ? l.colorPickerHexInvalid : null,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
         filled: true,
         suffixIcon: IconButton(
+          tooltip: l.colorPickerApply,
           icon: const Icon(Icons.check_rounded),
           onPressed: _apply,
         ),
       ),
+      onChanged: (_) {
+        if (_invalid) setState(() => _invalid = false);
+      },
       inputFormatters: [
         FilteringTextInputFormatter.allow(RegExp(r'[0-9A-Fa-f]')),
         LengthLimitingTextInputFormatter(6),
@@ -151,8 +194,10 @@ class _HexInputState extends State<_HexInput> {
       try {
         final color = Color(int.parse('FF$hex', radix: 16));
         widget.ref.read(selectedColorProvider.notifier).state = color;
+        return;
       } catch (_) {}
     }
+    setState(() => _invalid = true);
   }
 
   String _toHex(Color c) =>
@@ -203,17 +248,20 @@ class _FormatCard extends StatelessWidget {
           Expanded(
             child: Text(
               value,
+              textDirection: TextDirection.ltr,
+              textAlign: TextAlign.start,
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontFamily: 'monospace',
               ),
             ),
           ),
           IconButton(
+            tooltip: AppLocalizations.of(context).commonCopy,
             onPressed: () {
               Clipboard.setData(ClipboardData(text: value));
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('$label copied!'),
+                  content: Text(AppLocalizations.of(context).colorPickerCopied(label)),
                   duration: const Duration(seconds: 2),
                 ),
               );
@@ -253,16 +301,20 @@ class _SuggestedPalette extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Quick palette', style: Theme.of(context).textTheme.labelLarge),
+        Text(l.colorPickerPalette, style: Theme.of(context).textTheme.labelLarge),
         const SizedBox(height: 12),
         Wrap(
           spacing: 10,
           runSpacing: 10,
           children: _palette.map((c) {
-            return GestureDetector(
+            return Semantics(
+              button: true,
+              label: l.colorPickerSwatch(ColorFormats(c).hex),
+              child: GestureDetector(
               onTap: () =>
                   ref.read(selectedColorProvider.notifier).state = c,
               child: Container(
@@ -278,6 +330,7 @@ class _SuggestedPalette extends StatelessWidget {
                         .withValues(alpha: 0.3),
                   ),
                 ),
+              ),
               ),
             );
           }).toList(),

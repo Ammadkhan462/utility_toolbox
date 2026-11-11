@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:utility_toolbox/core/widgets/tool_scaffold.dart';
 import 'package:utility_toolbox/features/loan_calculator/providers/loan_providers.dart';
+import 'package:utility_toolbox/l10n/gen/app_localizations.dart';
 
 const _accentColor = Color(0xFFF59E0B);
 
@@ -13,9 +16,11 @@ class LoanCalculatorScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final result   = ref.watch(loanResultProvider);
     final inYears  = ref.watch(tenureInYearsProvider);
+    final l        = AppLocalizations.of(context);
+    final locale   = _locale(context);
 
     return ToolScaffold(
-      title: 'Loan / EMI Calculator',
+      title: l.toolLoanCalculatorTitle,
       accentColor: _accentColor,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -24,30 +29,31 @@ class LoanCalculatorScreen extends ConsumerWidget {
           children: [
             // ── Inputs ──────────────────────────────────────────────────
             _InputCard(
-              label:       'Loan Amount',
-              prefix:      'Rs.',
-              hintText:    '1,000,000',
+              // No currency symbol: the app is used in many countries, so
+              // amounts are plain locale-formatted numbers.
+              label:       l.loanAmount,
+              hintText:    NumberFormat.decimalPattern(locale).format(1000000),
               initial:     ref.read(loanAmountProvider).toStringAsFixed(0),
               keyboardType: const TextInputType.numberWithOptions(decimal: false),
               onChanged:   (v) {
-                final parsed = double.tryParse(v.replaceAll(',', ''));
-                if (parsed != null) {
-                  ref.read(loanAmountProvider.notifier).state = parsed;
-                }
+                // Whole amounts only, so both "," and "." are grouping
+                // separators (1,000,000 / 1.000.000). Empty/invalid → 0 so
+                // the result clears instead of showing stale figures.
+                ref.read(loanAmountProvider.notifier).state =
+                    double.tryParse(v.replaceAll(RegExp('[.,]'), '')) ?? 0;
               },
             ),
             const SizedBox(height: 12),
             _InputCard(
-              label:       'Annual Interest Rate',
+              label:       l.loanInterestRate,
               suffix:      '%',
-              hintText:    '8.5',
+              hintText:    NumberFormat.decimalPattern(locale).format(8.5),
               initial:     ref.read(interestRateProvider).toString(),
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               onChanged:   (v) {
-                final parsed = double.tryParse(v);
-                if (parsed != null) {
-                  ref.read(interestRateProvider.notifier).state = parsed;
-                }
+                // Accept a decimal comma ("8,5"); empty means 0%.
+                ref.read(interestRateProvider.notifier).state =
+                    double.tryParse(v.replaceAll(',', '.')) ?? 0;
               },
             ),
             const SizedBox(height: 12),
@@ -74,7 +80,7 @@ class LoanCalculatorScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Enter valid loan details above\nto calculate EMI',
+                        l.loanEmpty,
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -99,7 +105,6 @@ class _InputCard extends StatelessWidget {
     required this.hintText,
     required this.initial,
     required this.onChanged,
-    this.prefix,
     this.suffix,
     this.keyboardType,
   });
@@ -108,7 +113,6 @@ class _InputCard extends StatelessWidget {
   final String           hintText;
   final String           initial;
   final void Function(String) onChanged;
-  final String?          prefix;
   final String?          suffix;
   final TextInputType?   keyboardType;
 
@@ -123,7 +127,6 @@ class _InputCard extends StatelessWidget {
       decoration: InputDecoration(
         labelText:   label,
         hintText:    hintText,
-        prefixText:  prefix != null ? '$prefix ' : null,
         suffixText:  suffix,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
         filled: true,
@@ -143,6 +146,7 @@ class _TenureInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Row(
       children: [
         Expanded(
@@ -151,16 +155,14 @@ class _TenureInput extends StatelessWidget {
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             decoration: InputDecoration(
-              labelText: inYears ? 'Tenure (Years)' : 'Tenure (Months)',
+              labelText: inYears ? l.loanTenureYears : l.loanTenureMonths,
               hintText:  inYears ? '5' : '60',
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
               filled: true,
             ),
             onChanged: (v) {
-              final parsed = double.tryParse(v);
-              if (parsed != null) {
-                ref.read(loanTenureProvider.notifier).state = parsed;
-              }
+              ref.read(loanTenureProvider.notifier).state =
+                  double.tryParse(v) ?? 0;
             },
           ),
         ),
@@ -176,13 +178,13 @@ class _TenureInput extends StatelessWidget {
           child: Row(
             children: [
               _TenureToggle(
-                label:    'Mo',
+                label:    l.loanToggleMonths,
                 selected: !inYears,
                 onTap: () =>
                     ref.read(tenureInYearsProvider.notifier).state = false,
               ),
               _TenureToggle(
-                label:    'Yr',
+                label:    l.loanToggleYears,
                 selected: inYears,
                 onTap: () =>
                     ref.read(tenureInYearsProvider.notifier).state = true,
@@ -212,7 +214,7 @@ class _TenureToggle extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
         decoration: BoxDecoration(
           color: selected ? _accentColor : Colors.transparent,
           borderRadius: BorderRadius.circular(13),
@@ -234,14 +236,47 @@ class _TenureToggle extends StatelessWidget {
 
 // ── Result summary ─────────────────────────────────────────────────────────
 
-class _ResultSummary extends StatelessWidget {
+class _ResultSummary extends ConsumerWidget {
   const _ResultSummary({required this.result});
 
   final LoanResult result;
 
+  /// Plain-text summary for copy / share.
+  String _summary(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final locale = _locale(context);
+    final rate = NumberFormat.decimalPattern(locale)
+      ..maximumFractionDigits = 2;
+    return [
+      l.toolLoanCalculatorTitle,
+      '${l.loanAmount}: ${_formatFull(locale, ref.read(loanAmountProvider))}',
+      '${l.loanInterestRate}: ${rate.format(ref.read(interestRateProvider))}%',
+      '${l.loanTenure}: ${l.loanMonths(result.schedule.length)}',
+      '${l.loanMonthlyEmi}: ${_formatFull(locale, result.emi)}',
+      '${l.loanTotalInterest}: ${_formatFull(locale, result.totalInterest)}',
+      '${l.loanTotalPayment}: ${_formatFull(locale, result.totalPayment)}',
+    ].join('\n');
+  }
+
+  Future<void> _copy(BuildContext context, WidgetRef ref) async {
+    final l = AppLocalizations.of(context);
+    await Clipboard.setData(ClipboardData(text: _summary(context, ref)));
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(l.commonCopied),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context);
+    final locale = _locale(context);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -251,8 +286,8 @@ class _ResultSummary extends StatelessWidget {
             _accentColor.withValues(alpha: 0.15),
             _accentColor.withValues(alpha: 0.05),
           ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: _accentColor.withValues(alpha: 0.3)),
@@ -260,38 +295,62 @@ class _ResultSummary extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            'Monthly EMI',
+            l.loanMonthlyEmi,
             style: theme.textTheme.labelLarge?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 6),
-          Text(
-            _formatAmount(result.emi),
-            style: theme.textTheme.displaySmall?.copyWith(
-              color: _accentColor,
-              fontWeight: FontWeight.w800,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              _formatFull(locale, result.emi),
+              style: theme.textTheme.displaySmall?.copyWith(
+                color: _accentColor,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ),
           const SizedBox(height: 20),
           Row(
             children: [
               _SummaryItem(
-                label: 'Principal',
-                value: _formatAmount(
+                label: l.loanPrincipal,
+                value: _formatCompact(
+                  locale,
                   result.totalPayment - result.totalInterest,
                 ),
                 color: const Color(0xFF3B82F6),
               ),
               _SummaryItem(
-                label: 'Total Interest',
-                value: _formatAmount(result.totalInterest),
+                label: l.loanTotalInterest,
+                value: _formatCompact(locale, result.totalInterest),
                 color: const Color(0xFFEF4444),
               ),
               _SummaryItem(
-                label: 'Total Payment',
-                value: _formatAmount(result.totalPayment),
+                label: l.loanTotalPayment,
+                value: _formatCompact(locale, result.totalPayment),
                 color: const Color(0xFF22C55E),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _copy(context, ref),
+                  icon: const Icon(Icons.copy_rounded, size: 18),
+                  label: Text(l.commonCopy),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => Share.share(_summary(context, ref)),
+                  icon: const Icon(Icons.share_rounded, size: 18),
+                  label: Text(l.commonShare),
+                ),
               ),
             ],
           ),
@@ -330,6 +389,8 @@ class _SummaryItem extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             label,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -355,11 +416,15 @@ class _PieBreakdown extends StatelessWidget {
     final total     = result.totalPayment;
     final pPct      = principal / total;
     final iPct      = result.totalInterest / total;
+    final l         = AppLocalizations.of(context);
+    final percent   = NumberFormat.percentPattern(_locale(context))
+      ..minimumFractionDigits = 1
+      ..maximumFractionDigits = 1;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Breakdown', style: theme.textTheme.labelLarge),
+        Text(l.loanBreakdown, style: theme.textTheme.labelLarge),
         const SizedBox(height: 10),
         ClipRRect(
           borderRadius: BorderRadius.circular(8),
@@ -380,14 +445,14 @@ class _PieBreakdown extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        Row(
+        Wrap(
+          spacing: 16,
+          runSpacing: 4,
           children: [
-            _Legend(color: const Color(0xFF3B82F6), label: 'Principal'),
-            const SizedBox(width: 16),
-            _Legend(color: const Color(0xFFEF4444), label: 'Interest'),
-            const Spacer(),
+            _Legend(color: const Color(0xFF3B82F6), label: l.loanPrincipal),
+            _Legend(color: const Color(0xFFEF4444), label: l.loanInterest),
             Text(
-              '${(iPct * 100).toStringAsFixed(1)}% interest',
+              l.loanInterestShare(percent.format(iPct)),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -408,6 +473,7 @@ class _Legend extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           width: 10,
@@ -443,6 +509,8 @@ class _AmortizationTableState extends State<_AmortizationTable> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l      = AppLocalizations.of(context);
+    final locale = _locale(context);
     final rows  = _expanded
         ? widget.schedule
         : widget.schedule.take(6).toList();
@@ -451,11 +519,12 @@ class _AmortizationTableState extends State<_AmortizationTable> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Amortization Schedule', style: theme.textTheme.labelLarge),
+            Expanded(
+              child: Text(l.loanSchedule, style: theme.textTheme.labelLarge),
+            ),
             Text(
-              '${widget.schedule.length} months',
+              l.loanMonths(widget.schedule.length),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -475,20 +544,20 @@ class _AmortizationTableState extends State<_AmortizationTable> {
             children: [
               // Header
               _TableRow(
-                month:     'Mo.',
-                principal: 'Principal',
-                interest:  'Interest',
-                balance:   'Balance',
+                month:     l.loanColMonth,
+                principal: l.loanPrincipal,
+                interest:  l.loanInterest,
+                balance:   l.loanColBalance,
                 isHeader:  true,
               ),
               const Divider(height: 1),
               ...rows.map((r) => Column(
                     children: [
                       _TableRow(
-                        month:     r.month.toString(),
-                        principal: _formatCompact(r.principal),
-                        interest:  _formatCompact(r.interest),
-                        balance:   _formatCompact(r.balance),
+                        month:     NumberFormat.decimalPattern(locale).format(r.month),
+                        principal: _formatCompact(locale, r.principal),
+                        interest:  _formatCompact(locale, r.interest),
+                        balance:   _formatCompact(locale, r.balance),
                       ),
                       if (r != rows.last) const Divider(height: 1),
                     ],
@@ -497,14 +566,14 @@ class _AmortizationTableState extends State<_AmortizationTable> {
                 const Divider(height: 1),
                 TextButton(
                   onPressed: () => setState(() => _expanded = true),
-                  child: const Text('Show all months'),
+                  child: Text(l.loanShowAll),
                 ),
               ],
               if (_expanded && widget.schedule.length > 6) ...[
                 const Divider(height: 1),
                 TextButton(
                   onPressed: () => setState(() => _expanded = false),
-                  child: const Text('Show less'),
+                  child: Text(l.loanShowLess),
                 ),
               ],
             ],
@@ -544,10 +613,17 @@ class _TableRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(
         children: [
-          SizedBox(width: 32, child: Text(month, style: style)),
-          Expanded(child: Text(principal, style: style, textAlign: TextAlign.right)),
-          Expanded(child: Text(interest,  style: style, textAlign: TextAlign.right)),
-          Expanded(child: Text(balance,   style: style, textAlign: TextAlign.right)),
+          SizedBox(
+            width: 44,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: AlignmentDirectional.centerStart,
+              child: Text(month, style: style),
+            ),
+          ),
+          Expanded(child: Text(principal, style: style, textAlign: TextAlign.end, maxLines: 1, overflow: TextOverflow.ellipsis)),
+          Expanded(child: Text(interest,  style: style, textAlign: TextAlign.end, maxLines: 1, overflow: TextOverflow.ellipsis)),
+          Expanded(child: Text(balance,   style: style, textAlign: TextAlign.end, maxLines: 1, overflow: TextOverflow.ellipsis)),
         ],
       ),
     );
@@ -556,15 +632,13 @@ class _TableRow extends StatelessWidget {
 
 // ── Formatters ─────────────────────────────────────────────────────────────
 
-String _formatAmount(double v) {
-  if (v >= 10000000) return 'Rs.${(v / 10000000).toStringAsFixed(2)}Cr';
-  if (v >= 100000)   return 'Rs.${(v / 100000).toStringAsFixed(2)}L';
-  if (v >= 1000)     return 'Rs.${(v / 1000).toStringAsFixed(1)}K';
-  return 'Rs.${v.toStringAsFixed(0)}';
-}
+String _locale(BuildContext context) =>
+    Localizations.localeOf(context).toLanguageTag();
 
-String _formatCompact(double v) {
-  if (v >= 100000) return '${(v / 100000).toStringAsFixed(1)}L';
-  if (v >= 1000)   return '${(v / 1000).toStringAsFixed(1)}K';
-  return v.toStringAsFixed(0);
-}
+/// Whole amount with the locale's grouping, e.g. 87,220 / 87.220.
+String _formatFull(String locale, double v) =>
+    (NumberFormat.decimalPattern(locale)..maximumFractionDigits = 0).format(v);
+
+/// Short amount in the locale's own style (1.2M, 12 लाख, 1,2 Mio. …).
+String _formatCompact(String locale, double v) =>
+    v < 1000 ? _formatFull(locale, v) : NumberFormat.compact(locale: locale).format(v);
