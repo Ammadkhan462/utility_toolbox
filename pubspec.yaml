@@ -1,7 +1,7 @@
 name: utility_toolbox
 description: A multi-tool utility app with QR, converter, PDF, text, OCR, and translation tools.
 publish_to: 'none'
-version: 1.2.0+9
+version: 1.2.1+10
 
 environment:
   sdk: ^3.8.0

@@ -60,6 +60,12 @@
 -dontwarn com.google.android.play.core.tasks.OnSuccessListener
 -dontwarn com.google.android.play.core.tasks.Task
 
+# Room / WorkManager: Room creates the generated *_Impl database by reflection.
+# R8 full mode drops the no-arg constructor unless it is kept explicitly,
+# which crashed 1.2.0 (9) at start-up in WorkManagerInitializer.
+-keep class * extends androidx.room.RoomDatabase { <init>(); }
+-keep class androidx.work.impl.WorkDatabase_Impl { <init>(); }
+
 # General rules
 # (No blanket `-dontwarn **`: it hid real missing-class problems. Add
 # targeted -dontwarn lines only for classes R8 actually reports.)

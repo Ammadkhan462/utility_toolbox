@@ -96,4 +96,9 @@ dependencies {
     implementation("com.google.android.gms:play-services-mlkit-text-recognition-chinese:16.0.1")
     implementation("com.google.android.gms:play-services-mlkit-text-recognition-japanese:16.0.1")
     implementation("com.google.android.gms:play-services-mlkit-text-recognition-korean:16.0.1")
+    // Play services Ads pulls WorkManager 2.7.0 with Room 2.2.5, whose keep
+    // rules don't survive R8 full mode: WorkDatabase_Impl loses its
+    // constructor and the release app crashes at start-up. Use a current
+    // WorkManager (and with it a current Room) instead.
+    implementation("androidx.work:work-runtime:2.10.0")
 }
