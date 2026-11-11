@@ -85,6 +85,8 @@ Tools in **bold** are new in 1.2.0.
 | TFLite runtime | ~2.8 MB | ~2.8 MB | needed for the upscaler |
 | Images | ~1.7 MB | 0 | vector logo |
 
+Measured by Play Console on the 1.2.0 (9) bundle: **35.5 MB for new installs, 11 MB smaller than 1.1.0** (about 20 s to download), with no devices dropped (12,608 phones, 6,838 tablets).
+
 Rule: any new dependency that adds more than 500 KB per device needs a usage case that beats the existing tools.
 
 ## 6. Quality gates for every release
